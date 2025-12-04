@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefWidth="400" prefHeight="300"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.rental.controller.LoginController">
+
+    <children>
+        <VBox alignment="CENTER" spacing="15" layoutX="80" layoutY="50">
+            <Text text="Login" style="-fx-font-size: 26px; -fx-font-weight: bold;" />
+
+            <TextField fx:id="usernameField" promptText="Username" prefWidth="240"/>
+            <PasswordField fx:id="passwordField" promptText="Password" prefWidth="240"/>
+
+            <Button text="Login" prefWidth="240" onAction="#handleLogin"
+                    style="-fx-background-color: #6c63ff; -fx-text-fill: white; -fx-font-weight: bold;"/>
+
+            <Label fx:id="errorLabel" textFill="red" />
+        </VBox>
+    </children>
+
+</AnchorPane>
