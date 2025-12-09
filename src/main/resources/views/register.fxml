@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefWidth="1280" prefHeight="700"
+            style="-fx-background-color: #FAFAFA;"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rental.controller.RegisterController"
+            styleClass="root">
+
+    <children>
+
+    <BorderPane prefHeight="80" style="-fx-background-color: linear-gradient(to right, #f0f0f0, #dcdcdc);"
+            AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+
+
+            <!-- LEFT -->
+            <left>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <ImageView fitHeight="40" fitWidth="40" preserveRatio="true">
+                        <image>
+                            <Image url="images/logo.png"/>
+                        </image>
+                    </ImageView>
+
+                    <VBox spacing="0" alignment="CENTER_LEFT">
+                        <Label text="ระบบจัดการ" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                        <Label text="พื้นที่ให้เช่าจำหน่ายสินค้า" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                    </VBox>
+                </HBox>
+            </left>
+
+            <center>
+                <Region HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </center>
+
+            <!-- RIGHT -->
+            <right>
+                <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 10 20 10 0;">
+                    <Button fx:id="userButton"
+                            text="ลงชื่อเข้าใช้"
+                            style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #2E355E;"
+                            onAction="#handleUserButton"/>
+                    <ImageView fitHeight="35" fitWidth="35" preserveRatio="true">
+                        <image>
+                            <Image url="images/user_icon.png"/>
+                        </image>
+                    </ImageView>
+                </HBox>
+            </right>
+
+
+        </BorderPane>
+
+        <!-- Title (Center Top) --> 
+        <VBox alignment="CENTER" spacing="5" AnchorPane.topAnchor="100" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"> 
+            <Label text="ระบบจัดการ" style="-fx-font-size: 26px; -fx-text-fill: #2E2E2E;"/> 
+            <Label text="พื้นที่ให้เช่าจำหน่ายสินค้า" style="-fx-font-size: 26px; -fx-text-fill: #2E2E2E;"/> 
+        </VBox>
+
+        <!-- ========== BEAUTIFUL CARD ========== -->
+<StackPane AnchorPane.topAnchor="200" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+    <VBox alignment="TOP_CENTER" spacing="25"
+          maxWidth="500"
+          style="-fx-background-color: #FAFAFA;
+                 -fx-background-radius: 20;
+                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 35, 0, 0, 12);">
+
+        <children>
+
+            <!-- NAVY BAR -->
+            <Region prefHeight="14" maxWidth="Infinity"
+            style="
+                -fx-background-color: #2E355E;
+                -fx-background-radius: 20 20 0 0;
+            "/>
+            <!-- TITLE -->
+            <Label text="สมัครสมาชิก"
+                   style="-fx-font-size: 22px;
+                          -fx-font-weight: bold;
+                          -fx-text-fill: #333;" />
+
+            <!-- FORM -->
+            <VBox spacing="16" style="-fx-padding: 0 70 0 70;">
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="Username :" minWidth="130" style="-fx-font-size: 16px; -fx-text-fill: #444;"/>
+                    <TextField fx:id="usernameField" prefWidth="280" prefHeight="30"
+                               promptText="ป้อน ชื่อผู้ใช้"
+                               style="-fx-background-radius: 8;
+                                      -fx-border-radius: 8;
+                                      -fx-border-color: #C7C9D1;
+                                      -fx-background-color: #F7F7F9;"/>
+                </HBox>
+
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="Password :" minWidth="130" style="-fx-font-size: 16px; -fx-text-fill: #444;"/>
+                    <PasswordField fx:id="passwordField" prefWidth="280" prefHeight="30"
+                                   promptText="ป้อน รหัสผ่าน"
+                                   style="-fx-background-radius: 8;
+                                          -fx-border-radius: 8;
+                                          -fx-border-color: #C7C9D1;
+                                          -fx-background-color: #F7F7F9;"/>
+                </HBox>
+
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="ชื่อ-สกุล :" minWidth="130" style="-fx-font-size: 16px; -fx-text-fill: #444;"/>
+                    <TextField fx:id="nameField" prefWidth="280" prefHeight="30"
+                               promptText="ป้อน ชื่อ-นามสกุล"
+                               style="-fx-background-radius: 8;
+                                      -fx-border-radius: 8;
+                                      -fx-border-color: #C7C9D1;
+                                      -fx-background-color: #F7F7F9;"/>
+                </HBox>
+
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="E-mail :" minWidth="130" style="-fx-font-size: 16px; -fx-text-fill: #444;"/>
+                    <TextField fx:id="emailField" prefWidth="280" prefHeight="30"
+                               promptText="ป้อน Email"
+                               style="-fx-background-radius: 8;
+                                      -fx-border-radius: 8;
+                                      -fx-border-color: #C7C9D1;
+                                      -fx-background-color: #F7F7F9;"/>
+                </HBox>
+
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="เบอร์โทร :" minWidth="130" style="-fx-font-size: 16px; -fx-text-fill: #444;"/>
+                    <TextField fx:id="phoneField" prefWidth="280" prefHeight="30"
+                               promptText="ป้อน เบอร์โทรศัพท์"
+                               style="-fx-background-radius: 8;
+                                      -fx-border-radius: 8;
+                                      -fx-border-color: #C7C9D1;
+                                      -fx-background-color: #F7F7F9;"/>
+                </HBox>
+            </VBox>
+
+            <!-- BUTTONS -->
+            <HBox alignment="CENTER" spacing="40" style="-fx-padding: 10 0 20 0;">
+                <Button text="ย้อนกลับ" fx:id="cancelButton"
+                        onAction="#handleCancel"
+                        prefWidth="130" prefHeight="42"
+                        style="-fx-background-color: #D5D5D8;
+                               -fx-text-fill: #333;
+                               -fx-background-radius: 14;
+                               -fx-font-size: 15px;"/>
+
+                <Button text="ยืนยัน" fx:id="registerButton"
+                        onAction="#handleRegister"
+                        prefWidth="130" prefHeight="42"
+                        style="-fx-background-color: #2E355E;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 14;
+                               -fx-font-size: 15px;"/>
+            </HBox>
+
+        </children>
+    </VBox>
+</StackPane>
+
+
+    </children>
+</AnchorPane>

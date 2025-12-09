@@ -1,5 +1,6 @@
-com\rental\util\AlertUtil.class
 com\rental\controller\LoginController.class
+com\rental\controller\RegisterController.class
+com\rental\util\AlertUtil.class
 com\rental\config\SupabaseConfig.class
 com\rental\database\SupabaseClient.class
 com\rental\Main.class
