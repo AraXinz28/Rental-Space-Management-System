@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefWidth="500" prefHeight="450"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.rental.controller.BookingController">
+
+    <children>
+        <VBox alignment="TOP_CENTER" spacing="15" layoutX="60" layoutY="20">
+
+            <Text text="จองพื้นที่" style="-fx-font-size: 28px; -fx-font-weight: bold;" />
+
+            <!-- ข้อมูลพื้นที่ -->
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints halignment="RIGHT" minWidth="120"/>
+                    <ColumnConstraints minWidth="200"/>
+                </columnConstraints>
+
+                <Label text="หมายเลขพื้นที่:" GridPane.rowIndex="0"/>
+                <Label fx:id="spaceIdLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="โซน:" GridPane.rowIndex="1"/>
+                <Label fx:id="zoneLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="ราคา:" GridPane.rowIndex="2"/>
+                <Label fx:id="priceLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <Label text="ขนาด:" GridPane.rowIndex="3"/>
+                <Label fx:id="sizeLabel" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <Separator prefWidth="300"/>
+
+            <!-- ฟอร์มกรอกข้อมูลผู้เช่า -->
+            <VBox spacing="10" alignment="CENTER">
+
+                <DatePicker fx:id="startDatePicker" promptText="วันที่เริ่มเช่า" prefWidth="250"/>
+
+                <TextField fx:id="daysField" promptText="จำนวนวันที่ต้องการเช่า" prefWidth="250"/>
+
+                <Button text="ยืนยันการจอง"
+                        onAction="#handleBooking"
+                        prefWidth="250"
+                        style="-fx-background-color: #6c63ff; -fx-text-fill: white; -fx-font-weight: bold;"/>
+
+                <Label fx:id="errorLabel" textFill="red"/>
+
+            </VBox>
+        </VBox>
+    </children>
+</AnchorPane>
