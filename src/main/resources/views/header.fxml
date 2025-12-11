@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane
+        prefHeight="60"
+        maxWidth="Infinity"
+        style="-fx-background-color: linear-gradient(to right, #f0f0f0, #dcdcdc);"
+        xmlns="http://javafx.com/javafx/17"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="com.rental.controller.HeaderController">
+
+    <!-- LEFT LOGO -->
+    <left>
+        <HBox spacing="10" alignment="CENTER_LEFT"
+              HBox.hgrow="NEVER"
+              BorderPane.alignment="CENTER_LEFT">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+            <ImageView fitHeight="40" preserveRatio="true">
+                <image><Image url="images/logo.png"/></image>
+            </ImageView>
+
+            <VBox spacing="0" alignment="CENTER_LEFT">
+                <Label text="ระบบจัดการ" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <Label text="พื้นที่ให้เช่าจำหน่ายสินค้า" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+            </VBox>
+        </HBox>
+    </left>
+
+    <!-- CENTER: EXPAND PUSH -->
+    <center>
+        <Region
+            HBox.hgrow="ALWAYS"
+            VBox.vgrow="ALWAYS"
+            BorderPane.alignment="CENTER"
+            maxWidth="Infinity"
+            />
+    </center>
+
+    <!-- RIGHT USER SECTION -->
+    <right>
+        <HBox spacing="10" alignment="CENTER_RIGHT"
+              style="-fx-padding: 10 20 10 0;"
+              HBox.hgrow="NEVER"
+              BorderPane.alignment="CENTER_RIGHT">
+
+            <Button fx:id="userButton"
+                    text="ลงชื่อเข้าใช้"
+                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #2E355E;"
+                    onAction="#handleUserButton"/>
+
+            <ImageView fitHeight="35" preserveRatio="true">
+                <image><Image url="images/user_icon.png"/></image>
+            </ImageView>
+        </HBox>
+    </right>
+
+</BorderPane>
