@@ -1,6 +1,7 @@
 package com.rental.database;
 
 import com.rental.config.SupabaseConfig;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -59,7 +60,7 @@ public class SupabaseClient {
         return response.body();
     }
 
-    // 🔹 UPDATE
+    // 🔹 UPDATE (ทั่วไป)
     public String update(String table, String column, String value, String jsonBody) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url + "/rest/v1/" + table + "?" + column + "=eq." + value))
@@ -84,5 +85,11 @@ public class SupabaseClient {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
+    }
+
+    // ✅ NEW: อัปเดตสถานะตาม id โดยเฉพาะ
+    public String updateStatusById(String table, int id, String newStatus) throws Exception {
+        String jsonBody = "{\"status\":\"" + newStatus + "\"}";
+        return update(table, "id", String.valueOf(id), jsonBody);
     }
 }
