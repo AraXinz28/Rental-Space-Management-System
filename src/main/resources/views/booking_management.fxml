@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.rental.controller.BookingManagementController"
@@ -23,6 +24,7 @@
     <center>
         <VBox spacing="20" VBox.vgrow="ALWAYS">
             <padding><Insets top="20" right="30" bottom="30" left="30"/></padding>
+            
 
             <!-- Filter Section -->
             <VBox spacing="30"

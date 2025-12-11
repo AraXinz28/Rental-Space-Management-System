@@ -1,3 +1,4 @@
+/* ฟอนต์ Prompt ใช้เป็นค่าเริ่มต้นทั้งโปรเจกต์ */
 .root {
     font-family: 'Prompt', sans-serif;
     font-size: 14px;
@@ -5,9 +6,21 @@
     -fx-font-size: 14px;
 }
 
+/* ครอบคลุมทุก component */
 .label, .button, .text-field, .combo-box, .date-picker, .table-view {
     font-family: 'Prompt', sans-serif;
-    font-size: 14px;
     -fx-font-family: 'Prompt';
+}
+
+/* ตัวอย่าง class สำหรับปุ่มหลัก */
+.btn-save {
+    background-color: #28a745;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
     -fx-font-size: 14px;
+    -fx-font-weight: bold;
 }

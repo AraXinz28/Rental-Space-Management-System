@@ -1,10 +1,11 @@
 package com.rental.controller;
 
-import com.rental.util.Navigation;
+import com.rental.util.SceneManager;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 
 public class SidebaradminController {
 
@@ -32,30 +33,55 @@ public class SidebaradminController {
     @FXML
     private void goToZone(MouseEvent e) {
         setActive(zoneMenu);
-        Navigation.goTo("zone_management.fxml", (Node) e.getSource());
+        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        try {
+            SceneManager.switchScene(stage, "/views/zone_management.fxml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @FXML
     private void goToBooking(MouseEvent e) {
         setActive(bookingMenu);
-        Navigation.goTo("booking_management.fxml", (Node) e.getSource());
+        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        try {
+            SceneManager.switchScene(stage, "/views/booking_management.fxml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @FXML
     private void goToCustomer(MouseEvent e) {
         setActive(customerMenu);
-        Navigation.goTo("customer_management.fxml", (Node) e.getSource());
+        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        try {
+            SceneManager.switchScene(stage, "/views/customer_management.fxml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @FXML
     private void goToPayment(MouseEvent e) {
         setActive(paymentMenu);
-        Navigation.goTo("payment_check.fxml", (Node) e.getSource());
+        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        try {
+            SceneManager.switchScene(stage, "/views/payment_check.fxml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @FXML
     private void goToHistory(MouseEvent e) {
         setActive(historyMenu);
-        Navigation.goTo("history.fxml", (Node) e.getSource());
+        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        try {
+            SceneManager.switchScene(stage, "/views/history.fxml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.rental;
 
+import com.rental.util.SceneManager;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,6 +13,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        SceneManager.switchScene(stage, "/views/booking_management.fxml");
+
 
         // โหลด FXML
         Parent root = FXMLLoader.load(getClass().getResource("/views/booking_management.fxml"));
