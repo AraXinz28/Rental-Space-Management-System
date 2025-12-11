@@ -1,0 +1,13 @@
+.root {
+    font-family: 'Prompt', sans-serif;
+    font-size: 14px;
+    -fx-font-family: 'Prompt';
+    -fx-font-size: 14px;
+}
+
+.label, .button, .text-field, .combo-box, .date-picker, .table-view {
+    font-family: 'Prompt', sans-serif;
+    font-size: 14px;
+    -fx-font-family: 'Prompt';
+    -fx-font-size: 14px;
+}
