@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.rental.controller.BookingManagementController"
@@ -22,10 +23,11 @@
     <!-- ===== Center: Filter + TableView ===== -->
     <center>
         <VBox spacing="20" VBox.vgrow="ALWAYS">
-            <padding><Insets top="20" right="30" bottom="20" left="30"/></padding>
+            <padding><Insets top="20" right="30" bottom="30" left="30"/></padding>
+            
 
             <!-- Filter Section -->
-            <VBox spacing="15"
+            <VBox spacing="30"
                   style="-fx-background-color: white;
                          -fx-border-color: #dee2e6;
                          -fx-border-width: 0 0 2 0;">
@@ -71,10 +73,10 @@
     <bottom>
         <HBox alignment="CENTER_RIGHT">
             <padding><Insets top="15" right="30" bottom="20" left="20"/></padding>
-            <Button fx:id="saveBtn" text="บันทึกการอนุมัติทั้งหมด"
+            <Button fx:id="saveBtn" text="บันทึก"
                     style="-fx-background-color: #28a745; -fx-text-fill: white;
                            -fx-font-size: 14; -fx-font-weight: bold;"
-                    prefWidth="240" prefHeight="45"/>
+                    prefWidth="140" prefHeight="45"/>
         </HBox>
     </bottom>
 

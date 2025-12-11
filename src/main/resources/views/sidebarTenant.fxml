@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/23"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.rental.controller.SidebartController"
+       fx:id="menu"
+      prefWidth="280">
+
+  
+
+    <!-- MENU -->
+    <VBox spacing="10">
+        <padding>
+            <Insets top="10" right="0" bottom="0" left="0"/>
+        </padding>
+
+        <!-- 1. หน้าหลัก -->
+        <HBox fx:id="homeMenu" spacing="10" alignment="CENTER_LEFT"
+              onMouseClicked="#goToHome">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <ImageView fitHeight="22" fitWidth="22" preserveRatio="true">
+                <image><Image url="@/images/iconhome.png"/></image>
+            </ImageView>
+            <Label text="หน้าหลัก" />
+        </HBox>
+
+        <!-- 2. ค้นหา/ดูพื้นที่ -->
+        <HBox fx:id="searchMenu" spacing="10" alignment="CENTER_LEFT"
+              onMouseClicked="#goToSearch">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <ImageView fitHeight="22" fitWidth="22" preserveRatio="true">
+                <image><Image url="@/images/iconsearch.png"/></image>
+            </ImageView>
+            <Label text="ค้นหา/ดูพื้นที่" />
+        </HBox>
+
+        <!-- 3.จองพื้นที่-->
+        <HBox fx:id="bookingMenu" spacing="10" alignment="CENTER_LEFT"
+              onMouseClicked="#goToBooking">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <ImageView fitHeight="22" fitWidth="22" preserveRatio="true">
+                <image><Image url="@/images/iconpen.png"/></image>
+            </ImageView>
+            <Label text="จัดการผู้เช่า" />
+        </HBox>
+
+        <!-- 4. ชำระเงิน -->
+        <HBox fx:id="paymentMenu" spacing="10" alignment="CENTER_LEFT"
+              onMouseClicked="#goToPayment">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <ImageView fitHeight="22" fitWidth="22" preserveRatio="true">
+                <image><Image url="@/images/iconshop.png"/></image>
+            </ImageView>
+            <Label text="ชำระเงิน" />
+        </HBox>
+
+        <!-- 5. ประวัติการเช่า -->
+        <HBox fx:id="historyMenu" spacing="10" alignment="CENTER_LEFT"
+              onMouseClicked="#goToHistory">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <ImageView fitHeight="22" fitWidth="22" preserveRatio="true">
+                <image><Image url="@/images/iconcalen.png"/></image>
+            </ImageView>
+            <Label text="ประวัติการเช่า" />
+        </HBox>
+
+    </VBox>
+
+</VBox>

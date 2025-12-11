@@ -5,7 +5,9 @@ C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\controller\Head
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\controller\LoginController.java
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\controller\RegisterController.java
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\controller\SidebaradminController.java
+C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\controller\SidebartController.java
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\database\SupabaseClient.java
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\Main.java
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\util\AlertUtil.java
 C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\util\Navigation.java
+C:\OOP93\Rental-Space-Management-System\src\main\java\com\rental\util\SceneManager.java

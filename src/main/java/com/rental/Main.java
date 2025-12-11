@@ -1,26 +1,41 @@
 package com.rental;
 
+import com.rental.util.SceneManager;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        SceneManager.switchScene(stage, "/views/booking.fxml");
 
+
+        // โหลด FXML
         Parent root = FXMLLoader.load(getClass().getResource("/views/booking.fxml"));
 
-        Scene scene = new Scene(root); // ไม่ fix ขนาด
+         Font.loadFont(getClass().getResource("/fonts/Prompt-Regular.ttf").toExternalForm(), 14);
+         Font.loadFont(getClass().getResource("/fonts/Prompt-Bold.ttf").toExternalForm(), 14);
 
+
+        // สร้าง Scene และเชื่อม CSS
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(
+            getClass().getResource("/css/style.css").toExternalForm()
+        );
+
+        // ตั้งค่า Stage
         stage.setTitle("ระบบจัดการพื้นที่ให้เช่าจำหน่ายสินค้า");
         stage.setScene(scene);
-        stage.setResizable(true);  // อนุญาตให้ขยาย/ย่อหน้าต่าง
+        stage.setResizable(true);
         stage.show();
 
-        // ขยายเต็มหน้าจอ (ถ้าอยาก)
+        // ถ้าอยากเปิดเต็มหน้าจอ
         // stage.setMaximized(true);
     }
 
