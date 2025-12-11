@@ -13,11 +13,11 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        SceneManager.switchScene(stage, "/views/booking.fxml");
+        SceneManager.switchScene(stage, "/views/managerental.fxml");
 
 
         // โหลด FXML
-        Parent root = FXMLLoader.load(getClass().getResource("/views/booking.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/views/managerental.fxml"));
 
          Font.loadFont(getClass().getResource("/fonts/Prompt-Regular.ttf").toExternalForm(), 14);
          Font.loadFont(getClass().getResource("/fonts/Prompt-Bold.ttf").toExternalForm(), 14);

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.rental.controller.ManageTenantsController"
+      spacing="20"
+      alignment="TOP_RIGHT"
+      style="-fx-padding: 30 200 30 250; -fx-background-color: #ffffff;">
+
+    <Region minHeight="80"/>
+
+    <!-- ✅ หัวข้อชิดซ้ายของตาราง -->
+    <HBox alignment="CENTER_LEFT" prefWidth="1000">
+        <Label text="จัดการผู้เช่า"
+               style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- ✅ ฟอร์มกรองข้อมูล -->
+    <HBox spacing="15" alignment="CENTER_LEFT" prefWidth="1000">
+        <TextField fx:id="nameField" promptText="ชื่อลูกค้า" style="-fx-pref-width: 200;"/>
+        <TextField fx:id="phoneField" promptText="เบอร์โทร" style="-fx-pref-width: 200;"/>
+        <TextField fx:id="emailField" promptText="อีเมล์" style="-fx-pref-width: 200;"/>
+
+        <ComboBox fx:id="pageSizeCombo" promptText="แสดงต่อหน้า" style="-fx-pref-width: 120;"/>
+
+        <Button text="กรองข้อมูล"
+                onAction="#onFilterClick"
+                style="-fx-background-color: #7c7c7cff; -fx-text-fill: white; -fx-background-radius: 5;"/>
+
+        <Button text="รีเซ็ต"
+                onAction="#onResetClick"
+                style="-fx-background-color: #cccccc; -fx-text-fill: black; -fx-background-radius: 5;"/>
+    </HBox>
+
+    <!-- ✅ ตาราง 4 คอลัมน์ -->
+    <TableView fx:id="tenantTable" prefHeight="500" prefWidth="1000">
+        <columns>
+            <TableColumn fx:id="colName" text="ชื่อลูกค้า" prefWidth="250"/>
+            <TableColumn fx:id="colPhone" text="เบอร์โทร" prefWidth="200"/>
+            <TableColumn fx:id="colEmail" text="อีเมล์" prefWidth="250"/>
+            <TableColumn fx:id="colContact" text="ติดต่อ" prefWidth="120"/>
+        </columns>
+    </TableView>
+
+</VBox>
