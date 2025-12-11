@@ -1,3 +1,5 @@
 .env
 *.env
 target/ 
+*.lst
+maven-status/
