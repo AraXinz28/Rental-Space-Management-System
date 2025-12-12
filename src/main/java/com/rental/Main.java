@@ -22,17 +22,13 @@ public class Main extends Application {
             System.err.println("❌ ERROR: ไม่สามารถโหลดไฟล์ FXML ได้: /views/booking.fxml");
             return;
         }
-
-        // ควบคุมขนาดหน้าจอให้คงที่
-        stage.setWidth(1280);
-        stage.setHeight(700);
-        stage.setMinWidth(1280);
-        stage.setMinHeight(700);
-        stage.setMaxWidth(1280);
-        stage.setMaxHeight(700);
-        stage.setResizable(false);
-
+// กำหนดชื่อหน้าต่าง
         stage.setTitle("ระบบจัดการพื้นที่ให้เช่าจำหน่ายสินค้า");
+
+        // กำหนด Scene ให้ Stage
+        stage.setScene(scene);
+        
+        // แสดงผลหน้าต่าง
         stage.show();
     }
 

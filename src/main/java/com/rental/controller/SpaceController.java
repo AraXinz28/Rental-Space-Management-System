@@ -173,6 +173,7 @@ public class SpaceController implements Initializable {
         HBox header = new HBox(16, titleLabel, statusLabel);
         header.setAlignment(Pos.CENTER_LEFT);
 
+        // เมธอดสร้างแถวรายละเอียด
         HBox zoneRow  = createDetailRow("iconzone.png", "โซน", zone);
         HBox sizeRow  = createDetailRow("iconarea.png", "ขนาดพื้นที่", sizeText + " เมตร");
         HBox priceRow = createDetailRow("iconprice.png", "ราคาค่าเช่า", "150 บาท/วัน");
@@ -181,6 +182,7 @@ public class SpaceController implements Initializable {
 
         VBox detailBox = new VBox(16, zoneRow, sizeRow, priceRow, typeRow, dateRow);
 
+        // ปุ่มปิดและจอง
         Button closeBtn = new Button("ปิด");
         closeBtn.setPrefWidth(100);
 
@@ -198,12 +200,14 @@ public class SpaceController implements Initializable {
 
         root.getChildren().addAll(header, detailBox, buttonBar);
 
+        // การตั้งค่า Stage
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("รายละเอียดพื้นที่");
         dialog.setScene(new Scene(root));
-        dialog.sizeToScene();  // สำคัญมาก: ทำให้หน้าต่างขยายพอดีกับเนื้อหา
+        dialog.sizeToScene(); 
 
+        // การจัดการปุ่ม
         closeBtn.setOnAction(e -> dialog.close());
         bookBtn.setOnAction(e -> {
             // ใส่โค้ดการจองในอนาคตตรงนี้

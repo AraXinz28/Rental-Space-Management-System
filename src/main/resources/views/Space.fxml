@@ -60,7 +60,6 @@
                                   prefWidth="180"
                                   prefHeight="40"
                                   style="-fx-background-radius: 8;"/>
-
                     </children>
                 </HBox>
 
@@ -72,6 +71,7 @@
                                 <DatePicker/>
                             </children>
                         </HBox>
+                        
                         <Button text=" ล้างตัวกรอง"
                                 prefWidth="120"
                                 prefHeight="40"
@@ -93,7 +93,7 @@
 
                 <Label text="ผังเเผนที่"
                        style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-
+                       
                 <TabPane tabClosingPolicy="UNAVAILABLE">
                     <tabs>
                         <Tab text="โซน A"/>
@@ -105,7 +105,6 @@
                         <Tab text="โซน G"/>
                     </tabs>
                 </TabPane>
-
                 <HBox spacing="30" alignment="CENTER_LEFT">
                     <children>
                         <HBox spacing="8">
@@ -138,7 +137,6 @@
                                 style="-fx-background-color: transparent;
                                        -fx-text-fill: #636568ff;
                                        -fx-underline: true;"/>
-
                     </children>
                 </HBox>
 
@@ -153,9 +151,7 @@
 
                     <children>
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="0" GridPane.columnIndex="0">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="0" GridPane.columnIndex="0">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A01" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -163,9 +159,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #bac04dff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="0" GridPane.columnIndex="1">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="0" GridPane.columnIndex="1">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A02" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -173,9 +167,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #982d2dff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="0" GridPane.columnIndex="2">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="0" GridPane.columnIndex="2">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A03" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -183,9 +175,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #982d2dff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="0" GridPane.columnIndex="3">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="0" GridPane.columnIndex="3">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A04" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -193,9 +183,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="0" GridPane.columnIndex="4">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="0" GridPane.columnIndex="4">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A05" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -204,9 +192,7 @@
                         </VBox>
 
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="1" GridPane.columnIndex="0">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="1" GridPane.columnIndex="0">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A06" style="-fx-text-fill: #000000ff;-fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -214,9 +200,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="1" GridPane.columnIndex="1">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A07" style="-fx-text-fill: #000000ff;-fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -224,9 +208,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="1" GridPane.columnIndex="2">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="1" GridPane.columnIndex="2">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A08" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -234,9 +216,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #bac04dff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="1" GridPane.columnIndex="3">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="1" GridPane.columnIndex="3">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A09" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -244,9 +224,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #bac04dff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="1" GridPane.columnIndex="4">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="1" GridPane.columnIndex="4">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A10" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -255,9 +233,7 @@
                         </VBox>
 
                         <VBox style="-fx-background-color: #6c757d; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="2" GridPane.columnIndex="0">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="2" GridPane.columnIndex="0">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A11" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -265,9 +241,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #982d2dff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="2" GridPane.columnIndex="1">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="2" GridPane.columnIndex="1">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A12" style="-fx-text-fill: #000000ff;; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -275,9 +249,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="2" GridPane.columnIndex="2">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="2" GridPane.columnIndex="2">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A13" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -285,9 +257,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #6c757d; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="2" GridPane.columnIndex="3">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="2" GridPane.columnIndex="3">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A14" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
@@ -295,9 +265,7 @@
                             </children>
                         </VBox>
                         <VBox style="-fx-background-color: #2e8b61ff; -fx-background-radius: 12;"
-                              alignment="CENTER"
-                              onMouseClicked="#handleSpaceClick"
-                              GridPane.rowIndex="2" GridPane.columnIndex="4">
+                              alignment="CENTER" onMouseClicked="#handleSpaceClick" GridPane.rowIndex="2" GridPane.columnIndex="4">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <children>
                                 <Label text="A15" style="-fx-text-fill: #000000ff; -fx-font-size: 18; -fx-font-weight: bold;"/>
