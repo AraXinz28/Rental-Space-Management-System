@@ -16,10 +16,10 @@ public class Main extends Application {
         Font.loadFont(getClass().getResource("/fonts/Prompt-Bold.ttf").toExternalForm(), 14);
 
         // โหลดหน้าแรก (🔥 ได้ Scene กลับมาที่นี่)
-        Scene scene = SceneManager.switchScene(stage, "/views/booking_management.fxml");
+        Scene scene = SceneManager.switchScene(stage, "/views/managerental.fxml");
 
         if (scene == null) {
-            System.err.println("❌ ERROR: ไม่สามารถโหลดไฟล์ FXML ได้: /views/booking_management.fxml");
+            System.err.println("❌ ERROR: ไม่สามารถโหลดไฟล์ FXML ได้: /views/booking.fxml");
             return;
         }
 

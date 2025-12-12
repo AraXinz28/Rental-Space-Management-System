@@ -8,6 +8,7 @@ D:\rental-space-management\src\main\java\com\rental\controller\ManageTenantsCont
 D:\rental-space-management\src\main\java\com\rental\controller\RegisterController.java
 D:\rental-space-management\src\main\java\com\rental\controller\SidebaradminController.java
 D:\rental-space-management\src\main\java\com\rental\controller\SidebartController.java
+D:\rental-space-management\src\main\java\com\rental\controller\SpaceController.java
 D:\rental-space-management\src\main\java\com\rental\database\SupabaseClient.java
 D:\rental-space-management\src\main\java\com\rental\Main.java
 D:\rental-space-management\src\main\java\com\rental\util\AlertUtil.java
