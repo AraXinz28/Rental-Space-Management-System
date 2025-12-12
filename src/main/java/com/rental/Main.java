@@ -16,7 +16,7 @@ public class Main extends Application {
         Font.loadFont(getClass().getResource("/fonts/Prompt-Bold.ttf").toExternalForm(), 14);
 
         // โหลดหน้าแรก (🔥 ได้ Scene กลับมาที่นี่)
-        Scene scene = SceneManager.switchScene(stage, "/views/managerental.fxml");
+        Scene scene = SceneManager.switchScene(stage, "/views/Space.fxml");
 
         if (scene == null) {
             System.err.println("❌ ERROR: ไม่สามารถโหลดไฟล์ FXML ได้: /views/booking.fxml");
