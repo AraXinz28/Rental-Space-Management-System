@@ -1,5 +1,7 @@
 package com.rental.controller;
 
+import java.util.Arrays;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -44,8 +46,8 @@ public void initialize() {
 
     // ✅ ล็อกคอลัมน์ไว้แค่ 4 ตัว ไม่ให้ JavaFX สร้างเพิ่ม
     tenantTable.getColumns().setAll(Arrays.asList(colName, colPhone, colEmail, colContact));
-    // ✅ ป้องกันคอลัมน์ล้นหรือขยายมั่ว
-    tenantTable.setColumnResizePolicy(param -> true);}
+tenantTable.setColumnResizePolicy(param -> true);
+}
 
 
     private void setupContactButton() {

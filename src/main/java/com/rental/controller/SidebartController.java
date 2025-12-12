@@ -16,19 +16,63 @@ public class SidebartController {
     @FXML private HBox historyMenu;
 
     private HBox[] menus;
+    private HBox activeMenu;
+
+    // Static variable เก็บเมนู active ล่าสุด
+    private static String lastActiveMenu = "home"; // เริ่มต้นเป็น home
 
     @FXML
     private void initialize() {
+        // รวมเมนูทั้งหมด
         menus = new HBox[]{homeMenu, searchMenu, bookingMenu, paymentMenu, historyMenu};
-        setActive(bookingMenu);
+
+        // เซ็ตเมนู active ตามค่า lastActiveMenu
+        switch (lastActiveMenu) {
+            case "home": setActive(homeMenu); break;
+            case "search": setActive(searchMenu); break;
+            case "booking": setActive(bookingMenu); break;
+            case "payment": setActive(paymentMenu); break;
+            case "history": setActive(historyMenu); break;
+        }
+
+        // เพิ่ม hover effect ให้แต่ละเมนู
+        for (HBox m : menus) {
+            m.setOnMouseEntered(e -> {
+                if (m != activeMenu) {
+                    m.setStyle("-fx-background-color: #E0E0E0;");
+                }
+            });
+
+            m.setOnMouseExited(e -> {
+                if (m != activeMenu) {
+                    m.setStyle("");
+                }
+            });
+        }
     }
 
-    private void setActive(HBox activeMenu) {
+    /**
+     * ฟังก์ชันเซ็ต active menu
+     */
+    private void setActive(HBox menu) {
+        // รีเซ็ตสีทุกเมนู
         for (HBox m : menus) {
-            m.setStyle(""); // รีเซ็ตทุกอัน
+            m.setStyle("");
         }
-        activeMenu.setStyle("-fx-background-color: #E0E0E0;");
+
+        // เซ็ตสี active
+        menu.setStyle("-fx-background-color: #E0E0E0;");
+        activeMenu = menu;
+
+        // อัพเดต lastActiveMenu
+        if (menu == homeMenu) lastActiveMenu = "home";
+        else if (menu == searchMenu) lastActiveMenu = "search";
+        else if (menu == bookingMenu) lastActiveMenu = "booking";
+        else if (menu == paymentMenu) lastActiveMenu = "payment";
+        else if (menu == historyMenu) lastActiveMenu = "history";
     }
+
+    // ------------------- Action ของแต่ละเมนู -------------------
 
     @FXML
     private void goToHome(MouseEvent e) {
