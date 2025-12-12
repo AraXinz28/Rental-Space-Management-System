@@ -17,7 +17,7 @@ public class Main extends Application {
 
 
         // โหลด FXML
-        Parent root = FXMLLoader.load(getClass().getResource("/views/booking.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/views/Space.fxml"));
 
          Font.loadFont(getClass().getResource("/fonts/Prompt-Regular.ttf").toExternalForm(), 14);
          Font.loadFont(getClass().getResource("/fonts/Prompt-Bold.ttf").toExternalForm(), 14);

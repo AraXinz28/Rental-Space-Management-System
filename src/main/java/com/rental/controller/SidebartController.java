@@ -20,7 +20,7 @@ public class SidebartController {
     @FXML
     private void initialize() {
         menus = new HBox[]{homeMenu, searchMenu, bookingMenu, paymentMenu, historyMenu};
-        setActive(bookingMenu);
+        setActive(homeMenu);
     }
 
     private void setActive(HBox activeMenu) {
@@ -46,7 +46,7 @@ public class SidebartController {
         setActive(searchMenu);
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/booking1.fxml");
+            SceneManager.switchScene(stage, "/views/Space.fxml");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
