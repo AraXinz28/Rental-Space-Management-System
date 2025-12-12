@@ -16,23 +16,48 @@ public class SidebaradminController {
     @FXML private HBox historyMenu;
 
     private HBox[] menus;
+    private HBox activeMenu;
 
     @FXML
     private void initialize() {
         menus = new HBox[]{zoneMenu, bookingMenu, customerMenu, paymentMenu, historyMenu};
-        setActive(bookingMenu);
+
+        // ✅ ตั้ง active menu ตาม SceneManager (หรือ default)
+        String current = SceneManager.getCurrentPage();
+        switch (current) {
+            case "zone" -> setActive(zoneMenu);
+            case "customer" -> setActive(customerMenu);
+            case "payment" -> setActive(paymentMenu);
+            case "history" -> setActive(historyMenu);
+            default -> setActive(bookingMenu);
+        }
+
+        // ✅ hover effect ที่ไม่ค้าง
+        for (HBox menu : menus) {
+            menu.setOnMouseEntered(e -> {
+                if (menu != activeMenu) {
+                    menu.setStyle("-fx-background-color: #F5F5F5;");
+                }
+            });
+            menu.setOnMouseExited(e -> {
+                if (menu != activeMenu) {
+                    menu.setStyle("");
+                }
+            });
+        }
     }
 
-    private void setActive(HBox activeMenu) {
+    private void setActive(HBox menu) {
         for (HBox m : menus) {
-            m.setStyle(""); // รีเซ็ตทุกอัน
+            m.setStyle("");
         }
-        activeMenu.setStyle("-fx-background-color: #E0E0E0;");
+        menu.setStyle("-fx-background-color: #E0E0E0;");
+        activeMenu = menu;
     }
 
     @FXML
     private void goToZone(MouseEvent e) {
-        setActive(zoneMenu);
+        SceneManager.setCurrentPage("zone");
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
             SceneManager.switchScene(stage, "/views/zone_management.fxml");
@@ -43,7 +68,7 @@ public class SidebaradminController {
 
     @FXML
     private void goToBooking(MouseEvent e) {
-        setActive(bookingMenu);
+        SceneManager.setCurrentPage("booking");
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
             SceneManager.switchScene(stage, "/views/booking_management.fxml");
@@ -54,10 +79,10 @@ public class SidebaradminController {
 
     @FXML
     private void goToCustomer(MouseEvent e) {
-        setActive(customerMenu);
+        SceneManager.setCurrentPage("customer");
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/customer_management.fxml");
+            SceneManager.switchScene(stage, "/views/managerental.fxml");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -65,7 +90,7 @@ public class SidebaradminController {
 
     @FXML
     private void goToPayment(MouseEvent e) {
-        setActive(paymentMenu);
+        SceneManager.setCurrentPage("payment");
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
             SceneManager.switchScene(stage, "/views/payment_check.fxml");
@@ -76,7 +101,7 @@ public class SidebaradminController {
 
     @FXML
     private void goToHistory(MouseEvent e) {
-        setActive(historyMenu);
+        SceneManager.setCurrentPage("history");
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
             SceneManager.switchScene(stage, "/views/history.fxml");

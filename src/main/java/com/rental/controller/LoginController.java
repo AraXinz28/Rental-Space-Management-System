@@ -16,18 +16,12 @@ import java.security.MessageDigest;
 
 public class LoginController {
 
-    @FXML
-    private TextField usernameField;
-    @FXML
-    private PasswordField passwordField;
-    @FXML
-    private TextField passwordTextField;
-    @FXML
-    private Button togglePasswordBtn;
-    @FXML
-    private Button userButton; 
-    @FXML
-    private Button registerBtn;
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private TextField passwordTextField;
+    @FXML private Button togglePasswordBtn;
+    @FXML private Button userButton; 
+    @FXML private Button registerBtn;
 
     private final SupabaseClient supabase = new SupabaseClient();
 
@@ -73,25 +67,24 @@ public class LoginController {
             }
         } else {
             // login แล้ว → เปิดเมนู Profile / Logout
-                   ContextMenu contextMenu = new ContextMenu();
+            ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem profileItem = new MenuItem("Profile");
-        profileItem.setOnAction(e -> {
+            MenuItem profileItem = new MenuItem("Profile");
+            profileItem.setOnAction(e -> {
+              
+            });
 
-        });
+            MenuItem logoutItem = new MenuItem("Logout");
+            logoutItem.setOnAction(e -> {
+                currentUser = null;
+                updateUserButton();
+                showAlert(Alert.AlertType.INFORMATION, "ออกจากระบบเรียบร้อยแล้ว");
+            });
 
-        MenuItem logoutItem = new MenuItem("Logout");
-        logoutItem.setOnAction(e -> {
-            currentUser = null;
-            updateUserButton();
-            showAlert(Alert.AlertType.INFORMATION, "ออกจากระบบเรียบร้อยแล้ว");
-        });
+            contextMenu.getItems().addAll(profileItem, logoutItem);
 
-        contextMenu.getItems().addAll(profileItem, logoutItem);
-
-        // แสดง popup ใต้ปุ่ม
-        contextMenu.show(userButton, Side.BOTTOM, 0, 0);
-
+            // แสดง popup ใต้ปุ่ม
+            contextMenu.show(userButton, Side.BOTTOM, 0, 0);
         }
     }
 
@@ -124,6 +117,18 @@ public class LoginController {
                 currentUser = user.getString("username");
                 updateUserButton();
                 showAlert(Alert.AlertType.INFORMATION, "เข้าสู่ระบบสำเร็จ");
+
+                // ✅ เปลี่ยนหน้าไป Homepage
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/homepage.fxml"));
+                    Scene homepageScene = new Scene(loader.load());
+                    Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+                    stage.setScene(homepageScene);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    showAlert(Alert.AlertType.ERROR, "ไม่สามารถเปิดหน้า Homepage ได้");
+                }
+
             } else {
                 showAlert(Alert.AlertType.ERROR, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
             }
