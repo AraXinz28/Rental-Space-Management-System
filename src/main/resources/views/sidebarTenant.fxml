@@ -57,7 +57,7 @@
             <ImageView fitHeight="22" fitWidth="22" preserveRatio="true">
                 <image><Image url="@/images/iconpen.png"/></image>
             </ImageView>
-            <Label text="จัดการผู้เช่า" />
+            <Label text="จองพื้นที่" />
         </HBox>
 
         <!-- 4. ชำระเงิน -->
