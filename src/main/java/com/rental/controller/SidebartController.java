@@ -35,7 +35,7 @@ public class SidebartController {
         setActive(homeMenu);
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/zone.fxml");
+            SceneManager.switchScene(stage, "/views/homepage.fxml");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
