@@ -10,6 +10,7 @@ com\rental\Main.class
 com\rental\controller\RegisterController.class
 com\rental\controller\ManageTenantsController$1.class
 com\rental\config\SupabaseConfig.class
+com\rental\controller\SpaceController.class
 com\rental\controller\BookingController.class
 com\rental\controller\Tenant.class
 com\rental\controller\BookingManagementController.class

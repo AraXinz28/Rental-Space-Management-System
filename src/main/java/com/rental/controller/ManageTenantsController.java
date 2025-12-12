@@ -11,6 +11,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+
+
 public class ManageTenantsController {
   
     @FXML private TextField nameField;
@@ -42,9 +44,7 @@ public void initialize() {
     loadMockData();
 
     tenantTable.setItems(filteredData);
-
-    // ✅ ล็อกคอลัมน์ไว้แค่ 4 ตัว ไม่ให้ JavaFX สร้างเพิ่ม
-    tenantTable.getColumns().setAll(Arrays.asList(colName, colPhone, colEmail, colContact));
+tenantTable.getColumns().setAll(Arrays.asList(colName, colPhone, colEmail, colContact));
 tenantTable.setColumnResizePolicy(param -> true);
 }
 
