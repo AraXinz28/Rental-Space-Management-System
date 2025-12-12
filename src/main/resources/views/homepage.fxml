@@ -7,30 +7,30 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.rental.controller.HomeController">
+            fx:controller="com.rental.controller.HomeController"
+            prefWidth="1280"
+            prefHeight="700">
 
-    <!-- ✅ HEADER -->
+    <!-- HEADER -->
     <top>
-        <BorderPane prefHeight="80"
+        <BorderPane prefHeight="70"
                     style="-fx-background-color: linear-gradient(to right, #f0f0f0, #dcdcdc);">
 
             <left>
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <padding>
-                        <Insets top="10" right="10" bottom="10" left="10"/>
+                        <Insets top="10" right="10" bottom="10" left="20"/>
                     </padding>
 
-                    <ImageView fitHeight="40" fitWidth="40" preserveRatio="true">
-                        <image>
-                            <Image url="images/logo.png"/>
-                        </image>
+                    <ImageView fitHeight="35" fitWidth="35" preserveRatio="true">
+                        <image><Image url="images/logo.png"/></image>
                     </ImageView>
 
                     <VBox spacing="0" alignment="CENTER_LEFT">
                         <Label text="ระบบจัดการ"
-                               style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                               style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
                         <Label text="พื้นที่ให้เช่าจำหน่ายสินค้า"
-                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                               style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
                     </VBox>
                 </HBox>
             </left>
@@ -38,93 +38,77 @@
         </BorderPane>
     </top>
 
-    <!-- ✅ SIDEBAR -->
+    <!-- SIDEBAR -->
     <left>
-        <VBox spacing="20"
+        <VBox spacing="18"
               style="-fx-background-color: #f0f0f0;
                      -fx-padding: 20;
-                     -fx-pref-width: 220;">
+                     -fx-pref-width: 200;">
 
-            <!-- หน้าหลัก -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
+            <HBox spacing="10" alignment="CENTER_LEFT">
                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                     <image><Image url="images/iconhome.png"/></image>
                 </ImageView>
-                <Label text="หน้าหลัก" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label text="หน้าหลัก" style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
             </HBox>
 
-            <!-- ค้นหา/ดูผังพื้นที่ -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
+            <HBox spacing="10" alignment="CENTER_LEFT">
                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                     <image><Image url="images/iconsearch.png"/></image>
                 </ImageView>
-                <Label text="ค้นหา/ดูผังพื้นที่" style="-fx-font-size: 16px;"/>
+                <Label text="ค้นหา/ดูผังพื้นที่" style="-fx-font-size: 15px;"/>
             </HBox>
 
-            <!-- จองพื้นที่ -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
+            <HBox spacing="10" alignment="CENTER_LEFT">
                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                     <image><Image url="images/iconpen.png"/></image>
                 </ImageView>
-                <Label text="จองพื้นที่"
-                       style="-fx-font-size: 16px;"/>
+                <Label text="จองพื้นที่" style="-fx-font-size: 15px;"/>
             </HBox>
 
-            <!-- ชำระเงิน -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
+            <HBox spacing="10" alignment="CENTER_LEFT">
                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                     <image><Image url="images/iconshop.png"/></image>
                 </ImageView>
-                <Label text="ชำระเงิน" style="-fx-font-size: 16px;"/>
+                <Label text="ชำระเงิน" style="-fx-font-size: 15px;"/>
             </HBox>
 
-            <!-- ประวัติการเช่า -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
+            <HBox spacing="10" alignment="CENTER_LEFT">
                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                     <image><Image url="images/iconcalen.png"/></image>
                 </ImageView>
-                <Label text="ประวัติการเช่า" style="-fx-font-size: 16px;"/>
+                <Label text="ประวัติการเช่า" style="-fx-font-size: 15px;"/>
             </HBox>
 
         </VBox>
     </left>
 
-    <!-- ✅ MAIN CONTENT (โค้ดหน้าหลักของรำภา) -->
+    <!-- MAIN CONTENT -->
     <center>
-        <ScrollPane fitToWidth="true" pannable="true"
-                    style="-fx-background-color: transparent;">
-
+        <ScrollPane fitToWidth="true" pannable="true" style="-fx-background-color: transparent;">
             <content>
 
-                <VBox spacing="30"
-                      maxWidth="1000"
+                <VBox spacing="25"
+                      maxWidth="900"
                       alignment="CENTER"
-                      translateX="200"
-                      translateY="40"
                       style="-fx-background-color: #f5f5f5;
-                             -fx-padding: 10 100 10 20;">
+                             -fx-padding: 20 40 20 40;">
 
-                    <!-- ✅ Hero Section -->
-                    <VBox spacing="10" alignment="CENTER"
+                    <!-- Hero Section -->
+                    <VBox spacing="15" alignment="CENTER"
                           style="-fx-background-color: #ffffff;
                                  -fx-border-color: #ddd;
                                  -fx-border-radius: 10;
                                  -fx-background-radius: 10;
-                                 -fx-padding: 20 40 20 40;">
+                                 -fx-padding: 20;">
 
-                        <HBox spacing="40" alignment="CENTER">
+                        <HBox spacing="30" alignment="CENTER">
 
-                            <!-- ✅ Left Section -->
-                            <VBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                            <!-- Left Section -->
+                            <VBox spacing="10" alignment="CENTER_LEFT">
 
-                                <ImageView fitHeight="350" fitWidth="350" preserveRatio="true"
-                                           translateX="60">
-                                    <VBox.margin>
-                                        <Insets top="60"/>
-                                    </VBox.margin>
-                                    <image>
-                                        <Image url="images/happy.png"/>
-                                    </image>
+                                <ImageView fitHeight="250" fitWidth="250" preserveRatio="true">
+                                    <image><Image url="images/happy.png"/></image>
                                 </ImageView>
 
                                 <Button fx:id="btnEnter"
@@ -132,38 +116,24 @@
                                         onAction="#onEnterMarketClick"
                                         onMouseEntered="#handleEnter"
                                         onMouseExited="#handleExit"
-                                        translateX="130"
-                                        style="-fx-padding: 10 40 10 40;
+                                        style="-fx-padding: 10 35 10 35;
                                                -fx-background-color: #7c7c7cff;
                                                -fx-text-fill: white;
-                                               -fx-font-size: 16px;
+                                               -fx-font-size: 15px;
                                                -fx-font-weight: bold;
-                                               -fx-background-radius: 30;">
-                                    <VBox.margin>
-                                        <Insets top="5"/>
-                                    </VBox.margin>
-                                </Button>
-
+                                               -fx-background-radius: 25;"/>
                             </VBox>
 
-                            <!-- ✅ Right Section -->
+                            <!-- Right Section -->
                             <HBox spacing="0" alignment="CENTER">
 
-                                <ImageView fitHeight="300" fitWidth="300" preserveRatio="true"
-                                           translateX="100">
-                                    <image>
-                                        <Image url="images/store.png"/>
-                                    </image>
+                                <ImageView fitHeight="220" fitWidth="220" preserveRatio="true">
+                                    <image><Image url="images/store.png"/></image>
                                 </ImageView>
 
-                                <ImageView fitHeight="200" fitWidth="200" preserveRatio="true"
-                                           translateX="60">
-                                    <HBox.margin>
-                                        <Insets top="-150"/>
-                                    </HBox.margin>
-                                    <image>
-                                        <Image url="images/sad.png"/>
-                                    </image>
+                                <ImageView fitHeight="150" fitWidth="150" preserveRatio="true"
+                                           translateX="-20">
+                                    <image><Image url="images/sad.png"/></image>
                                 </ImageView>
 
                             </HBox>
@@ -171,57 +141,48 @@
                         </HBox>
                     </VBox>
 
-                    <!-- ✅ Market Maps Section (2 Columns) -->
-                    <HBox spacing="40" alignment="CENTER">
+                    <!-- Market Maps Section -->
+                    <HBox spacing="25" alignment="CENTER">
 
-                        <!-- ✅ Left Big Box -->
-                        <VBox spacing="20"
+                        <!-- Map 1 -->
+                        <VBox spacing="15"
                               style="-fx-background-color: #ffffff;
                                      -fx-border-color: #ddd;
                                      -fx-border-radius: 10;
                                      -fx-background-radius: 10;
-                                     -fx-padding: 30;
-                                     -fx-pref-width: 600;">
+                                     -fx-padding: 20;
+                                     -fx-pref-width: 430;">
 
                             <Label text="แผนผังที่ 1"
-                                   style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+                                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-                            <VBox spacing="10" alignment="CENTER" style="-fx-padding: 0;">
-                                <ImageView fitWidth="300" preserveRatio="true">
-                                    <image>
-                                        <Image url="images/แผนผัง.png"/>
-                                    </image>
-                                </ImageView>
-                            </VBox>
+                            <ImageView fitWidth="250" preserveRatio="true">
+                                <image><Image url="images/แผนผัง.png"/></image>
+                            </ImageView>
 
                         </VBox>
 
-                        <!-- ✅ Right Big Box -->
-                        <VBox spacing="20"
+                        <!-- Map 2 -->
+                        <VBox spacing="15"
                               style="-fx-background-color: #ffffff;
                                      -fx-border-color: #ddd;
                                      -fx-border-radius: 10;
                                      -fx-background-radius: 10;
-                                     -fx-padding: 30;
-                                     -fx-pref-width: 600;">
+                                     -fx-padding: 20;
+                                     -fx-pref-width: 430;">
 
                             <Label text="แผนผังที่ 2"
-                                   style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+                                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-                            <VBox spacing="10" alignment="CENTER" style="-fx-padding: 0;">
-                                <ImageView fitWidth="300" preserveRatio="true">
-                                    <image>
-                                        <Image url="images/แผนผัง(2).png"/>
-                                    </image>
-                                </ImageView>
-                            </VBox>
+                            <ImageView fitWidth="250" preserveRatio="true">
+                                <image><Image url="images/แผนผัง(2).png"/></image>
+                            </ImageView>
 
                         </VBox>
 
                     </HBox>
 
-                    <!-- ✅ Footer Space -->
-                    <Region minHeight="120"/>
+                    <Region minHeight="50"/>
 
                 </VBox>
 
