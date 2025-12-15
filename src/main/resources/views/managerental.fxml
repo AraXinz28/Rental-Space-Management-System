@@ -9,31 +9,37 @@
             fx:controller="com.rental.controller.ManageTenantsController"
             style="-fx-background-color: #ffffff;">
 
-    <!-- ===== Header ด้านบน ===== -->
+    <!-- ✅ HEADER -->
     <top>
-        <fx:include fx:id="header" source="header.fxml"/>
+        <fx:include fx:id="header" source="/views/header.fxml"/>
     </top>
 
-    <!-- ===== Sidebar ด้านซ้าย ===== -->
+    <!-- ✅ SIDEBAR -->
     <left>
         <fx:include fx:id="menu" source="/views/sidebaradmin.fxml"/>
     </left>
 
-    <!-- ===== Center: Filter + TableView ===== -->
+    <!-- ✅ CONTENT -->
     <center>
         <VBox spacing="20" VBox.vgrow="ALWAYS">
-            <!-- ✅ ใช้ padding เท่ากับ BookingManagement -->
             <padding><Insets top="20" right="30" bottom="30" left="30"/></padding>
 
-            <!-- Filter Section -->
+            <!-- ✅ Filter Section -->
             <VBox spacing="30">
                 <HBox spacing="15" alignment="CENTER_LEFT">
+
                     <Label text="ชื่อลูกค้า:"/>
                     <TextField fx:id="nameField" promptText="ชื่อลูกค้า" prefWidth="200"/>
+
                     <Label text="เบอร์โทร:"/>
                     <TextField fx:id="phoneField" promptText="เบอร์โทร" prefWidth="200"/>
+
                     <Label text="อีเมล์:"/>
                     <TextField fx:id="emailField" promptText="อีเมล์" prefWidth="200"/>
+
+                    <Label text="สถานะ:"/>
+                    <ComboBox fx:id="statusFilter" prefWidth="150"/>
+
                     <Label text="แสดงต่อหน้า:"/>
                     <ComboBox fx:id="pageSizeCombo" promptText="จำนวน" prefWidth="120"/>
                 </HBox>
@@ -42,30 +48,31 @@
                     <Button text="กรองข้อมูล"
                             onAction="#onFilterClick"
                             prefWidth="130" prefHeight="35"/>
+
                     <Button text="รีเซ็ต"
                             onAction="#onResetClick"
                             prefWidth="130" prefHeight="35"/>
                 </HBox>
             </VBox>
 
-            <!-- Table Section -->
+            <!-- ✅ Table Section -->
             <Label text="รายการผู้เช่าทั้งหมด"
                    style="-fx-font-size: 18; -fx-font-weight: bold;"/>
 
             <TableView fx:id="tenantTable" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colName" text="ชื่อลูกค้า" prefWidth="250"/>
-                    <TableColumn fx:id="colPhone" text="เบอร์โทร" prefWidth="200"/>
-                    <TableColumn fx:id="colEmail" text="อีเมล์" prefWidth="250"/>
+                    <TableColumn fx:id="colName" text="ชื่อลูกค้า" prefWidth="200"/>
+                    <TableColumn fx:id="colPhone" text="เบอร์โทร" prefWidth="150"/>
+                    <TableColumn fx:id="colEmail" text="อีเมล์" prefWidth="200"/>
+                    <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="150"/>
                     <TableColumn fx:id="colContact" text="ติดต่อ" prefWidth="120"/>
                 </columns>
+
                 <columnResizePolicy>
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                 </columnResizePolicy>
             </TableView>
         </VBox>
     </center>
-
-   
 
 </BorderPane>

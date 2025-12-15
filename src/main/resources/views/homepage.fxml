@@ -76,6 +76,7 @@
 
                     <!-- Market Maps Section -->
                     <HBox spacing="25" alignment="CENTER">
+
                         <!-- Map 1 -->
                         <VBox spacing="15"
                               style="-fx-background-color: #ffffff;
@@ -83,13 +84,19 @@
                                      -fx-border-radius: 10;
                                      -fx-background-radius: 10;
                                      -fx-padding: 20;
-                                     -fx-pref-width: 430;"
+                                     -fx-pref-width: 440;"
                               alignment="CENTER">
+
                             <Label text="แผนผังที่ 1"
-                                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                            <ImageView fitWidth="250" preserveRatio="true">
+                                   style="-fx-font-size: 18px; -fx-font-weight: medium;"/>
+
+                            <ImageView fx:id="map1"
+                                       fitWidth="300"
+                                       preserveRatio="true"
+                                       onMouseClicked="#openMap1">
                                 <image><Image url="images/แผนผัง.png"/></image>
                             </ImageView>
+
                         </VBox>
 
                         <!-- Map 2 -->
@@ -99,14 +106,21 @@
                                      -fx-border-radius: 10;
                                      -fx-background-radius: 10;
                                      -fx-padding: 20;
-                                     -fx-pref-width: 430;"
+                                     -fx-pref-width: 440;"
                               alignment="CENTER">
+
                             <Label text="แผนผังที่ 2"
-                                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                            <ImageView fitWidth="250" preserveRatio="true">
+                                   style="-fx-font-size: 18px; -fx-font-weight: medium;"/>
+
+                            <ImageView fx:id="map2"
+                                       fitWidth="300"
+                                       preserveRatio="true"
+                                       onMouseClicked="#openMap2">
                                 <image><Image url="images/แผนผัง(2).png"/></image>
                             </ImageView>
+
                         </VBox>
+
                     </HBox>
 
                     <!-- เว้นระยะด้านล่าง -->
