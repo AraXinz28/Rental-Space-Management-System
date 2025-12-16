@@ -52,7 +52,7 @@
                 <VBox alignment="TOP_LEFT" spacing="30">
                     <padding><Insets top="40" bottom="60" left="40" right="40"/></padding>
 
-                    <VBox spacing="30" HBox.hgrow="ALWAYS"
+                    <VBox spacing="15" HBox.hgrow="ALWAYS"
                           style="-fx-background-color: #FFFFFF; -fx-background-radius: 20;
                                  -fx-padding: 40;
                                  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 35, 0, 0, 12);">
@@ -65,7 +65,7 @@
 
                         <HBox alignment="CENTER">
                             <ImageView fitWidth="720" preserveRatio="true">
-                                <image><Image url="images/log.png"/></image>
+                                <image><Image url="images/space.jpg"/></image>
                             </ImageView>
                         </HBox>
 
@@ -80,7 +80,7 @@
                                          -fx-background-radius: 12; -fx-border-radius: 12;
                                          -fx-padding: 15;">
                                 <Label text="ต่อวัน" style="-fx-font-size: 15px; -fx-text-fill: #4D514C;"/>
-                                <Label text="150 ฿" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+                                <Label text="150 ฿" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
                             </VBox>
 
                             <VBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS"
@@ -88,7 +88,7 @@
                                          -fx-border-width: 1; -fx-background-radius: 12;
                                          -fx-border-radius: 12; -fx-padding: 15;">
                                 <Label text="ต่อเดือน" style="-fx-font-size: 15px; -fx-text-fill: #4D514C;"/>
-                                <Label text="4,500 ฿" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+                                <Label text="4,500 ฿" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
                             </VBox>
 
                             <VBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS"
@@ -96,7 +96,7 @@
                                          -fx-border-width: 1; -fx-background-radius: 12;
                                          -fx-border-radius: 12; -fx-padding: 15;">
                                 <Label text="มัดจำ/เดือน" style="-fx-font-size: 15px; -fx-text-fill: #4D514C;"/>
-                                <Label text="2,500 ฿" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+                                <Label text="2,500 ฿" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
                             </VBox>
 
                         </HBox>
@@ -105,7 +105,7 @@
                         <!-- ขนาดและประเภทสินค้า -->
                         <HBox spacing="40" alignment="CENTER_LEFT">
 
-                            <VBox alignment="CENTER" spacing="10" HBox.hgrow="ALWAYS"
+                            <VBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS"
                                   style="-fx-background-color: #FFFFFF; -fx-border-color: #D9D9D9;
                                          -fx-border-width: 1; -fx-background-radius: 12;
                                          -fx-border-radius: 12; -fx-padding: 20;">
@@ -114,7 +114,7 @@
                                        style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #4D514C;" />
                             </VBox>
 
-                            <VBox alignment="CENTER" spacing="10" HBox.hgrow="ALWAYS"
+                            <VBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS"
                                   style="-fx-background-color: #FFFFFF; -fx-border-color: #D9D9D9;
                                          -fx-border-width: 1; -fx-background-radius: 12;
                                          -fx-border-radius: 12; -fx-padding: 20;">
@@ -129,21 +129,21 @@
                         <Separator/>
 
                         <!-- สิ่งอำนวยความสะดวก -->
-                        <VBox spacing="15"
+                        <VBox spacing="10"
                               style="-fx-background-color: #FFFFFF; -fx-border-color: #D9D9D9;
                                      -fx-border-width: 1; -fx-background-radius: 12;
                                      -fx-border-radius: 12; -fx-padding: 25;">
                             <Label text="สิ่งอำนวยความสะดวก"
-                                   style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+                                   style="-fx-font-size: 24px; -fx-font-weight: bold;" />
 
-                            <VBox spacing="10">
+                            <VBox spacing="5">
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                         <image><Image url="images/check.png"/></image>
                                     </ImageView>
                                     <Label text="อุปกรณ์ไฟ (รองรับไฟฟ้า 5A / 10A / 15A)"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -151,7 +151,7 @@
                                         <image><Image url="images/check.png"/></image>
                                     </ImageView>
                                     <Label text="พื้นที่กว้างขวาง"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -159,7 +159,7 @@
                                         <image><Image url="images/check.png"/></image>
                                     </ImageView>
                                     <Label text="มีโต๊ะพับสีขาวให้"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -167,7 +167,7 @@
                                         <image><Image url="images/check.png"/></image>
                                     </ImageView>
                                     <Label text="ใกล้ประตูทางเข้า"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -175,7 +175,7 @@
                                         <image><Image url="images/check.png"/></image>
                                     </ImageView>
                                     <Label text="ใกล้ห้องน้ำ ปลอดภัย"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                             </VBox>
@@ -184,21 +184,21 @@
                         <Separator/>
 
                         <!-- ข้อกำหนด -->
-                        <VBox spacing="15"
+                        <VBox spacing="10"
                               style="-fx-background-color: #FFFFFF; -fx-border-color: #D9D9D9;
                                      -fx-border-width: 1; -fx-background-radius: 12;
                                      -fx-border-radius: 12; -fx-padding: 25;">
                             <Label text="ข้อกำหนดและเงื่อนไข"
-                                   style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+                                   style="-fx-font-size: 24px; -fx-font-weight: bold;" />
 
-                            <VBox spacing="10">
+                            <VBox spacing="5">
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <ImageView fitHeight="16" fitWidth="16" preserveRatio="true">
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="พื้นที่ใช้เป็นวัตถุอุปโภคบริโภคของทางศาลาที่มีจำนวนมาก"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -206,7 +206,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="การใช้ไฟฟ้าต้องไม่เกิน 10A ตามที่กำหนด"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -214,7 +214,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ผู้จองต้องดูแลทรัพย์สินของตนเอง พื้นที่ไม่รับผิดชอบของหายหรือสูญหายของสินค้า"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -222,7 +222,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ผู้เช่าต้องเช็คอินร้านก่อน 15:00 น. ในวันที่รับร้านค้า"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -230,7 +230,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ผู้จองต้องปฏิบัติตามเวลาเปิด–ปิดพื้นที่ตามที่ศาลากำหนด"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -238,7 +238,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ผู้จองต้องรักษาความเรียบร้อยบริเวณรอบร้าน ไม่รบกวนผู้อื่น"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -246,7 +246,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ไม่สามารถยกเลิกหรือขอรับเงินคืนหลังออกร้านให้ความยินยอมได้รับการอนุญาตแล้ว"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -254,7 +254,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ห้ามทำการดัดแปลงพื้นที่หรือจัดโต๊ะอุปกรณ์ร้านค้าโดยไม่ได้รับอนุญาต"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -262,7 +262,7 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="ผู้จองต้องรักษาความสะอาดของพื้นที่และเก็บขยะของตนเองทิ้งให้ถูกที่"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                                 <HBox spacing="12" alignment="CENTER_LEFT">
@@ -270,14 +270,14 @@
                                         <image><Image url="images/point.png"/></image>
                                     </ImageView>
                                     <Label text="การออกร้านในพื้นที่ต้องไม่มีการร้องเรียนรบกวนเสียงดังรบกวน"
-                                           style="-fx-font-size: 15px;" />
+                                           style="-fx-font-size: 16px;" />
                                 </HBox>
 
                             </VBox>
 
                             <CheckBox fx:id="agreeCheckBox"
                                       text="ข้าพเจ้ายินยอมในข้อกำหนดและเงื่อนไขในการออกร้านข้างต้น"
-                                      style="-fx-font-size: 15px;" />
+                                      style="-fx-font-size: 16px;" />
 
                         </VBox>
 
@@ -288,13 +288,12 @@
 
                         <Label text="ข้อมูลลูกค้า" style="-fx-font-size: 18px; -fx-font-weight: semi-bold;"/>
 
-                        <VBox spacing="10" fillWidth="true">
+                        <VBox spacing="5" fillWidth="true">
 
-                            <Label text="ชื่อ - นามสกุล" style="-fx-font-size: 16px;"/>
-                            <HBox spacing="20">
-                                <TextField promptText="ชื่อ" HBox.hgrow="ALWAYS" style="-fx-pref-height: 40;" />
-                                <TextField promptText="นามสกุล" HBox.hgrow="ALWAYS" style="-fx-pref-height: 40;" />
-                            </HBox>
+                            <VBox spacing="5">
+                                <Label text="ชื่อ - นามสกุล" style="-fx-font-size: 16px;"/>
+                                <TextField promptText="ชื่อ - นามสกุล" style="-fx-pref-height: 40;"/>
+                            </VBox>
 
                             <HBox spacing="20">
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
@@ -351,7 +350,7 @@
                         <Separator/>
 
                         <!-- สรุป -->
-                        <VBox spacing="20">
+                        <VBox spacing="10">
 
                             <Label text="สรุปการจอง"
                                    style="-fx-font-size: 24px; -fx-font-weight: bold;" />
