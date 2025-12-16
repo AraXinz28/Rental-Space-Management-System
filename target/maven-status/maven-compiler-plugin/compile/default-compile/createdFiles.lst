@@ -1,7 +1,9 @@
 com\rental\controller\HeaderController.class
 com\rental\controller\ManageTenantsController.class
 com\rental\controller\BookingManagementController$RadioButtonTableCell.class
+com\rental\controller\PaymentController.class
 com\rental\database\SupabaseClient.class
+com\rental\model\Payment.class
 com\rental\controller\LoginController.class
 com\rental\util\Navigation.class
 com\rental\util\AlertUtil.class
