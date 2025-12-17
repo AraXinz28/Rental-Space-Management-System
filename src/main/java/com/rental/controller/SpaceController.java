@@ -11,10 +11,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;          // ★ เพิ่ม
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;          // ★ เพิ่ม
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -24,14 +26,16 @@ import javafx.stage.Stage;
 
 public class SpaceController implements Initializable {
 
-    @FXML
-    private ComboBox<String> zoneCombo;
+    @FXML private ComboBox<String> zoneCombo;
+    @FXML private ComboBox<String> statusCombo;
+    @FXML private ComboBox<String> typeCombo;
 
-    @FXML
-    private ComboBox<String> statusCombo;
+    // ★ เพิ่ม
+    @FXML private TabPane tabPane;
+    @FXML private GridPane spaceGrid;
 
-    @FXML
-    private ComboBox<String> typeCombo;
+    // ★ เพิ่ม
+    private char currentZone = 'A';
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -66,6 +70,38 @@ public class SpaceController implements Initializable {
                     "10) สินค้าสัตว์เลี้ยง"
             );
         }
+
+        // ★ เพิ่ม: ฟังการเปลี่ยน Tab โซน
+        if (tabPane != null) {
+            tabPane.getSelectionModel()
+                   .selectedItemProperty()
+                   .addListener((obs, oldTab, newTab) -> {
+                       if (newTab != null) {
+                           currentZone =
+                                   newTab.getText().charAt(newTab.getText().length() - 1);
+                           updateZoneLabels();
+                       }
+                   });
+        }
+    }
+
+    // ★ เพิ่ม: เปลี่ยน A01 → B01 → C01
+    private void updateZoneLabels() {
+
+        if (spaceGrid == null) return;
+
+        spaceGrid.getChildren().forEach(node -> {
+            if (node instanceof VBox box && box.getChildren().size() >= 2) {
+
+                Label nameLabel = (Label) box.getChildren().get(0);
+                String oldText = nameLabel.getText(); // A01
+
+                if (oldText.length() >= 2) {
+                    String number = oldText.substring(1); // 01
+                    nameLabel.setText(currentZone + number);
+                }
+            }
+        });
     }
 
     // ================== ปุ่ม "คลิกที่นี่เพื่อดูผังพื้นที่" ==================
@@ -173,7 +209,6 @@ public class SpaceController implements Initializable {
         HBox header = new HBox(16, titleLabel, statusLabel);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // เมธอดสร้างแถวรายละเอียด
         HBox zoneRow  = createDetailRow("iconzone.png", "โซน", zone);
         HBox sizeRow  = createDetailRow("iconarea.png", "ขนาดพื้นที่", sizeText + " เมตร");
         HBox priceRow = createDetailRow("iconprice.png", "ราคาค่าเช่า", "150 บาท/วัน");
@@ -182,7 +217,6 @@ public class SpaceController implements Initializable {
 
         VBox detailBox = new VBox(16, zoneRow, sizeRow, priceRow, typeRow, dateRow);
 
-        // ปุ่มปิดและจอง
         Button closeBtn = new Button("ปิด");
         closeBtn.setPrefWidth(100);
 
@@ -200,19 +234,14 @@ public class SpaceController implements Initializable {
 
         root.getChildren().addAll(header, detailBox, buttonBar);
 
-        // การตั้งค่า Stage
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("รายละเอียดพื้นที่");
         dialog.setScene(new Scene(root));
-        dialog.sizeToScene(); 
+        dialog.sizeToScene();
 
-        // การจัดการปุ่ม
         closeBtn.setOnAction(e -> dialog.close());
-        bookBtn.setOnAction(e -> {
-            // ใส่โค้ดการจองในอนาคตตรงนี้
-            dialog.close();
-        });
+        bookBtn.setOnAction(e -> dialog.close());
 
         dialog.showAndWait();
     }
