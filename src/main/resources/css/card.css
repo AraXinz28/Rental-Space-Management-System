@@ -1,0 +1,136 @@
+/* ================================
+   Card Component (JavaFX)
+================================ */
+
+.section-card {
+    /* standard */
+    background-color: #ffffff;
+    border-color: #dddddd;
+    border-width: 1px;
+    border-radius: 10px;
+    padding: 16px;
+
+    /* javafx */
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddddd;
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0.2, 0, 4);
+}
+.bank-card {
+    background-color: #ffffff;
+    border-color: #dcdcdc;
+    border-radius: 10;
+    padding: 14;
+
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 14;
+}
+
+.bank-card:hover {
+    border-color: #4a90e2;
+    background-color: #f9fbff;
+
+    -fx-border-color: #4a90e2;
+    -fx-background-color: #f9fbff;
+}
+.bank-icon {
+    min-width: 40;
+    min-height: 40;
+    max-width: 40;
+    max-height: 40;
+
+    background-color: #e6e6e6;
+
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+
+    -fx-background-color: #e6e6e6;
+    -fx-background-radius: 20;
+    -fx-alignment: center;
+}
+.bank-name {
+    font-weight: bold;
+    -fx-font-weight: bold;
+}
+
+.section-subtext {
+    -fx-text-fill: #777777;
+}
+
+.hint-text {
+   
+    font-style: italic;
+    font-size: 12px;
+
+    -fx-text-fill: #888888;
+    -fx-font-style: italic;
+    -fx-font-size: 12px;
+}
+/* ===============================
+   QR PromptPay Card
+================================ */
+
+.qr-card {
+    background-color: #ffffff;
+    -fx-background-color: #ffffff;
+
+    border-color: #e0e0e0;
+    -fx-border-color: #e0e0e0;
+
+    border-width: 1px;
+    -fx-border-width: 1;
+
+    border-radius: 16px;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+
+    padding: 24px;
+    -fx-padding: 24;
+
+    -fx-alignment: center;
+    -fx-spacing: 16;
+}
+
+.qr-title {
+    font-size: 18px;
+    -fx-font-size: 18px;
+
+    font-weight: bold;
+    -fx-font-weight: bold;
+}
+
+.qr-subtitle {
+    font-size: 14px;
+    -fx-font-size: 14px;
+
+    color: #777777;
+    -fx-text-fill: #777777;
+}
+
+.qr-image {
+    background-color: #ffffff;
+    -fx-background-color: #ffffff;
+
+    border-radius: 8px;
+    -fx-background-radius: 8;
+
+    padding: 12px;
+    -fx-padding: 12;
+}
+
+.qr-hint {
+    font-size: 12px;
+    -fx-font-size: 12px;
+
+    color: #999999;
+    -fx-text-fill: #999999;
+}

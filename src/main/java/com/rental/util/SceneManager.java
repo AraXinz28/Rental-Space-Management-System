@@ -30,7 +30,18 @@ public class SceneManager {
             scene = new Scene(root);
         }
 
-        scene.getStylesheets().add(SceneManager.class.getResource("/css/style.css").toExternalForm());
+        // ✅ ของเดิม (ไม่แตะ)
+        scene.getStylesheets().add(
+                SceneManager.class.getResource("/css/style.css").toExternalForm()
+        );
+
+        // ✅ เพิ่มเฉพาะ CSS เสริม (ไม่กระทบหน้าอื่น)
+        scene.getStylesheets().addAll(
+                SceneManager.class.getResource("/css/card.css").toExternalForm(),
+                SceneManager.class.getResource("/css/button.css").toExternalForm(),
+                SceneManager.class.getResource("/css/payment.css").toExternalForm()
+        );
+
         stage.setScene(scene);
         stage.show();
     }

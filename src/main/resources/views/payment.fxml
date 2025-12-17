@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rental.controller.PaymentController"
+            prefHeight="700.0" prefWidth="1000.0"
+            styleClass="main-border-pane">
+
+    <!-- ToggleGroup -->
+    <fx:define>
+        <ToggleGroup fx:id="paymentGroup"/>
+    </fx:define>
+
+    <top>
+        <fx:include source="header.fxml"/>
+    </top>
+
+    <left>
+        <fx:include source="sidebarTenant.fxml"/>
+    </left>
+
+    <center>
+
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="page-scroll-pane">
+            <content>
+                <VBox spacing="20.0" styleClass="payment-page-container">
+                    <padding>
+                        <Insets top="20" right="40" bottom="20" left="40"/>
+                    </padding>
+                       <!-- 🔹 การ์ดหัวข้อ -->
+                      <StackPane styleClass="page-header-card">
+                      <Label text="บันทึกการชำระค่าเช่า"
+                      styleClass="page-header-title"/>
+                     </StackPane>
+
+                    <!-- 🔹 Summary Card -->
+                    <VBox styleClass="section-card">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
+
+                        <Label text="สรุปรายการจอง" styleClass="section-header"/>
+
+                        <HBox spacing="10">
+                            <Label text="รายละเอียดพื้นที่ที่จองคุณ"
+                             styleClass="summary-subtitle"/>
+                        </HBox>
+                        <Label text="หมายเลขพื้นที่ : A01" styleClass="summary-label-key"/>
+                        <Label text="ขนาดพื้นที่ : 3 x 3 เมตร" styleClass="summary-label-key"/>
+
+                        <Label text="ประเภทสินค้า: อาหาร" styleClass="summary-label-key"/>
+                        <Separator/>
+
+                        <GridPane hgap="10" vgap="5">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="70"/>
+                                <ColumnConstraints percentWidth="30" halignment="RIGHT"/>
+                            </columnConstraints>
+
+                            <Label text="ค่าเช่า"/>
+                            <Label fx:id="lblRentFee" text="150 ฿" GridPane.columnIndex="1"/>
+
+                            <Label text="ค่ามัดจำ" GridPane.rowIndex="1"/>
+                            <Label fx:id="lblDeposit" text="0 ฿"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="1"/>
+
+                            <Label text="ยอดชำระทั้งหมด"
+                                   styleClass="total-label"
+                                   GridPane.rowIndex="2"/>
+                            <Label fx:id="lblTotalAmount"
+                                   text="150 ฿"
+                                   styleClass="total-label"
+                                   GridPane.columnIndex="1"
+                                   GridPane.rowIndex="2"/>
+                        </GridPane>
+                    </VBox>
+
+                    <!-- 🔹 Main Content -->
+                    <HBox spacing="25">
+
+                        <!-- LEFT -->
+                        <VBox spacing="15" prefWidth="350">
+
+                            <!-- 🔧 Payment Type -->
+                            <VBox spacing="10" styleClass="section-card">
+                                <padding>
+                                    <Insets top="15" right="15" bottom="15" left="15"/>
+                                </padding>
+
+                                <Label text="ประเภทการชำระเงิน" styleClass="section-header"/>
+
+                                <RadioButton fx:id="radioBank"
+                                             text="โอนผ่านธนาคาร"
+                                             toggleGroup="$paymentGroup"
+                                             selected="true"
+                                             styleClass="radio-item"/> <!-- 🔧 -->
+
+                                <RadioButton fx:id="radioQR"
+                                             text="QR พร้อมเพย์"
+                                             toggleGroup="$paymentGroup"
+                                             styleClass="radio-item"/> <!-- 🔧 -->
+                            </VBox>
+
+                            <!-- 🔧 Upload -->
+                            <VBox spacing="10" styleClass="section-card">
+                                <padding>
+                                    <Insets top="15" right="15" bottom="15" left="15"/>
+                                </padding>
+
+                                <Label text="อัปโหลดหลักฐานชำระเงิน" styleClass="section-header"/>
+
+                                <Button fx:id="btnUpload"
+                                        text="เลือกไฟล์ ⇩"
+                                        onAction="#handleUpload"
+                                        styleClass="btn-outline"/> <!-- 🔧 -->
+
+                                <Label fx:id="lblFileStatus" text="ยังไม่ได้เลือกไฟล์"/>
+
+                                <Label text="วัน/เดือน/ปี ที่ทำรายการ"/>
+                                <DatePicker fx:id="datePicker"
+                                            maxWidth="Infinity"
+                                            styleClass="input-field"/> <!-- 🔧 -->
+
+                                <Label text="หมายเหตุ (ถ้ามี)"/>
+                                <TextArea fx:id="txtNote"
+                                          prefRowCount="3"
+                                          wrapText="true"
+                                          styleClass="input-field"/> <!-- 🔧 -->
+                            </VBox>
+                        </VBox>
+
+                        <!-- RIGHT -->
+                        <StackPane HBox.hgrow="ALWAYS">
+
+                            <!-- 🔧 Bank Card -->
+                            <VBox fx:id="bankDetails"
+      spacing="14"
+      styleClass="section-card">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- หัวข้อ -->
+    <Label text="โอนผ่านธนาคาร (Bank Transfer)"
+           styleClass="section-header"/>
+           <Label text="ข้อมูลบัญชีของตลาด"/>
+
+    <Label text="กรุณาโอนเงินเข้าบัญชีด้านล่าง"
+           styleClass="section-subtext"/>
+
+    <!-- การ์ดธนาคารที่ 1 -->
+    <HBox spacing="12" styleClass="bank-card">
+
+        <StackPane styleClass="bank-icon">
+            <Label text="🏦"/>
+        </StackPane>
+
+        <VBox spacing="4">
+            <Label text="ธนาคารกสิกรไทย" styleClass="bank-name"/>
+            <Label text="ชื่อบัญชี : ตลาดนัดชุมชน จำกัด"/>
+            <Label text="123-4-56789-0"/>
+            <Label text="ประเภทบัญชี : ออมทรัพย์"/>
+        </VBox>
+    </HBox>
+
+    <!-- การ์ดธนาคารที่ 2 -->
+    <HBox spacing="12" styleClass="bank-card">
+
+        <StackPane styleClass="bank-icon">
+            <Label text="🏦"/>
+        </StackPane>
+
+        <VBox spacing="4">
+            <Label text="ธนาคารกรุงไทย" styleClass="bank-name"/>
+            <Label text="ชื่อบัญชี : ตลาดนัดชุมชน จำกัด"/>
+            <Label text="123-4-56789-0"/>
+            <Label text="ประเภทบัญชี : ออมทรัพย์"/>
+        </VBox>
+    </HBox>
+
+    <Label text="*หลังโอนกรุณาแนบสลิปเพื่อยืนยันการชำระเงิน"
+           styleClass="hint-text"/>
+</VBox>
+
+                        <!-- QR -->
+<VBox fx:id="qrDetails"
+      spacing="14"
+      visible="false"
+      managed="false"
+      styleClass="section-card">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="QR พร้อมเพย์" styleClass="qr-title"/>
+    <Label text="ข้อมูลบัญชีของตลาด"/>
+    
+    <Label text="กรุณาโอนเงินเข้าบัญชีด้านล่าง"
+       styleClass="qr-subtitle"/>
+
+
+    <Separator/>
+
+    <!-- ⭐ กล่องกลาง QR + ปุ่ม -->
+    <VBox alignment="CENTER"
+          spacing="12"
+          styleClass="qr-center">
+
+        <ImageView
+            fx:id="qrImageView"
+            fitWidth="220"
+            preserveRatio="true">
+            <image>
+                <Image url="@../images/Qrcode.png"/>
+            </image>
+        </ImageView>
+
+        <Button
+            fx:id="btnDownloadQr"
+            text="ดาวน์โหลด QR"
+            onAction="#handleDownloadQr"
+            visible="false"
+            managed="false"
+            styleClass="primary"/>
+
+    </VBox>
+
+    <Label text="*หลังโอนกรุณาแนบสลิปเพื่อยืนยันการชำระเงิน"
+       styleClass="qr-note"/>
+
+</VBox>
+
+
+                        </StackPane>
+                    </HBox>
+
+                    <!-- 🔧 Bottom Buttons -->
+                    <HBox spacing="10" alignment="BOTTOM_RIGHT">
+                        <Button text="บันทึกการชำระเงิน"
+                                onAction="#handleSave"
+                                styleClass="btn-primary"/> <!-- 🔧 -->
+                        <Button text="ล้างข้อมูล"
+                                onAction="#handleClear"
+                                styleClass="btn-secondary"/> <!-- 🔧 -->
+                    </HBox>
+
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
