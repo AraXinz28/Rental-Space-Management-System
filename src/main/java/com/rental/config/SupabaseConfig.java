@@ -1,11 +1,10 @@
 package com.rental.config;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 public class SupabaseConfig {
 
-    private static final Dotenv dotenv = Dotenv.load();
+    // ⭐ ใส่ URL ของ Supabase ตรงนี้
+    public static final String SUPABASE_URL = "https://sdmipxsxkquuyxvvqpho.supabase.co";
 
-    public static final String SUPABASE_URL = dotenv.get("SUPABASE_URL");
-    public static final String SUPABASE_KEY = dotenv.get("SUPABASE_KEY");
+    // ⭐ ใส่ anon public key ของ Supabase ตรงนี้
+    public static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTM1NDcsImV4cCI6MjA4MDMyOTU0N30.AG8XwFmTuMPXZe5bjv2YqeIcfvKFRf95CJLDhfDHp0E";
 }

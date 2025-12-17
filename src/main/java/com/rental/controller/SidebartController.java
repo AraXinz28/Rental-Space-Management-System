@@ -13,7 +13,7 @@ public class SidebartController {
     @FXML private HBox searchMenu;
     @FXML private HBox bookingMenu;
     @FXML private HBox paymentMenu;
-    @FXML private HBox historyMenu;
+    @FXML private HBox rentalhistoryMenu;
 
     private HBox[] menus;
     private HBox activeMenu;
@@ -24,7 +24,7 @@ public class SidebartController {
     @FXML
     private void initialize() {
         // รวมเมนูทั้งหมด
-        menus = new HBox[]{homeMenu, searchMenu, bookingMenu, paymentMenu, historyMenu};
+        menus = new HBox[]{homeMenu, searchMenu, bookingMenu, paymentMenu, rentalhistoryMenu};
 
         // เซ็ตเมนู active ตามค่า lastActiveMenu
         switch (lastActiveMenu) {
@@ -32,7 +32,7 @@ public class SidebartController {
             case "search": setActive(searchMenu); break;
             case "booking": setActive(bookingMenu); break;
             case "payment": setActive(paymentMenu); break;
-            case "history": setActive(historyMenu); break;
+            case "history": setActive(rentalhistoryMenu); break;
         }
 
         // เพิ่ม hover effect ให้แต่ละเมนู
@@ -69,7 +69,7 @@ public class SidebartController {
         else if (menu == searchMenu) lastActiveMenu = "search";
         else if (menu == bookingMenu) lastActiveMenu = "booking";
         else if (menu == paymentMenu) lastActiveMenu = "payment";
-        else if (menu == historyMenu) lastActiveMenu = "history";
+        else if (menu == rentalhistoryMenu) lastActiveMenu = "history";
     }
 
     // ------------------- Action ของแต่ละเมนู -------------------
@@ -118,14 +118,15 @@ public class SidebartController {
         }
     }
 
-    @FXML
-    private void goToHistory(MouseEvent e) {
-        setActive(historyMenu);
+  @FXML
+    private void goTorentalhistory(MouseEvent e) {
+        setActive(rentalhistoryMenu);
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/history1.fxml");
+            SceneManager.switchScene(stage, "/views/rentalhistory.fxml");
         } catch (Exception ex) {
             ex.printStackTrace();
+   
         }
-    }
+    }   
 }

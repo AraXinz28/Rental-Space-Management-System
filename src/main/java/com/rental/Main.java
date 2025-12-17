@@ -15,10 +15,14 @@ public class Main extends Application {
 
         // ✅ โหลดหน้าแรกโดยใช้ SceneManager
      
+<<<<<<< HEAD
+        SceneManager.switchScene(stage, "/views/rentalhistory.fxml");
+=======
 
         SceneManager.switchScene(stage, "/views/Space.fxml");
 
        
+>>>>>>> 5af1a8ab8045c2f87a3df0b7d5a566caa6d976b4
     }
 
     public static void main(String[] args) {
