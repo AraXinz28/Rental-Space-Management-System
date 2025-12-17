@@ -67,6 +67,7 @@ public class SupabaseClient {
                 .header("apikey", key)
                 .header("Authorization", "Bearer " + key)
                 .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
@@ -92,4 +93,21 @@ public class SupabaseClient {
         String jsonBody = "{\"status\":\"" + newStatus + "\"}";
         return update(table, "id", String.valueOf(id), jsonBody);
     }
+    // 🔹 UPDATE by id (ใช้กับ zone / edit form)
+    public String updateById(String table, String jsonBody, int id) throws Exception {
+
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url + "/rest/v1/" + table + "?id=eq." + id))
+            .header("apikey", key)
+            .header("Authorization", "Bearer " + key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+            .build();
+
+    HttpResponse<String> response =
+            client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    return response.body();
+}
 }
