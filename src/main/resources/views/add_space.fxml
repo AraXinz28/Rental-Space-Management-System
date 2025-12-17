@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.rental.controller.AddSpaceController"
+            style="-fx-background-color: #f8f9fa;">
+
+    <!-- ===== HEADER ===== -->
+    <top>
+        <fx:include source="/views/header.fxml"/>
+    </top>
+
+    <!-- ===== SIDEBAR ===== -->
+    <left>
+        <fx:include source="/views/sidebaradmin.fxml"/>
+    </left>
+
+    <!-- ===== CENTER ===== -->
+    <center>
+
+        <!-- ใช้ VBox ครอบทั้งหมด -->
+        <VBox alignment="TOP_LEFT" spacing="0" VBox.vgrow="ALWAYS">
+            <padding>   
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <!-- ===== TAB (อยู่นอกกรอบ) ===== -->
+            <HBox alignment="BOTTOM_LEFT">
+                <Button text="เพิ่มพื้นที่" 
+                        prefWidth="140"
+                        prefHeight="42"
+                        style="
+                            -fx-text-fill: black;
+                            -fx-background-color: white;
+                            -fx-background-radius: 8 8 0 0;
+                            -fx-border-radius: 8 8 0 0;
+                            -fx-border-color: #e0e0e0;
+                            -fx-border-width: 1;
+                            -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 4);
+                        "/>
+            </HBox>
+
+            <!-- ===== CARD (กรอบเขียวในรูปคุณ) ===== -->
+        <VBox spacing="18"
+                        VBox.vgrow="ALWAYS"
+                        maxHeight="300"
+                  
+                  style="
+                    -fx-background-color: white;
+                    -fx-padding: 30;
+
+                    -fx-background-radius: 0 16 16 16;
+                    -fx-border-radius: 0 16 16 16;
+                    -fx-border-color: #e0e0e0;
+                    -fx-border-width: 1;
+                    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 10, 0, 0, 2);
+                  ">
+            <GridPane hgap="80" vgap="25">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="50"/>
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="50"/>
+                    </columnConstraints>
+
+                    <children>
+
+                <!-- โซน -->
+                <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label text="โซน" style="-fx-font-size: 15px;"/>
+                    <ComboBox fx:id="zoneCombo"
+                               promptText="ทุกโซน"
+                               prefWidth="350"
+                               prefHeight="40"
+                               maxWidth="350"
+                               style="
+                                 -fx-background-radius: 8;
+                                 -fx-font-size: 14px;
+                                 -fx-border-radius: 8;
+                               "/>
+                </VBox>
+                <!-- ขนาดพื้นที่ -->
+               
+                <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <Label text="ขนาดพื้นที่" style="-fx-font-size: 15px;"/>
+                    <TextField fx:id="sizeField"
+                               promptText="ระบุขนาดพื้นที่"
+                               prefWidth="350"
+                               prefHeight="40"
+                               maxWidth="350"
+                               style="
+                                 -fx-background-radius: 8;
+                                 -fx-font-size: 14px;
+                                 -fx-border-radius: 8;
+                               "/>
+                </VBox>
+
+                <!-- รหัสพื้นที่ -->
+                <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label text="รหัสพื้นที่" style="-fx-font-size: 15px;"/>
+                    <TextField fx:id="stallIdField"
+                               promptText="ระบุรหัสพื้นที่"
+                               prefWidth="350"
+                               prefHeight="40"
+                               maxWidth="350"
+                               style="
+                                 -fx-background-radius: 8;
+                                 -fx-font-size: 14px;
+                                 -fx-border-radius: 8;
+                               "/>
+                </VBox>
+
+                <!-- ราคา -->    
+                <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <Label text="ราคาค่าเช่า / วัน" style="-fx-font-size: 15px;"/>
+                    <TextField fx:id="priceField"
+                               promptText="ระบุราคาค่าเช่า"
+                               prefWidth="350"
+                               prefHeight="40"
+                               maxWidth="350"
+                               style="
+                                 -fx-background-radius: 8;
+                                 -fx-font-size: 14px;
+                                 -fx-border-radius: 8;
+                               "/>
+                </VBox>
+
+                <!-- สิ่งอำนวยความสะดวก -->
+                <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                    <Label text="สิ่งอำนวยความสะดวก" style="-fx-font-size: 15px;"/>
+                    <TextArea fx:id="amenitiesField"
+                              promptText="ระบุสิ่งอำนวยความสะดวก"
+                              prefWidth="350"
+                              prefHeight="80"
+                              maxWidth="350"
+                              style="
+                                -fx-background-radius: 8;
+                                -fx-font-size: 14px;
+                                -fx-border-radius: 8;
+                              "/>
+                </VBox>
+
+                    </children>
+            </GridPane>
+                <Region VBox.vgrow="ALWAYS" />
+                <!-- ปุ่มบันทึก -->
+                <HBox alignment="CENTER_RIGHT">
+                    <Button text="เพิ่มพื้นที่"
+                            fx:id="saveBtn"
+                            onAction="#handleAddSpace"
+                            prefWidth="120"
+                            prefHeight="40"
+                            style="
+                              -fx-background-color: #3A3F6A;
+                              -fx-text-fill: white;
+                              -fx-font-weight: bold;
+                              -fx-background-radius: 8;
+                            "/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </center>
+
+</BorderPane>
