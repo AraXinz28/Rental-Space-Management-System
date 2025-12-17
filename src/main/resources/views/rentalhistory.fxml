@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.rental.controller.RentalHistoryController"
+            prefWidth="1280" prefHeight="700">
+
+    <!-- ================= HEADER ================= -->
+    <fx:include fx:id="header" source="header.fxml"
+                AnchorPane.topAnchor="0"
+                AnchorPane.leftAnchor="0"
+                AnchorPane.rightAnchor="0"/>
+
+    <!-- ================= SIDEBAR ================= -->
+    <fx:include fx:id="sidebar" source="sidebarTenant.fxml"
+                AnchorPane.topAnchor="80"
+                AnchorPane.leftAnchor="0"
+                AnchorPane.bottomAnchor="0"/>
+
+    <!-- ================= MAIN CONTENT (Scrollable) ================= -->
+    <ScrollPane fitToWidth="true"
+                AnchorPane.topAnchor="80"
+                AnchorPane.leftAnchor="250"
+                AnchorPane.rightAnchor="0"
+                AnchorPane.bottomAnchor="0"
+                style="-fx-background-color: transparent;"
+                hbarPolicy="NEVER">
+
+        <content>
+            <VBox spacing="30" style="-fx-padding: 30;">
+
+                <!-- Title -->
+                <Label text="ประวัติการเช่า"
+                       style="-fx-font-size: 26px; -fx-font-weight: bold;" />
+
+
+                <!-- User Info Box -->
+                <VBox spacing="20"
+                      style="-fx-background-color: #ffffff;
+                             -fx-border-color: #dcdcdc;
+                             -fx-border-radius: 10;
+                             -fx-background-radius: 10;
+                             -fx-padding: 25;">
+
+                    <GridPane hgap="25" vgap="15">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="30"/>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="30"/>
+                        </columnConstraints>
+
+                        <!-- Row 1 -->
+                        <Label text="ชื่อ:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblName" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="เบอร์โทรศัพท์:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                        <Label fx:id="lblPhone" text="-" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+                        <!-- Row 2 -->
+                        <Label text="โซน:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblZone" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="หมายเลขล็อก:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        <Label fx:id="lblLock" text="-" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                        <!-- Row 3 -->
+                        <Label text="ประเภทสินค้า:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblProduct" text="-" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                        <Label text="วัน/เดือน/ปี ที่ทำรายการ:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                        <Label fx:id="lblDate" text="-" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+                        <!-- Row 4 -->
+                        <Label text="ข้อมูลการชำระเงิน:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <Label fx:id="lblPayment" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <Label text="สถานะการอนุมัติ:" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                        <Label fx:id="lblApproval" text="-" GridPane.rowIndex="3" GridPane.columnIndex="3"
+                               style="-fx-font-weight: bold;" />
+                    </GridPane>
+                </VBox>
+
+                <!-- Table Title + Buttons -->
+            <HBox spacing="20" style="-fx-padding: 5;" HBox.hgrow="ALWAYS">
+
+    <Label text="รายการประวัติการเช่า"
+           style="-fx-font-size: 22px; -fx-font-weight: Regular;"
+           HBox.hgrow="ALWAYS" />
+
+           <Region HBox.hgrow="ALWAYS" />
+    <Button fx:id="btnCancel"
+            text="ยกเลิก"
+            style="-fx-background-color: #930000ff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
+
+    <Button fx:id="btnPrint"
+            text="ปริ้นใบเสร็จ"
+            style="-fx-background-color: #00438aff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
+
+</HBox>
+
+
+                <!-- Table -->
+                <TableView fx:id="historyTable" prefHeight="450">
+                    <columns>
+                        <TableColumn fx:id="colItem" text="รายการ" prefWidth="350"/>
+                        <TableColumn fx:id="colDate" text="วัน/เดือน/ปี ที่ทำรายการ" prefWidth="200"/>
+                        <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="150"/>
+                        <TableColumn fx:id="colDetail" text="รายละเอียด" prefWidth="150"/>
+                    </columns>
+                </TableView>
+
+                <Region minHeight="60"/>
+
+            </VBox>
+        </content>
+
+    </ScrollPane>
+
+</AnchorPane>
+<!-- End of File อิอิอิอิอิอิอิอิอิอิอิ-->

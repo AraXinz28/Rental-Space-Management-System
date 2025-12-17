@@ -9,22 +9,22 @@
             fx:controller="com.rental.controller.ManageTenantsController"
             style="-fx-background-color: #ffffff;">
 
-    <!-- ✅ HEADER -->
+    <!-- HEADER -->
     <top>
         <fx:include fx:id="header" source="/views/header.fxml"/>
     </top>
 
-    <!-- ✅ SIDEBAR -->
+    <!-- SIDEBAR -->
     <left>
         <fx:include fx:id="menu" source="/views/sidebaradmin.fxml"/>
     </left>
 
-    <!-- ✅ CONTENT -->
+    <!-- CONTENT -->
     <center>
         <VBox spacing="20" VBox.vgrow="ALWAYS">
             <padding><Insets top="20" right="30" bottom="30" left="30"/></padding>
 
-            <!-- ✅ Filter Section -->
+            <!-- Filter Section -->
             <VBox spacing="30">
                 <HBox spacing="15" alignment="CENTER_LEFT">
 
@@ -55,7 +55,7 @@
                 </HBox>
             </VBox>
 
-            <!-- ✅ Table Section -->
+            <!-- Table Section -->
             <Label text="รายการผู้เช่าทั้งหมด"
                    style="-fx-font-size: 18; -fx-font-weight: bold;"/>
 
@@ -64,8 +64,10 @@
                     <TableColumn fx:id="colName" text="ชื่อลูกค้า" prefWidth="200"/>
                     <TableColumn fx:id="colPhone" text="เบอร์โทร" prefWidth="150"/>
                     <TableColumn fx:id="colEmail" text="อีเมล์" prefWidth="200"/>
+                    <TableColumn fx:id="colZone" text="โซน" prefWidth="120"/>
                     <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="150"/>
                     <TableColumn fx:id="colContact" text="ติดต่อ" prefWidth="120"/>
+                    <TableColumn fx:id="colEditStatus" text="แก้ไขสถานะ" prefWidth="150"/>
                 </columns>
 
                 <columnResizePolicy>
