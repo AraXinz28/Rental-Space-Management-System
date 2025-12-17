@@ -29,7 +29,7 @@ public class SidebaradminController {
             case "customer" -> setActive(customerMenu);
             case "payment" -> setActive(paymentMenu);
             case "history" -> setActive(historyMenu);
-            default -> setActive(bookingMenu);
+            default -> setActive(zoneMenu);
         }
 
         // ✅ hover effect ที่ไม่ค้าง

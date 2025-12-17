@@ -1,6 +1,9 @@
 package com.rental.controller;
 
 import com.rental.database.SupabaseClient;
+import com.rental.util.SceneManager;
+import com.rental.util.Session;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -46,98 +49,128 @@ public class LoginController {
     }
 
     private void updateUserButton() {
-        if (currentUser != null) {
-            userButton.setText(currentUser);
-        } else {
-            userButton.setText("ลงชื่อเข้าใช้");
-        }
+    if (Session.role == null) {
+        userButton.setText("ลงชื่อเข้าใช้");
+        return;
     }
 
+    if ("admin".equalsIgnoreCase(Session.role)) {
+        userButton.setText("ผู้ดูแลระบบ");
+    } else {
+        userButton.setText("ผู้ใช้งาน");
+    }
+}
+
+
     @FXML
-    private void handleUserButton() {
-        if (currentUser == null) {
-            // ยังไม่ login → ไปหน้า Login
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
-                Stage stage = (Stage) userButton.getScene().getWindow();
-                stage.getScene().setRoot(loader.load());
-            } catch (IOException e) {
-                e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "ไม่สามารถไปหน้า Login ได้");
-            }
-        } else {
-            // login แล้ว → เปิดเมนู Profile / Logout
-            ContextMenu contextMenu = new ContextMenu();
-
-            MenuItem profileItem = new MenuItem("Profile");
-            profileItem.setOnAction(e -> {
-              
-            });
-
-            MenuItem logoutItem = new MenuItem("Logout");
-            logoutItem.setOnAction(e -> {
-                currentUser = null;
-                updateUserButton();
-                showAlert(Alert.AlertType.INFORMATION, "ออกจากระบบเรียบร้อยแล้ว");
-            });
-
-            contextMenu.getItems().addAll(profileItem, logoutItem);
-
-            // แสดง popup ใต้ปุ่ม
-            contextMenu.show(userButton, Side.BOTTOM, 0, 0);
+private void handleUserButton() {
+    if (currentUser == null) {
+        try {
+            Stage stage = (Stage) userButton.getScene().getWindow();
+            SceneManager.switchScene(stage, "/views/login.fxml");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "ไม่สามารถเปิดหน้า Login ได้");
         }
+    } else {
+        ContextMenu menu = new ContextMenu();
+
+        MenuItem logout = new MenuItem("Logout");
+        logout.setOnAction(e -> {
+            currentUser = null;
+            updateUserButton();
+            showAlert(Alert.AlertType.INFORMATION, "ออกจากระบบแล้ว");
+        });
+
+        menu.getItems().add(logout);
+        menu.show(userButton, Side.BOTTOM, 0, 0);
+    }
+}
+
+
+    @FXML
+private void handleLogin(ActionEvent event) {
+    String usernameOrEmail = usernameField.getText().trim();
+    String password = passwordField.isVisible()
+            ? passwordField.getText()
+            : passwordTextField.getText();
+
+    if (usernameOrEmail.isEmpty() || password.isEmpty()) {
+        showAlert(Alert.AlertType.WARNING, "กรุณากรอกข้อมูลให้ครบ");
+        return;
     }
 
-    @FXML
-    private void handleLogin(ActionEvent event) {
-        String usernameOrEmail = usernameField.getText().trim();
-        String password = passwordField.isVisible() ? passwordField.getText() : passwordTextField.getText();
+    String hashedPassword = sha256(password);
 
-        if (usernameOrEmail.isEmpty() || password.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "กรุณากรอกข้อมูลให้ครบ");
+    try {
+        // ===== 1. หา user จาก users =====
+        String responseUsername = supabase.selectWhere("users", "username", usernameOrEmail);
+        String responseEmail = supabase.selectWhere("users", "email", usernameOrEmail);
+
+        JSONArray usersByUsername = new JSONArray(responseUsername);
+        JSONArray usersByEmail = new JSONArray(responseEmail);
+
+        JSONObject user = null;
+        if (usersByUsername.length() > 0) {
+            user = usersByUsername.getJSONObject(0);
+        } else if (usersByEmail.length() > 0) {
+            user = usersByEmail.getJSONObject(0);
+        }
+
+        if (user == null) {
+            showAlert(Alert.AlertType.ERROR, "ไม่พบบัญชีผู้ใช้");
             return;
         }
 
-        String hashedPassword = sha256(password);
-
-        try {
-            String responseUsername = supabase.selectWhere("users", "username", usernameOrEmail);
-            String responseEmail = supabase.selectWhere("users", "email", usernameOrEmail);
-
-            JSONArray usersByUsername = new JSONArray(responseUsername);
-            JSONArray usersByEmail = new JSONArray(responseEmail);
-
-            JSONObject user = null;
-            if (usersByUsername.length() > 0)
-                user = usersByUsername.getJSONObject(0);
-            else if (usersByEmail.length() > 0)
-                user = usersByEmail.getJSONObject(0);
-
-            if (user != null && user.getString("password").equals(hashedPassword)) {
-                currentUser = user.getString("username");
-                updateUserButton();
-                showAlert(Alert.AlertType.INFORMATION, "เข้าสู่ระบบสำเร็จ");
-
-                // ✅ เปลี่ยนหน้าไป Homepage
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/homepage.fxml"));
-                    Scene homepageScene = new Scene(loader.load());
-                    Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-                    stage.setScene(homepageScene);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    showAlert(Alert.AlertType.ERROR, "ไม่สามารถเปิดหน้า Homepage ได้");
-                }
-
-            } else {
-                showAlert(Alert.AlertType.ERROR, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase");
+        if (!user.getString("password").equals(hashedPassword)) {
+            showAlert(Alert.AlertType.ERROR, "รหัสผ่านไม่ถูกต้อง");
+            return;
         }
+
+        // ===== 2. หา role จาก profiles =====
+        int userId = user.getInt("id");
+
+        String profileResponse = supabase.selectWhere(
+                "profiles",
+                "user_id",
+                String.valueOf(userId)
+        );
+
+        JSONArray profiles = new JSONArray(profileResponse);
+
+        if (profiles.length() == 0) {
+            showAlert(Alert.AlertType.ERROR, "ไม่พบ role ของผู้ใช้");
+            return;
+        }
+
+        String role = profiles.getJSONObject(0).getString("role");
+
+        // ===== 3. login สำเร็จ =====
+        currentUser = user.getString("username");
+
+        // ✅ เก็บค่าเข้า Session (สำคัญมาก)
+        Session.username = currentUser;
+        Session.role = role;
+
+        // อัปเดตปุ่มมุมขวาบน
+        updateUserButton();
+
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+
+        // ===== 4. เปลี่ยนหน้า ตาม role =====
+        if ("admin".equalsIgnoreCase(role)) {
+            SceneManager.switchScene(stage, "/views/zone_management.fxml");
+        } else {
+            SceneManager.switchScene(stage, "/views/homepage.fxml");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert(Alert.AlertType.ERROR, "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ");
     }
+}
+
+
 
     @FXML
     private void handleRegisterButton(ActionEvent event) {
