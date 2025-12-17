@@ -82,7 +82,7 @@ public class SidebaradminController {
         SceneManager.setCurrentPage("customer");
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/managerental.fxml");
+            SceneManager.switchScene(stage, "/views/managetenants.fxml");
         } catch (Exception ex) {
             ex.printStackTrace();
         }

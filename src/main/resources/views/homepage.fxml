@@ -46,9 +46,9 @@
                                     <image><Image url="images/happy.png"/></image>
                                 </ImageView>
 
-                                <Button fx:id="btnEnter"
+                              <Button fx:id="btnEnter"
                                         text="เข้าพื้นที่จำหน่าย"
-                                        onAction="#onEnterMarketClick"
+                                        onMouseClicked="#onEnterMarketClick"
                                         onMouseEntered="#handleEnter"
                                         onMouseExited="#handleExit"
                                         style="-fx-padding: 10 35 10 35;
@@ -61,12 +61,13 @@
 
                             <!-- Right Section -->
                             <HBox spacing="0" alignment="CENTER">
-                                <ImageView fitHeight="220" fitWidth="220" preserveRatio="true">
+                                <ImageView fitHeight="220" fitWidth="220" preserveRatio="true" 
+                                translateX="120">
                                     <image><Image url="images/store.png"/></image>
                                 </ImageView>
 
                                 <ImageView fitHeight="150" fitWidth="150" preserveRatio="true"
-                                           translateX="-20">
+                                           translateX="120">
                                     <image><Image url="images/sad.png"/></image>
                                 </ImageView>
                             </HBox>

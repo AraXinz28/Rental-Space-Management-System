@@ -74,8 +74,8 @@
         </HBox>
 
         <!-- 5. ประวัติการเช่า -->
-        <HBox fx:id="historyMenu" spacing="10" alignment="CENTER_LEFT"
-              onMouseClicked="#goToHistory">
+        <HBox fx:id="rentalhistoryMenu" spacing="10" alignment="CENTER_LEFT"
+              onMouseClicked="#goTorentalhistory">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
