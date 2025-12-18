@@ -9,102 +9,78 @@ import javafx.stage.Stage;
 
 public class SidebaradminController {
 
-    @FXML private HBox zoneMenu;
-    @FXML private HBox bookingMenu;
-    @FXML private HBox customerMenu;
-    @FXML private HBox paymentMenu;
-    @FXML private HBox historyMenu;
+    @FXML
+    private HBox zoneMenu;
+    @FXML
+    private HBox bookingMenu;
+    @FXML
+    private HBox customerMenu;
+    @FXML
+    private HBox paymentMenu;
+    @FXML
+    private HBox historyMenu;
 
     private HBox[] menus;
-    private HBox activeMenu;
 
     @FXML
     private void initialize() {
-        menus = new HBox[]{zoneMenu, bookingMenu, customerMenu, paymentMenu, historyMenu};
+        menus = new HBox[] { zoneMenu, bookingMenu, customerMenu, paymentMenu, historyMenu };
 
-        // ✅ ตั้ง active menu ตาม SceneManager (หรือ default)
         String current = SceneManager.getCurrentPage();
         switch (current) {
-            case "zone" -> setActive(zoneMenu);
+            case "booking" -> setActive(bookingMenu);
             case "customer" -> setActive(customerMenu);
             case "payment" -> setActive(paymentMenu);
             case "history" -> setActive(historyMenu);
             default -> setActive(zoneMenu);
         }
-
-        // ✅ hover effect ที่ไม่ค้าง
-        for (HBox menu : menus) {
-            menu.setOnMouseEntered(e -> {
-                if (menu != activeMenu) {
-                    menu.setStyle("-fx-background-color: #F5F5F5;");
-                }
-            });
-            menu.setOnMouseExited(e -> {
-                if (menu != activeMenu) {
-                    menu.setStyle("");
-                }
-            });
-        }
     }
 
     private void setActive(HBox menu) {
-        for (HBox m : menus) {
-            m.setStyle("");
-        }
-        menu.setStyle("-fx-background-color: #E0E0E0;");
-        activeMenu = menu;
+        for (HBox m : menus)
+            m.getStyleClass().remove("active");
+        menu.getStyleClass().add("active");
     }
 
     @FXML
     private void goToZone(MouseEvent e) {
         SceneManager.setCurrentPage("zone");
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/zone_management.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        setActive(zoneMenu);
+        switchTo(e, "/views/zone_management.fxml");
     }
 
     @FXML
     private void goToBooking(MouseEvent e) {
         SceneManager.setCurrentPage("booking");
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/booking_management.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        setActive(bookingMenu);
+        switchTo(e, "/views/booking_management.fxml");
     }
 
     @FXML
     private void goToCustomer(MouseEvent e) {
         SceneManager.setCurrentPage("customer");
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/managetenants.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        setActive(customerMenu);
+        switchTo(e, "/views/managetenants.fxml");
     }
 
     @FXML
     private void goToPayment(MouseEvent e) {
         SceneManager.setCurrentPage("payment");
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/checkPaymentStatus.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        setActive(paymentMenu);
+        switchTo(e, "/views/checkPaymentStatus.fxml");
     }
 
     @FXML
     private void goToHistory(MouseEvent e) {
         SceneManager.setCurrentPage("history");
+        setActive(historyMenu);
+        switchTo(e, "/views/rentalhistorymanage.fxml");
+    }
+
+    private void switchTo(MouseEvent e, String fxml) {
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/history.fxml");
+            SceneManager.switchScene(stage, fxml);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

@@ -83,9 +83,9 @@ public class SpaceController implements Initializable {
         );
 
         if (zoneGroup != null) {
-            zoneGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
-                if (newT != null) {
-                    ToggleButton btn = (ToggleButton) newT;
+            zoneGroup.selectedToggleProperty().addListener((obs, o, n) -> {
+                if (n != null) {
+                    ToggleButton btn = (ToggleButton) n;
                     currentZone = btn.getText().charAt(btn.getText().length() - 1);
                     highlightStallId = null;
                     loadFromSupabase();
@@ -96,26 +96,22 @@ public class SpaceController implements Initializable {
         loadFromSupabase();
     }
 
-    // ================= SEARCH (กดปุ่มเท่านั้น) =================
+    // ================= SEARCH =================
     @FXML
     private void handleSearch() {
 
         String text = searchField.getText();
-        if (text == null || text.isBlank()) {
-            return;
-        }
+        if (text == null || text.isBlank()) return;
 
         text = text.trim().toUpperCase();
 
-        // รองรับ "โซนA3" / "โซน A3"
         if (text.startsWith("โซน")) {
             text = text.replace("โซน", "").trim();
         }
 
         if (text.length() == 0) return;
 
-        char zone = text.charAt(0);
-        currentZone = zone;
+        currentZone = text.charAt(0);
 
         if (text.length() > 1) {
             highlightStallId = text;
@@ -123,10 +119,9 @@ public class SpaceController implements Initializable {
             highlightStallId = null;
         }
 
-        // เปลี่ยน Toggle โซน
         for (Toggle t : zoneGroup.getToggles()) {
             ToggleButton b = (ToggleButton) t;
-            if (b.getText().endsWith(String.valueOf(zone))) {
+            if (b.getText().endsWith(String.valueOf(currentZone))) {
                 b.setSelected(true);
                 break;
             }
@@ -176,10 +171,8 @@ public class SpaceController implements Initializable {
                 JsonObject o = el.getAsJsonObject();
 
                 String stallId = o.get("stall_id").getAsString();
-                String size = o.get("size").isJsonNull()
-                        ? "-" : o.get("size").getAsString();
-                String status = o.get("status").isJsonNull()
-                        ? null : o.get("status").getAsString();
+                String size = o.get("size").isJsonNull() ? "-" : o.get("size").getAsString();
+                String status = o.get("status").isJsonNull() ? null : o.get("status").getAsString();
 
                 VBox box = createBox(stallId, size, status);
                 spaceGrid.add(box, index % 5, index / 5);
@@ -192,7 +185,6 @@ public class SpaceController implements Initializable {
                                 box.getStyle() +
                                 "; -fx-border-color:black; -fx-border-width:3;"
                         );
-                        box.requestFocus();
                     });
                 }
 
@@ -241,25 +233,95 @@ public class SpaceController implements Initializable {
     private void handleShowMap() {
 
         ImageView iv = new ImageView(
-                new Image(
-                        getClass().getResource("/images/Market.png").toExternalForm()
-                )
+                new Image(getClass().getResource("/images/Market.png").toExternalForm())
         );
-        iv.setPreserveRatio(true);
         iv.setFitWidth(900);
+        iv.setPreserveRatio(true);
 
         Stage st = new Stage();
         st.initModality(Modality.APPLICATION_MODAL);
-        st.setTitle("ผังพื้นที่ทั้งหมด");
         st.setScene(new Scene(new BorderPane(iv)));
         st.showAndWait();
     }
 
-    // ================= CLICK SPACE =================
+    // ================= CLICK SPACE (เด้งรายละเอียด) =================
     @FXML
     private void handleSpaceClick(MouseEvent event) {
+
         VBox box = (VBox) event.getSource();
-        Label id = (Label) box.getChildren().get(0);
-        System.out.println("คลิกแผง " + id.getText());
+        Label idLabel = (Label) box.getChildren().get(0);
+        Label sizeLabel = (Label) box.getChildren().get(1);
+
+        String stallId = idLabel.getText();
+        String size = sizeLabel.getText();
+
+        String style = box.getStyle();
+        String statusText = "ไม่ทราบสถานะ";
+        String statusColor = "#6c757d";
+
+        if (style.contains("#2e8b61")) {
+            statusText = "ว่าง";
+            statusColor = "#2e8b61";
+        } else if (style.contains("#982d2d")) {
+            statusText = "ถูกเช่า";
+            statusColor = "#982d2d";
+        } else if (style.contains("#bac04d")) {
+            statusText = "กำลังดำเนินการ";
+            statusColor = "#bac04d";
+        }
+
+        Label title = new Label(stallId);
+        title.setFont(Font.font("System", FontWeight.BOLD, 32));
+
+        Label status = new Label(statusText);
+        status.setStyle(
+                "-fx-background-color:" + statusColor + ";" +
+                "-fx-text-fill:white;" +
+                "-fx-padding:4 12;" +
+                "-fx-background-radius:12;" +
+                "-fx-font-weight:bold;"
+        );
+
+        HBox header = new HBox(16, title, status);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox detail = new VBox(16,
+                createDetailRow("iconzone.png", "โซน", "โซน " + stallId.charAt(0)),
+                createDetailRow("iconarea.png", "ขนาดพื้นที่", size + " เมตร"),
+                createDetailRow("iconprice.png", "ราคาค่าเช่า", "300 บาท/วัน"),
+                createDetailRow("iconproduct.png", "ประเภทสินค้า", "-"),
+                createDetailRow("icondate.png", "วันที่เช่า", "-")
+        );
+
+        VBox root = new VBox(24, header, detail);
+        root.setPadding(new Insets(24));
+
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setScene(new Scene(root));
+        dialog.showAndWait();
+    }
+
+    // ================= DETAIL ROW =================
+    private HBox createDetailRow(String iconFile, String title, String value) {
+
+        ImageView icon = new ImageView(
+                new Image(getClass().getResource("/images/" + iconFile).toExternalForm())
+        );
+        icon.setFitWidth(26);
+        icon.setFitHeight(26);
+        icon.setPreserveRatio(true);
+
+        Label t = new Label(title);
+        t.setStyle("-fx-text-fill:#6c757d; -fx-font-size:13;");
+
+        Label v = new Label(value);
+        v.setStyle("-fx-font-size:14; -fx-font-weight:bold;");
+
+        VBox text = new VBox(2, t, v);
+
+        HBox row = new HBox(14, icon, text);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 }

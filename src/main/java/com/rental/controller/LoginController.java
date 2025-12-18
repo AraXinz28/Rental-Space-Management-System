@@ -1,6 +1,9 @@
 package com.rental.controller;
 
 import com.rental.database.SupabaseClient;
+import com.rental.model.Admin;
+import com.rental.model.Tenant;
+import com.rental.model.User;
 import com.rental.util.SceneManager;
 import com.rental.util.Session;
 
@@ -11,10 +14,12 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 public class LoginController {
@@ -23,13 +28,10 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private TextField passwordTextField;
     @FXML private Button togglePasswordBtn;
-    @FXML private Button userButton; 
+    @FXML private Button userButton;
     @FXML private Button registerBtn;
 
     private final SupabaseClient supabase = new SupabaseClient();
-
-    // เก็บผู้ใช้งานปัจจุบัน (null = ยังไม่ login)
-    private String currentUser = null;
 
     @FXML
     private void initialize() {
@@ -40,137 +42,135 @@ public class LoginController {
             passwordTextField.textProperty().bindBidirectional(passwordField.textProperty());
             passwordTextField.setVisible(false);
 
-            togglePasswordBtn.setOnAction(e -> {
-                boolean show = !passwordTextField.isVisible();
-                passwordTextField.setVisible(show);
-                passwordField.setVisible(!show);
-            });
+            if (togglePasswordBtn != null) {
+                togglePasswordBtn.setOnAction(e -> {
+                    boolean show = !passwordTextField.isVisible();
+                    passwordTextField.setVisible(show);
+                    passwordField.setVisible(!show);
+                });
+            }
         }
     }
 
     private void updateUserButton() {
-    if (Session.role == null) {
-        userButton.setText("ลงชื่อเข้าใช้");
-        return;
+        if (!Session.isLoggedIn()) {
+            userButton.setText("ลงชื่อเข้าใช้");
+            return;
+        }
+        userButton.setText(Session.username());
     }
-
-    if ("admin".equalsIgnoreCase(Session.role)) {
-        userButton.setText("ผู้ดูแลระบบ");
-    } else {
-        userButton.setText("ผู้ใช้งาน");
-    }
-}
-
 
     @FXML
-private void handleUserButton() {
-    if (currentUser == null) {
+    private void handleUserButton() {
+        if (!Session.isLoggedIn()) {
+            try {
+                Stage stage = (Stage) userButton.getScene().getWindow();
+                SceneManager.switchScene(stage, "/views/login.fxml");
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "ไม่สามารถเปิดหน้า Login ได้");
+            }
+        } else {
+            ContextMenu menu = new ContextMenu();
+
+            MenuItem roleItem = new MenuItem(
+                    "admin".equalsIgnoreCase(Session.role()) ? "🔧 ผู้ดูแลระบบ" : "👤 ผู้ใช้งาน"
+            );
+            roleItem.setDisable(true);
+
+            MenuItem logout = new MenuItem("🚪 Logout");
+            logout.setOnAction(e -> {
+                Session.clear();
+                updateUserButton();
+                showAlert(Alert.AlertType.INFORMATION, "ออกจากระบบแล้ว");
+            });
+
+            menu.getItems().addAll(roleItem, new SeparatorMenuItem(), logout);
+            menu.show(userButton, Side.BOTTOM, 0, 0);
+        }
+    }
+
+    @FXML
+    private void handleLogin(ActionEvent event) {
+        String usernameOrEmail = usernameField.getText().trim();
+        String password = passwordField.isVisible()
+                ? passwordField.getText()
+                : passwordTextField.getText();
+
+        if (usernameOrEmail.isEmpty() || password.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "กรุณากรอกข้อมูลให้ครบ");
+            return;
+        }
+
+        String hashedPassword = sha256(password);
+
         try {
-            Stage stage = (Stage) userButton.getScene().getWindow();
-            SceneManager.switchScene(stage, "/views/login.fxml");
+            // ===== 1) หา user จาก users (username หรือ email) =====
+            String responseUsername = supabase.selectWhere("users", "username", usernameOrEmail);
+            String responseEmail    = supabase.selectWhere("users", "email", usernameOrEmail);
+
+            JSONArray usersByUsername = new JSONArray(responseUsername);
+            JSONArray usersByEmail    = new JSONArray(responseEmail);
+
+            JSONObject userJson = null;
+            if (usersByUsername.length() > 0) {
+                userJson = usersByUsername.getJSONObject(0);
+            } else if (usersByEmail.length() > 0) {
+                userJson = usersByEmail.getJSONObject(0);
+            }
+
+            if (userJson == null) {
+                showAlert(Alert.AlertType.ERROR, "ไม่พบบัญชีผู้ใช้");
+                return;
+            }
+
+            if (!userJson.getString("password").equals(hashedPassword)) {
+                showAlert(Alert.AlertType.ERROR, "รหัสผ่านไม่ถูกต้อง");
+                return;
+            }
+
+            // ===== 2) หา role จาก profiles =====
+            int userId = userJson.getInt("id");
+
+            String profileResponse = supabase.selectWhere(
+                    "profiles",
+                    "user_id",
+                    String.valueOf(userId)
+            );
+
+            JSONArray profiles = new JSONArray(profileResponse);
+            if (profiles.length() == 0) {
+                showAlert(Alert.AlertType.ERROR, "ไม่พบ role ของผู้ใช้");
+                return;
+            }
+
+            JSONObject profile = profiles.getJSONObject(0);
+            String role = profile.getString("role");
+
+            // ===== 3) สร้าง User object แล้วเก็บใน Session =====
+            String username = userJson.optString("username", "");
+            String email    = userJson.optString("email", "");
+            String phone    = profile.optString("phone", "-"); // ถ้าไม่มี column นี้ จะได้ "-"
+
+            User loggedIn;
+            if ("admin".equalsIgnoreCase(role)) {
+                loggedIn = new Admin(userId, username, email);
+            } else {
+                loggedIn = new Tenant(userId, username, email, phone);
+            }
+
+            Session.login(loggedIn);
+            updateUserButton();
+
+            // ===== 4) เปลี่ยนหน้า (polymorphism) =====
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            SceneManager.switchScene(stage, loggedIn.getHomeFxml());
+
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "ไม่สามารถเปิดหน้า Login ได้");
+            showAlert(Alert.AlertType.ERROR, "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ");
         }
-    } else {
-        ContextMenu menu = new ContextMenu();
-
-        MenuItem logout = new MenuItem("Logout");
-        logout.setOnAction(e -> {
-            currentUser = null;
-            updateUserButton();
-            showAlert(Alert.AlertType.INFORMATION, "ออกจากระบบแล้ว");
-        });
-
-        menu.getItems().add(logout);
-        menu.show(userButton, Side.BOTTOM, 0, 0);
     }
-}
-
-
-    @FXML
-private void handleLogin(ActionEvent event) {
-    String usernameOrEmail = usernameField.getText().trim();
-    String password = passwordField.isVisible()
-            ? passwordField.getText()
-            : passwordTextField.getText();
-
-    if (usernameOrEmail.isEmpty() || password.isEmpty()) {
-        showAlert(Alert.AlertType.WARNING, "กรุณากรอกข้อมูลให้ครบ");
-        return;
-    }
-
-    String hashedPassword = sha256(password);
-
-    try {
-        // ===== 1. หา user จาก users =====
-        String responseUsername = supabase.selectWhere("users", "username", usernameOrEmail);
-        String responseEmail = supabase.selectWhere("users", "email", usernameOrEmail);
-
-        JSONArray usersByUsername = new JSONArray(responseUsername);
-        JSONArray usersByEmail = new JSONArray(responseEmail);
-
-        JSONObject user = null;
-        if (usersByUsername.length() > 0) {
-            user = usersByUsername.getJSONObject(0);
-        } else if (usersByEmail.length() > 0) {
-            user = usersByEmail.getJSONObject(0);
-        }
-
-        if (user == null) {
-            showAlert(Alert.AlertType.ERROR, "ไม่พบบัญชีผู้ใช้");
-            return;
-        }
-
-        if (!user.getString("password").equals(hashedPassword)) {
-            showAlert(Alert.AlertType.ERROR, "รหัสผ่านไม่ถูกต้อง");
-            return;
-        }
-
-        // ===== 2. หา role จาก profiles =====
-        int userId = user.getInt("id");
-
-        String profileResponse = supabase.selectWhere(
-                "profiles",
-                "user_id",
-                String.valueOf(userId)
-        );
-
-        JSONArray profiles = new JSONArray(profileResponse);
-
-        if (profiles.length() == 0) {
-            showAlert(Alert.AlertType.ERROR, "ไม่พบ role ของผู้ใช้");
-            return;
-        }
-
-        String role = profiles.getJSONObject(0).getString("role");
-
-        // ===== 3. login สำเร็จ =====
-        currentUser = user.getString("username");
-
-        // ✅ เก็บค่าเข้า Session (สำคัญมาก)
-        Session.username = currentUser;
-        Session.role = role;
-
-        // อัปเดตปุ่มมุมขวาบน
-        updateUserButton();
-
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-
-        // ===== 4. เปลี่ยนหน้า ตาม role =====
-        if ("admin".equalsIgnoreCase(role)) {
-            SceneManager.switchScene(stage, "/views/zone_management.fxml");
-        } else {
-            SceneManager.switchScene(stage, "/views/homepage.fxml");
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        showAlert(Alert.AlertType.ERROR, "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ");
-    }
-}
-
-
 
     @FXML
     private void handleRegisterButton(ActionEvent event) {
@@ -188,12 +188,11 @@ private void handleLogin(ActionEvent event) {
     private String sha256(String base) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(base.getBytes("UTF-8"));
+            byte[] hash = digest.digest(base.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1)
-                    hexString.append('0');
+                if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
             return hexString.toString();
@@ -204,15 +203,14 @@ private void handleLogin(ActionEvent event) {
 
     private void showAlert(Alert.AlertType alertType, String message) {
         Alert alert = new Alert(alertType);
-        alert.setTitle(null); 
-        alert.setHeaderText(null); 
+        alert.setTitle(null);
+        alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
 
-    // เรียกเมื่อ login สำเร็จจาก Register หรือหน้าอื่น
+    // กันโค้ดเก่าที่เคยเรียกไว้ (ไม่จำเป็นแล้ว)
     public void setCurrentUser(String username) {
-        this.currentUser = username;
         updateUserButton();
     }
 }
