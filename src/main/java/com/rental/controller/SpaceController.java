@@ -1,22 +1,35 @@
 package com.rental.controller;
 
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ResourceBundle;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.TabPane;          // ★ เพิ่ม
+import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;          // ★ เพิ่ม
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -26,223 +39,227 @@ import javafx.stage.Stage;
 
 public class SpaceController implements Initializable {
 
-    @FXML private ComboBox<String> zoneCombo;
+    // ================= FILTER =================
+    @FXML private TextField searchField;
     @FXML private ComboBox<String> statusCombo;
     @FXML private ComboBox<String> typeCombo;
+    @FXML private DatePicker rentDate;
 
-    // ★ เพิ่ม
-    @FXML private TabPane tabPane;
+    // ================= ZONE =================
+    @FXML private ToggleGroup zoneGroup;
+
+    // ================= GRID =================
     @FXML private GridPane spaceGrid;
 
-    // ★ เพิ่ม
     private char currentZone = 'A';
+    private String highlightStallId = null;
 
+    // ================= SUPABASE =================
+    private static final String SUPABASE_URL =
+            "https://sdmipxsxkquuyxvvqpho.supabase.co";
+
+    private static final String SUPABASE_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTM1NDcsImV4cCI6MjA4MDMyOTU0N30.AG8XwFmTuMPXZe5bjv2YqeIcfvKFRf95CJLDhfDHp0E";
+
+    // =========================================================
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initialize(URL url, ResourceBundle rb) {
 
-        // ------- รายการโซน -------
-        if (zoneCombo != null) {
-            zoneCombo.getItems().setAll(
-                    "โซน A", "โซน B", "โซน C",
-                    "โซน D", "โซน E", "โซน F", "โซน G"
-            );
-        }
+        statusCombo.getItems().setAll(
+                "ว่าง", "ถูกเช่า", "กำลังดำเนินการ", "ปิดปรับปรุง"
+        );
 
-        // ------- รายการสถานะ -------
-        if (statusCombo != null) {
-            statusCombo.getItems().setAll(
-                    "ว่าง", "ถูกเช่า", "กำลังดำเนินการ", "ปิดปรับปรุง"
-            );
-        }
+        typeCombo.getItems().setAll(
+                "1) อาหาร / เครื่องดื่ม",
+                "2) แฟชั่น / เสื้อผ้า",
+                "3) เครื่องประดับ / กระเป๋า / รองเท้า",
+                "4) ของใช้ในบ้าน / ของตกแต่ง",
+                "5) เบ็ดเตล็ด / สินค้าทั่วไป",
+                "6) ของสด / ผัก / ผลไม้",
+                "7) ความงาม / สกินแคร์",
+                "8) ของเล่น / โมเดล",
+                "9) งานแฮนด์เมด / งานคราฟต์",
+                "10) สินค้าสัตว์เลี้ยง"
+        );
 
-        // ------- ประเภทสินค้า -------
-        if (typeCombo != null) {
-            typeCombo.getItems().setAll(
-                    "1) อาหาร / เครื่องดื่ม",
-                    "2) แฟชั่น / เสื้อผ้า",
-                    "3) เครื่องประดับ / กระเป๋า / รองเท้า",
-                    "4) ของใช้ในบ้าน / ของตกแต่ง",
-                    "5) เบ็ดเตล็ด / สินค้าทั่วไป",
-                    "6) ของสด / ผัก / ผลไม้",
-                    "7) ความงาม / สกินแคร์",
-                    "8) ของเล่น / โมเดล",
-                    "9) งานแฮนด์เมด / งานคราฟต์",
-                    "10) สินค้าสัตว์เลี้ยง"
-            );
-        }
-
-        // ★ เพิ่ม: ฟังการเปลี่ยน Tab โซน
-        if (tabPane != null) {
-            tabPane.getSelectionModel()
-                   .selectedItemProperty()
-                   .addListener((obs, oldTab, newTab) -> {
-                       if (newTab != null) {
-                           currentZone =
-                                   newTab.getText().charAt(newTab.getText().length() - 1);
-                           updateZoneLabels();
-                       }
-                   });
-        }
-    }
-
-    // ★ เพิ่ม: เปลี่ยน A01 → B01 → C01
-    private void updateZoneLabels() {
-
-        if (spaceGrid == null) return;
-
-        spaceGrid.getChildren().forEach(node -> {
-            if (node instanceof VBox box && box.getChildren().size() >= 2) {
-
-                Label nameLabel = (Label) box.getChildren().get(0);
-                String oldText = nameLabel.getText(); // A01
-
-                if (oldText.length() >= 2) {
-                    String number = oldText.substring(1); // 01
-                    nameLabel.setText(currentZone + number);
+        if (zoneGroup != null) {
+            zoneGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
+                if (newT != null) {
+                    ToggleButton btn = (ToggleButton) newT;
+                    currentZone = btn.getText().charAt(btn.getText().length() - 1);
+                    highlightStallId = null;
+                    loadFromSupabase();
                 }
-            }
-        });
+            });
+        }
+
+        loadFromSupabase();
     }
 
-    // ================== ปุ่ม "คลิกที่นี่เพื่อดูผังพื้นที่" ==================
+    // ================= SEARCH (กดปุ่มเท่านั้น) =================
+    @FXML
+    private void handleSearch() {
+
+        String text = searchField.getText();
+        if (text == null || text.isBlank()) {
+            return;
+        }
+
+        text = text.trim().toUpperCase();
+
+        // รองรับ "โซนA3" / "โซน A3"
+        if (text.startsWith("โซน")) {
+            text = text.replace("โซน", "").trim();
+        }
+
+        if (text.length() == 0) return;
+
+        char zone = text.charAt(0);
+        currentZone = zone;
+
+        if (text.length() > 1) {
+            highlightStallId = text;
+        } else {
+            highlightStallId = null;
+        }
+
+        // เปลี่ยน Toggle โซน
+        for (Toggle t : zoneGroup.getToggles()) {
+            ToggleButton b = (ToggleButton) t;
+            if (b.getText().endsWith(String.valueOf(zone))) {
+                b.setSelected(true);
+                break;
+            }
+        }
+
+        loadFromSupabase();
+    }
+
+    // ================= CLEAR =================
+    @FXML
+    private void handleClearFilter() {
+        searchField.clear();
+        statusCombo.setValue(null);
+        typeCombo.setValue(null);
+        rentDate.setValue(null);
+        highlightStallId = null;
+        loadFromSupabase();
+    }
+
+    // ================= LOAD DATA =================
+    private void loadFromSupabase() {
+
+        spaceGrid.getChildren().clear();
+
+        try {
+            String url = SUPABASE_URL +
+                    "/rest/v1/stalls?select=stall_id,size,status" +
+                    "&zone_name=eq." + currentZone +
+                    "&order=stall_id.asc";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response =
+                    HttpClient.newHttpClient().send(
+                            request, HttpResponse.BodyHandlers.ofString()
+                    );
+
+            JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
+
+            int index = 0;
+            for (JsonElement el : arr) {
+                JsonObject o = el.getAsJsonObject();
+
+                String stallId = o.get("stall_id").getAsString();
+                String size = o.get("size").isJsonNull()
+                        ? "-" : o.get("size").getAsString();
+                String status = o.get("status").isJsonNull()
+                        ? null : o.get("status").getAsString();
+
+                VBox box = createBox(stallId, size, status);
+                spaceGrid.add(box, index % 5, index / 5);
+
+                if (highlightStallId != null &&
+                        stallId.equalsIgnoreCase(highlightStallId)) {
+
+                    Platform.runLater(() -> {
+                        box.setStyle(
+                                box.getStyle() +
+                                "; -fx-border-color:black; -fx-border-width:3;"
+                        );
+                        box.requestFocus();
+                    });
+                }
+
+                index++;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ================= CREATE BOX =================
+    private VBox createBox(String id, String size, String status) {
+
+        Label idLabel = new Label(id);
+        idLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
+
+        Label sizeLabel = new Label(size);
+
+        VBox box = new VBox(6, idLabel, sizeLabel);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(18));
+        box.setMaxWidth(Double.MAX_VALUE);
+
+        box.setStyle(
+                "-fx-background-radius:14;" +
+                "-fx-background-color:" + colorByStatus(status) + ";"
+        );
+
+        box.setOnMouseClicked(this::handleSpaceClick);
+        return box;
+    }
+
+    private String colorByStatus(String s) {
+        if (s == null) return "#6c757d";
+        return switch (s) {
+            case "available" -> "#2e8b61ff";
+            case "rented" -> "#982d2dff";
+            case "processing" -> "#bac04dff";
+            default -> "#6c757d";
+        };
+    }
+
+    // ================= SHOW MAP =================
     @FXML
     private void handleShowMap() {
 
-        Image image = new Image(
-                getClass().getResource("/images/Market.png").toExternalForm()
+        ImageView iv = new ImageView(
+                new Image(
+                        getClass().getResource("/images/Market.png").toExternalForm()
+                )
         );
-        ImageView imageView = new ImageView(image);
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(900);
+        iv.setPreserveRatio(true);
+        iv.setFitWidth(900);
 
-        BorderPane root = new BorderPane();
-        root.setCenter(imageView);
-
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("ผังพื้นที่ทั้งหมด");
-        dialog.setScene(new Scene(root));
-        dialog.sizeToScene();
-
-        dialog.showAndWait();
+        Stage st = new Stage();
+        st.initModality(Modality.APPLICATION_MODAL);
+        st.setTitle("ผังพื้นที่ทั้งหมด");
+        st.setScene(new Scene(new BorderPane(iv)));
+        st.showAndWait();
     }
 
-    // ================== เมธอดช่วยสร้างแถวรายละเอียดพร้อมไอคอน ==================
-    private HBox createDetailRow(String iconFileName, String titleText, String valueText) {
-
-        ImageView icon = new ImageView(
-                new Image(getClass().getResource("/images/" + iconFileName).toExternalForm())
-        );
-        icon.setFitWidth(28);
-        icon.setFitHeight(28);
-        icon.setPreserveRatio(true);
-
-        Label titleLabel = new Label(titleText);
-        titleLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 13;");
-
-        Label valueLabel = new Label(valueText);
-        valueLabel.setStyle("-fx-text-fill: #000000; -fx-font-size: 14; -fx-font-weight: bold;");
-
-        VBox textBox = new VBox(2, titleLabel, valueLabel);
-
-        HBox row = new HBox(12, icon, textBox);
-        row.setAlignment(Pos.CENTER_LEFT);
-
-        return row;
-    }
-
-    // ================== เมื่อคลิกสี่เหลี่ยมพื้นที่ A01–A15 ==================
+    // ================= CLICK SPACE =================
     @FXML
     private void handleSpaceClick(MouseEvent event) {
-
         VBox box = (VBox) event.getSource();
-
-        String spaceName = "";
-        String sizeText = "";
-
-        if (box.getChildren().size() >= 2) {
-            Label nameLabel = (Label) box.getChildren().get(0);
-            Label sizeLabel = (Label) box.getChildren().get(1);
-            spaceName = nameLabel.getText();
-            sizeText = sizeLabel.getText();
-        }
-
-        String zone = "";
-        if (!spaceName.isEmpty()) {
-            zone = "โซน " + spaceName.substring(0, 1);
-        }
-
-        String style = box.getStyle();
-        String statusText = "ไม่ทราบสถานะ";
-        String statusColor = "#6c757d";
-
-        if (style.contains("#2e8b61")) {
-            statusText = "ว่าง";
-            statusColor = "#2e8b61";
-        } else if (style.contains("#982d2d")) {
-            statusText = "ถูกเช่า";
-            statusColor = "#982d2d";
-        } else if (style.contains("#bac04d")) {
-            statusText = "กำลังดำเนินการ";
-            statusColor = "#bac04d";
-        } else if (style.contains("#6c757d")) {
-            statusText = "ปิดปรับปรุง";
-            statusColor = "#6c757d";
-        }
-
-        VBox root = new VBox(20);
-        root.setPadding(new Insets(24));
-        root.setAlignment(Pos.TOP_LEFT);
-
-        Label titleLabel = new Label(spaceName);
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
-
-        Label statusLabel = new Label(statusText);
-        statusLabel.setStyle(
-                "-fx-background-color: " + statusColor + ";" +
-                "-fx-text-fill: white;" +
-                "-fx-padding: 4 12;" +
-                "-fx-background-radius: 12;" +
-                "-fx-font-weight: bold;"
-        );
-
-        HBox header = new HBox(16, titleLabel, statusLabel);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        HBox zoneRow  = createDetailRow("iconzone.png", "โซน", zone);
-        HBox sizeRow  = createDetailRow("iconarea.png", "ขนาดพื้นที่", sizeText + " เมตร");
-        HBox priceRow = createDetailRow("iconprice.png", "ราคาค่าเช่า", "150 บาท/วัน");
-        HBox typeRow  = createDetailRow("iconproduct.png", "ประเภทการสินค้า", "-");
-        HBox dateRow  = createDetailRow("icondate.png", "วันที่เช่า", "-");
-
-        VBox detailBox = new VBox(16, zoneRow, sizeRow, priceRow, typeRow, dateRow);
-
-        Button closeBtn = new Button("ปิด");
-        closeBtn.setPrefWidth(100);
-
-        Button bookBtn = new Button("จอง");
-        bookBtn.setPrefWidth(100);
-        bookBtn.setStyle(
-                "-fx-background-color: #274390ff;" +
-                "-fx-text-fill: white;" +
-                "-fx-font-weight: bold;"
-        );
-
-        HBox buttonBar = new HBox(12 , closeBtn, bookBtn);
-        buttonBar.setAlignment(Pos.CENTER_RIGHT);
-        buttonBar.setPadding(new Insets(10, 0, 0, 0));
-
-        root.getChildren().addAll(header, detailBox, buttonBar);
-
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("รายละเอียดพื้นที่");
-        dialog.setScene(new Scene(root));
-        dialog.sizeToScene();
-
-        closeBtn.setOnAction(e -> dialog.close());
-        bookBtn.setOnAction(e -> dialog.close());
-
-        dialog.showAndWait();
+        Label id = (Label) box.getChildren().get(0);
+        System.out.println("คลิกแผง " + id.getText());
     }
 }
