@@ -18,6 +18,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -39,29 +40,23 @@ import javafx.stage.Stage;
 
 public class SpaceController implements Initializable {
 
-    // ================= FILTER =================
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusCombo;
     @FXML private ComboBox<String> typeCombo;
     @FXML private DatePicker rentDate;
 
-    // ================= ZONE =================
     @FXML private ToggleGroup zoneGroup;
-
-    // ================= GRID =================
     @FXML private GridPane spaceGrid;
 
     private char currentZone = 'A';
     private String highlightStallId = null;
 
-    // ================= SUPABASE =================
     private static final String SUPABASE_URL =
             "https://sdmipxsxkquuyxvvqpho.supabase.co";
 
     private static final String SUPABASE_KEY =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTM1NDcsImV4cCI6MjA4MDMyOTU0N30.AG8XwFmTuMPXZe5bjv2YqeIcfvKFRf95CJLDhfDHp0E";
 
-    // =========================================================
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
@@ -96,7 +91,6 @@ public class SpaceController implements Initializable {
         loadFromSupabase();
     }
 
-    // ================= SEARCH =================
     @FXML
     private void handleSearch() {
 
@@ -130,7 +124,6 @@ public class SpaceController implements Initializable {
         loadFromSupabase();
     }
 
-    // ================= CLEAR =================
     @FXML
     private void handleClearFilter() {
         searchField.clear();
@@ -141,7 +134,6 @@ public class SpaceController implements Initializable {
         loadFromSupabase();
     }
 
-    // ================= LOAD DATA =================
     private void loadFromSupabase() {
 
         spaceGrid.getChildren().clear();
@@ -196,7 +188,6 @@ public class SpaceController implements Initializable {
         }
     }
 
-    // ================= CREATE BOX =================
     private VBox createBox(String id, String size, String status) {
 
         Label idLabel = new Label(id);
@@ -228,7 +219,6 @@ public class SpaceController implements Initializable {
         };
     }
 
-    // ================= SHOW MAP =================
     @FXML
     private void handleShowMap() {
 
@@ -244,7 +234,6 @@ public class SpaceController implements Initializable {
         st.showAndWait();
     }
 
-    // ================= CLICK SPACE (เด้งรายละเอียด) =================
     @FXML
     private void handleSpaceClick(MouseEvent event) {
 
@@ -256,7 +245,7 @@ public class SpaceController implements Initializable {
         String size = sizeLabel.getText();
 
         String style = box.getStyle();
-        String statusText = "ไม่ทราบสถานะ";
+        String statusText = "ปิดปรับปรุง";
         String statusColor = "#6c757d";
 
         if (style.contains("#2e8b61")) {
@@ -293,16 +282,43 @@ public class SpaceController implements Initializable {
                 createDetailRow("icondate.png", "วันที่เช่า", "-")
         );
 
-        VBox root = new VBox(24, header, detail);
+        Button btnClose = new Button("ปิด");
+        btnClose.setPrefWidth(120);
+        btnClose.setStyle(
+                "-fx-background-color:#9e9e9e;" +
+                "-fx-text-fill:white;" +
+                "-fx-background-radius:10;"
+        );
+
+        Button btnReserve = new Button("จอง");
+        btnReserve.setPrefWidth(120);
+        btnReserve.setStyle(
+                "-fx-background-color:#2f3b6e;" +
+                "-fx-text-fill:white;" +
+                "-fx-background-radius:10;" +
+                "-fx-font-weight:bold;"
+        );
+
+        HBox buttonBar = new HBox(20, btnClose, btnReserve);
+        buttonBar.setAlignment(Pos.CENTER);
+
+        VBox root = new VBox(24, header, detail, buttonBar);
         root.setPadding(new Insets(24));
 
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setScene(new Scene(root));
+
+        btnClose.setOnAction(e -> dialog.close());
+
+        if (!statusText.equals("ว่าง")) {
+            btnReserve.setDisable(true);
+            btnReserve.setOpacity(0.5);
+        }
+
         dialog.showAndWait();
     }
 
-    // ================= DETAIL ROW =================
     private HBox createDetailRow(String iconFile, String title, String value) {
 
         ImageView icon = new ImageView(
