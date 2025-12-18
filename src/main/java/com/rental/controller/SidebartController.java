@@ -18,53 +18,49 @@ public class SidebartController {
     private HBox[] menus;
     private HBox activeMenu;
 
-    // Static variable เก็บเมนู active ล่าสุด
-    private static String lastActiveMenu = "home"; // เริ่มต้นเป็น home
+    // เก็บเมนูที่ active ล่าสุด (เพื่อจำตอนเปิดแอปใหม่)
+    private static String lastActiveMenu = "home";
 
     @FXML
     private void initialize() {
-        // รวมเมนูทั้งหมด
         menus = new HBox[]{homeMenu, searchMenu, bookingMenu, paymentMenu, rentalhistoryMenu};
 
-        // เซ็ตเมนู active ตามค่า lastActiveMenu
+        // ตั้งค่าเมนู active ตามครั้งล่าสุด
         switch (lastActiveMenu) {
-            case "home": setActive(homeMenu); break;
-            case "search": setActive(searchMenu); break;
-            case "booking": setActive(bookingMenu); break;
-            case "payment": setActive(paymentMenu); break;
-            case "history": setActive(rentalhistoryMenu); break;
+            case "home" -> setActive(homeMenu);
+            case "search" -> setActive(searchMenu);
+            case "booking" -> setActive(bookingMenu);
+            case "payment" -> setActive(paymentMenu);
+            case "history" -> setActive(rentalhistoryMenu);
         }
 
-        // เพิ่ม hover effect ให้แต่ละเมนู
-        for (HBox m : menus) {
-            m.setOnMouseEntered(e -> {
-                if (m != activeMenu) {
-                    m.setStyle("-fx-background-color: #E0E0E0;");
+        // เพิ่ม hover effect ให้ทุกเมนู (ยกเว้น active)
+        for (HBox menu : menus) {
+            menu.setOnMouseEntered(e -> {
+                if (menu != activeMenu) {
+                    menu.setStyle("-fx-background-color: #f0f0f0; -fx-cursor: hand;");
                 }
             });
 
-            m.setOnMouseExited(e -> {
-                if (m != activeMenu) {
-                    m.setStyle("");
+            menu.setOnMouseExited(e -> {
+                if (menu != activeMenu) {
+                    menu.setStyle("");
                 }
             });
         }
     }
 
-    /**
-     * ฟังก์ชันเซ็ต active menu
-     */
     private void setActive(HBox menu) {
-        // รีเซ็ตสีทุกเมนู
+        // รีเซ็ตทุกเมนู
         for (HBox m : menus) {
-            m.setStyle("");
+            m.setStyle(""); // ล้าง hover เก่าทิ้ง
         }
 
-        // เซ็ตสี active
-        menu.setStyle("-fx-background-color: #E0E0E0;");
+        // เซ็ต active
+        menu.setStyle("-fx-background-color: #e0e0e0;");
         activeMenu = menu;
 
-        // อัพเดต lastActiveMenu
+        // บันทึกสถานะล่าสุด
         if (menu == homeMenu) lastActiveMenu = "home";
         else if (menu == searchMenu) lastActiveMenu = "search";
         else if (menu == bookingMenu) lastActiveMenu = "booking";
@@ -72,61 +68,45 @@ public class SidebartController {
         else if (menu == rentalhistoryMenu) lastActiveMenu = "history";
     }
 
-    // ------------------- Action ของแต่ละเมนู -------------------
+    // ================== เมนูทั้งหมด ==================
 
     @FXML
     private void goToHome(MouseEvent e) {
         setActive(homeMenu);
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/homepage.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        switchToScene(e, "/views/homepage.fxml");
     }
 
     @FXML
     private void goToSearch(MouseEvent e) {
         setActive(searchMenu);
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/Space.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        switchToScene(e, "/views/Space.fxml");
     }
 
     @FXML
     private void goToBooking(MouseEvent e) {
         setActive(bookingMenu);
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/booking.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        switchToScene(e, "/views/booking.fxml");
     }
 
     @FXML
     private void goToPayment(MouseEvent e) {
         setActive(paymentMenu);
+        switchToScene(e, "/views/payment.fxml");
+    }
+
+    @FXML
+    private void goTorentalhistory(MouseEvent e) {
+        setActive(rentalhistoryMenu);
+        switchToScene(e, "/views/rentalhistory.fxml");
+    }
+
+    // ฟังก์ชันช่วยสลับหน้า (ลดโค้ดซ้ำ)
+    private void switchToScene(MouseEvent e, String fxmlPath) {
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, "/views/payment.fxml");
+            SceneManager.switchScene(stage, fxmlPath);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
-
-  @FXML
-    private void goTorentalhistory(MouseEvent e) {
-        setActive(rentalhistoryMenu);
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        try {
-            SceneManager.switchScene(stage, "/views/rentalhistory.fxml");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-   
-        }
-    }   
 }

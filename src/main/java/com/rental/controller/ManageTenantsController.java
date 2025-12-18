@@ -1,16 +1,17 @@
 package com.rental.controller;
 
 import com.rental.database.SupabaseClient;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.awt.Desktop;
+import java.net.URI;
 
 public class ManageTenantsController {
 
@@ -18,27 +19,131 @@ public class ManageTenantsController {
     @FXML private TextField phoneField;
     @FXML private TextField emailField;
     @FXML private ComboBox<String> pageSizeCombo;
-    @FXML private ComboBox<String> statusFilter;
+    @FXML private ComboBox<String> sortComboBox;
 
     @FXML private TableView<Tenant> tenantTable;
     @FXML private TableColumn<Tenant, String> colName;
-    @FXML private TableColumn<Tenant, String> colPhone;
     @FXML private TableColumn<Tenant, String> colEmail;
+    @FXML private TableColumn<Tenant, String> colPhone;
     @FXML private TableColumn<Tenant, String> colZone;
+    @FXML private TableColumn<Tenant, String> colCreatedAt;
+    @FXML private TableColumn<Tenant, String> colRejectReason;
     @FXML private TableColumn<Tenant, String> colStatus;
     @FXML private TableColumn<Tenant, Void> colContact;
-    @FXML private TableColumn<Tenant, Void> colEditStatus;
 
     private final ObservableList<Tenant> masterData = FXCollections.observableArrayList();
     private final ObservableList<Tenant> filteredData = FXCollections.observableArrayList();
 
     private final SupabaseClient supabase = new SupabaseClient();
 
-    /* ==================== FXML ACTIONS ==================== */
-
     @FXML
-    private void onFilterClick() {
-        applyFilters();
+    public void initialize() {
+        // ตั้งค่าแสดงต่อหน้า
+        pageSizeCombo.setItems(FXCollections.observableArrayList("10", "20", "50", "100"));
+        pageSizeCombo.getSelectionModel().select("20");
+
+        // ตั้งค่าจัดเรียงตาม
+        sortComboBox.setItems(FXCollections.observableArrayList(
+                "ชื่อ (ก → ฮ)",
+                "ชื่อ (ฮ → ก)"
+        ));
+        sortComboBox.getSelectionModel().select("จัดเรียงตาม");
+
+        // Cell Value Factory
+        colName.setCellValueFactory(data -> data.getValue().nameProperty());
+        colEmail.setCellValueFactory(data -> data.getValue().emailProperty());
+        colPhone.setCellValueFactory(data -> data.getValue().phoneProperty());
+        colZone.setCellValueFactory(data -> data.getValue().zoneProperty());
+        colCreatedAt.setCellValueFactory(data -> data.getValue().createdAtProperty());
+        colRejectReason.setCellValueFactory(data -> data.getValue().rejectReasonProperty());
+        colStatus.setCellValueFactory(data -> data.getValue().statusProperty());
+
+        // สีสถานะ
+        colStatus.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
+                if (empty || status == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(status);
+                    setStyle("-fx-text-fill: #c80000; -fx-font-weight: bold;");
+                }
+            }
+        });
+// ปุ่มติดต่อ → เปิด Gmail พร้อมกรอกอีเมลล์ + หัวข้อ + เนื้อเมลเริ่มต้น
+colContact.setCellFactory(col -> new TableCell<>() {
+    private final Button btn = new Button("ติดต่อ");
+    private final VBox wrapper = new VBox(btn);
+
+    {
+        wrapper.setAlignment(Pos.CENTER);
+        btn.setStyle("-fx-background-color: #7c7c7c; -fx-text-fill: white; -fx-border-radius: 20; -fx-background-radius: 20;");
+        btn.setOnAction(e -> {
+            Tenant tenant = getTableView().getItems().get(getIndex());
+            String email = tenant.getEmail().trim();
+            String name = tenant.getName().trim();
+            String zone = tenant.getZone().trim();
+            String reason = tenant.getRejectReason().trim();
+
+            if (email.isEmpty() || email.equals("-")) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("ไม่มีอีเมลล์");
+                alert.setContentText("ผู้เช่ารายนี้ไม่มีอีเมลล์ที่บันทึกไว้");
+                alert.show();
+                return;
+            }
+
+            // หัวข้ออีเมล
+            String subject = "[Rental System] แจ้งผลการปฏิเสธคำขอเช่าพื้นที่ - คุณ" + name + " (โซน " + zone + ")";
+            String encodedSubject = java.net.URLEncoder.encode(subject, java.nio.charset.StandardCharsets.UTF_8);
+
+            // เนื้อเมลเริ่มต้น (body) - มีคำเชิญชวนให้ติดต่อกลับเรื่องคืนเงิน
+            String body = "สวัสดีค่ะ/ครับ คุณ" + name  +
+                          "เราต้องขออภัยที่ต้องแจ้งว่าคำขอเช่าพื้นที่โซน " + zone + " ของท่านไม่ผ่านการพิจารณา" +
+                          "เหตุผล: " + (reason.equals("-") ? "ไม่ระบุ" : reason)  +
+                          "หากท่านได้ชำระเงินมัดจำหรือค่าจองแล้ว เรายินดีดำเนินการคืนเงินให้เต็มจำนวน" +
+                          "กรุณาติดกลับเพื่อแจ้งช่องทางการคืนเงินที่สะดวก (เช่น เลขบัญชีธนาคาร พร้อมชื่อบัญชี)" +
+                          "ขอบคุณที่สนใจบริการของเรา" +
+                          "ทีมงาน Rental Space Management";
+
+            String encodedBody = java.net.URLEncoder.encode(body, java.nio.charset.StandardCharsets.UTF_8);
+
+            // ลิงก์ Gmail พร้อม To + Subject + Body
+            String mailtoLink = "https://mail.google.com/mail/?view=cm&fs=1&to=" + email +
+                                "&su=" + encodedSubject +
+                                "&body=" + encodedBody;
+
+            try {
+                Desktop.getDesktop().browse(new URI(mailtoLink));
+            } catch (Exception ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("เปิด Gmail ไม่ได้");
+                alert.setContentText("ไม่สามารถเปิด Gmail ได้อัตโนมัติ\nกรุณาคัดลอกอีเมลล์นี้: " + email);
+                alert.show();
+            }
+        });
+    }
+
+    @Override
+    protected void updateItem(Void item, boolean empty) {
+        super.updateItem(item, empty);
+        setGraphic(empty ? null : wrapper);
+    }
+});
+
+        // โหลดข้อมูล
+        loadRejectedTenants();
+        tenantTable.setItems(filteredData);
+
+        // จัดเรียงตามค่าเริ่มต้น
+        onSortClick();
+
+        // ค้นหาแบบ real-time
+        nameField.textProperty().addListener((obs, o, n) -> applyFilters());
+        phoneField.textProperty().addListener((obs, o, n) -> applyFilters());
+        emailField.textProperty().addListener((obs, o, n) -> applyFilters());
     }
 
     @FXML
@@ -46,120 +151,40 @@ public class ManageTenantsController {
         nameField.clear();
         phoneField.clear();
         emailField.clear();
-        statusFilter.getSelectionModel().select("ทั้งหมด");
-        pageSizeCombo.getSelectionModel().select("10");
-        applyFilters();
+        sortComboBox.getSelectionModel().select("วันที่ทำรายการ (ใหม่ → เก่า)");
+        pageSizeCombo.getSelectionModel().select("20");
+        filteredData.setAll(masterData);
+        onSortClick(); // จัดเรียงใหม่หลังรีเซ็ต
+        tenantTable.refresh();
     }
-
-    /* ==================== INITIALIZE ==================== */
 
     @FXML
-    public void initialize() {
+    private void onSortClick() {
+        String selected = sortComboBox.getValue();
+        if (selected == null || masterData.isEmpty()) {
+            return;
+        }
 
-        statusFilter.setItems(FXCollections.observableArrayList(
-                "ทั้งหมด", "pending", "approved", "rejected"
-        ));
-        statusFilter.getSelectionModel().select("ทั้งหมด");
-        statusFilter.setOnAction(e -> applyFilters());
+        // ใช้ข้อมูลจาก filteredData ถ้ามีการกรองอยู่ มิฉะนั้นใช้ masterData
+        ObservableList<Tenant> listToSort = FXCollections.observableArrayList(
+                filteredData.isEmpty() ? masterData : filteredData
+        );
 
-        pageSizeCombo.setItems(FXCollections.observableArrayList("10", "20", "50"));
-        pageSizeCombo.getSelectionModel().select("10");
+        switch (selected) {
+            case "ชื่อ (ก → ฮ)":
+                FXCollections.sort(listToSort, (t1, t2) -> t1.getName().compareToIgnoreCase(t2.getName()));
+                break;
+            case "ชื่อ (ฮ → ก)":
+                FXCollections.sort(listToSort, (t1, t2) -> t2.getName().compareToIgnoreCase(t1.getName()));
+                break;
+           
+        }
 
-        colName.setCellValueFactory(data -> data.getValue().nameProperty());
-        colPhone.setCellValueFactory(data -> data.getValue().phoneProperty());
-        colEmail.setCellValueFactory(data -> data.getValue().emailProperty());
-        colZone.setCellValueFactory(data -> data.getValue().zoneProperty());
-        colStatus.setCellValueFactory(data -> data.getValue().statusProperty());
-
-        setupStatusColor();
-        setupContactButton();
-        setupEditStatusButton();
-
-        loadTenantsFromSupabase();
-
-        tenantTable.setItems(filteredData);
-        tenantTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-        nameField.textProperty().addListener((obs, o, n) -> applyFilters());
-        phoneField.textProperty().addListener((obs, o, n) -> applyFilters());
-        emailField.textProperty().addListener((obs, o, n) -> applyFilters());
+        filteredData.setAll(listToSort);
+        tenantTable.refresh();
     }
 
-    /* ==================== TABLE SETUP ==================== */
-
-    private void setupStatusColor() {
-        colStatus.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(String status, boolean empty) {
-                super.updateItem(status, empty);
-
-                if (empty || status == null) {
-                    setText(null);
-                    setStyle("");
-                    return;
-                }
-
-                setText(status);
-
-                switch (status.trim().toLowerCase()) {
-                    case "approved" -> setStyle("-fx-text-fill: #009e0b;");
-                    case "pending" -> setStyle("-fx-text-fill: #e6a800;");
-                    case "rejected" -> setStyle("-fx-text-fill: #c80000;");
-                    default -> setStyle("");
-                }
-            }
-        });
-    }
-
-    private void setupContactButton() {
-        colContact.setCellFactory(col -> new TableCell<>() {
-
-            private final Button btn = new Button("ติดต่อ");
-            private final VBox wrapper = new VBox(btn);
-
-            {
-                wrapper.setAlignment(javafx.geometry.Pos.CENTER);
-                btn.setStyle("-fx-background-color: #7c7c7c; -fx-text-fill: white;");
-                btn.setOnAction(e -> {
-                    Tenant tenant = getTableView().getItems().get(getIndex());
-                    showContactPopup(tenant);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : wrapper);
-            }
-        });
-    }
-
-    private void setupEditStatusButton() {
-        colEditStatus.setCellFactory(col -> new TableCell<>() {
-
-            private final Button btn = new Button("แก้ไขสถานะ");
-            private final VBox wrapper = new VBox(btn);
-
-            {
-                wrapper.setAlignment(javafx.geometry.Pos.CENTER);
-                btn.setStyle("-fx-background-color: #ffa726; -fx-text-fill: white;");
-                btn.setOnAction(e -> {
-                    Tenant tenant = getTableView().getItems().get(getIndex());
-                    showEditStatusPopup(tenant);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : wrapper);
-            }
-        });
-    }
-
-    /* ==================== DATA ==================== */
-
-    private void loadTenantsFromSupabase() {
+    private void loadRejectedTenants() {
         try {
             String json = supabase.selectAll("booking_demo_status");
             JSONArray arr = new JSONArray(json);
@@ -169,20 +194,39 @@ public class ManageTenantsController {
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
 
+                String status = o.optString("status", "").trim();
+                if (!status.equalsIgnoreCase("rejected")) {
+                    continue;
+                }
+
+                String bookingDate = o.optString("booking_date", "-");
+                String displayDate = "-";
+                if (!bookingDate.equals("-") && bookingDate.length() == 10) {
+                    displayDate = bookingDate.substring(8, 10) + "/" +
+                                  bookingDate.substring(5, 7) + "/" +
+                                  bookingDate.substring(0, 4);
+                }
+
                 masterData.add(new Tenant(
                         o.optInt("id"),
                         o.optString("customer_name", "-"),
-                        "-",
-                        "-",
+                        o.optString("email", "-"),
+                        o.optString("phone", "-"),
                         o.optString("zone", "-"),
-                        o.optString("status", "-")
+                        displayDate,
+                        o.optString("reject_reason", "-")
                 ));
             }
 
             filteredData.setAll(masterData);
+            onSortClick(); // จัดเรียงหลังโหลดเสร็จ
 
         } catch (Exception e) {
             e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("โหลดข้อมูลล้มเหลว");
+            alert.setContentText("ข้อผิดพลาด: " + e.getMessage());
+            alert.show();
         }
     }
 
@@ -190,99 +234,58 @@ public class ManageTenantsController {
         String name = nameField.getText().trim().toLowerCase();
         String phone = phoneField.getText().trim().toLowerCase();
         String email = emailField.getText().trim().toLowerCase();
-        String status = statusFilter.getValue();
 
-        filteredData.setAll(
-                masterData.filtered(t ->
-                        (name.isEmpty() || t.getName().toLowerCase().contains(name)) &&
-                        (phone.isEmpty() || t.getPhone().toLowerCase().contains(phone)) &&
-                        (email.isEmpty() || t.getEmail().toLowerCase().contains(email)) &&
-                        (status.equals("ทั้งหมด") || t.getStatus().equalsIgnoreCase(status))
-                )
-        );
-    }
+        ObservableList<Tenant> filtered = FXCollections.observableArrayList();
 
-    /* ==================== POPUPS ==================== */
+        for (Tenant t : masterData) {
+            if ((name.isEmpty() || t.getName().toLowerCase().contains(name)) &&
+                (phone.isEmpty() || t.getPhone().toLowerCase().contains(phone)) &&
+                (email.isEmpty() || t.getEmail().toLowerCase().contains(email))) {
+                filtered.add(t);
+            }
+        }
 
-    private void showContactPopup(Tenant t) {
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-
-        VBox vbox = new VBox(10,
-                new Label("ชื่อ: " + t.getName()),
-                new Label("โทร: " + t.getPhone()),
-                new Label("อีเมล: " + t.getEmail()),
-                new Label("โซน: " + t.getZone()),
-                new Label("สถานะ: " + t.getStatus()),
-                new Button("ปิด")
-        );
-
-        vbox.setStyle("-fx-padding: 20;");
-        dialog.setScene(new Scene(vbox));
-        dialog.showAndWait();
-    }
-
-    private void showEditStatusPopup(Tenant t) {
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-
-        ComboBox<String> box = new ComboBox<>();
-        box.getItems().addAll("pending", "approved", "rejected");
-        box.setValue(t.getStatus());
-
-        Button save = new Button("บันทึก");
-        save.setOnAction(e -> {
-            supabase.updateStatusById("booking_demo_status", t.getId(), box.getValue());
-            t.setStatus(box.getValue());
-            applyFilters();
-            dialog.close();
-        });
-
-        VBox vbox = new VBox(10, new Label("สถานะใหม่"), box, save);
-        vbox.setStyle("-fx-padding: 20;");
-        dialog.setScene(new Scene(vbox));
-        dialog.showAndWait();
+        filteredData.setAll(filtered);
+        onSortClick(); // รักษาการเรียงลำดับหลังกรอง
+        tenantTable.refresh();
     }
 }
 
-/* ==================== MODEL ==================== */
-
 class Tenant {
+    private final SimpleStringProperty name = new SimpleStringProperty();
+    private final SimpleStringProperty email = new SimpleStringProperty();
+    private final SimpleStringProperty phone = new SimpleStringProperty();
+    private final SimpleStringProperty zone = new SimpleStringProperty();
+    private final SimpleStringProperty createdAt = new SimpleStringProperty();
+    private final SimpleStringProperty rejectReason = new SimpleStringProperty();
+    private final SimpleStringProperty status = new SimpleStringProperty();
+    private final int id;
 
-    private final javafx.beans.property.IntegerProperty id =
-            new javafx.beans.property.SimpleIntegerProperty();
-    private final javafx.beans.property.StringProperty name =
-            new javafx.beans.property.SimpleStringProperty();
-    private final javafx.beans.property.StringProperty phone =
-            new javafx.beans.property.SimpleStringProperty();
-    private final javafx.beans.property.StringProperty email =
-            new javafx.beans.property.SimpleStringProperty();
-    private final javafx.beans.property.StringProperty zone =
-            new javafx.beans.property.SimpleStringProperty();
-    private final javafx.beans.property.StringProperty status =
-            new javafx.beans.property.SimpleStringProperty();
-
-    public Tenant(int id, String name, String phone, String email, String zone, String status) {
-        this.id.set(id);
+    public Tenant(int id, String name, String email, String phone, String zone, String createdAt, String rejectReason) {
+        this.id = id;
         this.name.set(name);
-        this.phone.set(phone);
         this.email.set(email);
+        this.phone.set(phone);
         this.zone.set(zone);
-        this.status.set(status);
+        this.createdAt.set(createdAt);
+        this.rejectReason.set(rejectReason);
+        this.status.set("rejected");
     }
 
-    public int getId() { return id.get(); }
     public String getName() { return name.get(); }
-    public String getPhone() { return phone.get(); }
     public String getEmail() { return email.get(); }
+    public String getPhone() { return phone.get(); }
     public String getZone() { return zone.get(); }
-    public String getStatus() { return status.get(); }
+    public String getCreatedAt() { return createdAt.get(); }
+    public String getRejectReason() { return rejectReason.get(); }
 
-    public void setStatus(String s) { status.set(s); }
+    public SimpleStringProperty nameProperty() { return name; }
+    public SimpleStringProperty emailProperty() { return email; }
+    public SimpleStringProperty phoneProperty() { return phone; }
+    public SimpleStringProperty zoneProperty() { return zone; }
+    public SimpleStringProperty createdAtProperty() { return createdAt; }
+    public SimpleStringProperty rejectReasonProperty() { return rejectReason; }
+    public SimpleStringProperty statusProperty() { return status; }
 
-    public javafx.beans.property.StringProperty nameProperty() { return name; }
-    public javafx.beans.property.StringProperty phoneProperty() { return phone; }
-    public javafx.beans.property.StringProperty emailProperty() { return email; }
-    public javafx.beans.property.StringProperty zoneProperty() { return zone; }
-    public javafx.beans.property.StringProperty statusProperty() { return status; }
+    public int getId() { return id; }
 }

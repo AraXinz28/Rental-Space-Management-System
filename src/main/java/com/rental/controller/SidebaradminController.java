@@ -24,13 +24,15 @@ public class SidebaradminController {
 
         // ✅ ตั้ง active menu ตาม SceneManager (หรือ default)
         String current = SceneManager.getCurrentPage();
-        switch (current) {
-            case "zone" -> setActive(zoneMenu);
-            case "customer" -> setActive(customerMenu);
-            case "payment" -> setActive(paymentMenu);
-            case "history" -> setActive(historyMenu);
-            default -> setActive(zoneMenu);
-        }
+switch (current) {
+    case "zone" -> setActive(zoneMenu);
+    case "booking" -> setActive(bookingMenu);  // ← เพิ่มบรรทัดนี้เข้าไป
+    case "customer" -> setActive(customerMenu);
+    case "payment" -> setActive(paymentMenu);
+    case "history" -> setActive(historyMenu);
+    default -> setActive(zoneMenu);
+}
+        
 
         // ✅ hover effect ที่ไม่ค้าง
         for (HBox menu : menus) {
