@@ -7,19 +7,21 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage primaryStage) throws Exception {
 
         // ✅ โหลดฟอนต์ Prompt
         Font.loadFont(getClass().getResource("/fonts/Prompt-Regular.ttf").toExternalForm(), 14);
         Font.loadFont(getClass().getResource("/fonts/Prompt-Bold.ttf").toExternalForm(), 14);
 
-        // ✅ โหลดหน้าแรกโดยใช้ SceneManager
-     
+        
+        primaryStage.setTitle("ระบบจัดการพื้นที่ให้เช่า");
 
-        SceneManager.switchScene(stage, "/views/homepage.fxml");
+        primaryStage.setMaximized(true);
 
-       
+   
+        SceneManager.switchScene(primaryStage, "/views/Space.fxml");
     }
+       
 
     public static void main(String[] args) {
         launch(args);
