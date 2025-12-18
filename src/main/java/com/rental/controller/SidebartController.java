@@ -18,7 +18,7 @@ public class SidebartController {
     private HBox[] menus;
     private HBox activeMenu;
 
-    // เก็บเมนูที่ active ล่าสุด (เพื่อจำตอนเปิดแอปใหม่)
+    // เก็บเมนูที่ active ล่าสุด
     private static String lastActiveMenu = "home";
 
     @FXML
@@ -34,7 +34,7 @@ public class SidebartController {
             case "history" -> setActive(rentalhistoryMenu);
         }
 
-        // เพิ่ม hover effect ให้ทุกเมนู (ยกเว้น active)
+        // Hover effect (สวย ไม่บั๊ค)
         for (HBox menu : menus) {
             menu.setOnMouseEntered(e -> {
                 if (menu != activeMenu) {
@@ -51,16 +51,13 @@ public class SidebartController {
     }
 
     private void setActive(HBox menu) {
-        // รีเซ็ตทุกเมนู
         for (HBox m : menus) {
-            m.setStyle(""); // ล้าง hover เก่าทิ้ง
+            m.setStyle(""); // ล้างสีเก่า
         }
-
-        // เซ็ต active
         menu.setStyle("-fx-background-color: #e0e0e0;");
         activeMenu = menu;
 
-        // บันทึกสถานะล่าสุด
+        // บันทึกเมนู active ล่าสุด
         if (menu == homeMenu) lastActiveMenu = "home";
         else if (menu == searchMenu) lastActiveMenu = "search";
         else if (menu == bookingMenu) lastActiveMenu = "booking";
@@ -68,7 +65,7 @@ public class SidebartController {
         else if (menu == rentalhistoryMenu) lastActiveMenu = "history";
     }
 
-    // ================== เมนูทั้งหมด ==================
+    // =============== เมนูทั้งหมด ===============
 
     @FXML
     private void goToHome(MouseEvent e) {
@@ -100,7 +97,7 @@ public class SidebartController {
         switchToScene(e, "/views/rentalhistory.fxml");
     }
 
-    // ฟังก์ชันช่วยสลับหน้า (ลดโค้ดซ้ำ)
+    // ฟังก์ชันช่วยสลับหน้า (ลดโค้ดซ้ำ + แก้ error method undefined)
     private void switchToScene(MouseEvent e, String fxmlPath) {
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<BorderPane xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rental.controller.RentalHistoryAdminController"
+
+            style="-fx-background-color: #F5F6F8;">
+
+    <top>
+        <fx:include source="/views/header.fxml"/>
+    </top>
+
+    <left>
+        <fx:include source="/views/sidebaradmin.fxml"/>
+    </left>
+
+    <center>
+        <VBox spacing="14">
+            <padding>
+                <Insets top="22" right="22" bottom="22" left="22"/>
+            </padding>
+
+            <VBox spacing="12"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 12, 0, 0, 3);">
+                <padding>
+                    <Insets top="18" right="18" bottom="18" left="18"/>
+                </padding>
+
+                <Label text="ประวัติการเช่าพื้นที่"
+                       style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+
+                <HBox spacing="16">
+                    <TextField fx:id="txtCustomer"
+                               promptText="ชื่อลูกค้า"
+                               HBox.hgrow="ALWAYS"
+                               style="-fx-background-radius: 10; -fx-border-radius: 10;"/>
+
+                    <ComboBox fx:id="cbStatus" prefWidth="220" promptText="สถานะ"/>
+                </HBox>
+
+                <VBox spacing="6">
+                    <Label text="วัน/เดือน/ปี ที่ทำรายการ" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <DatePicker fx:id="dpDate" prefWidth="260" />
+                </VBox>
+            </VBox>
+
+            <HBox alignment="CENTER_RIGHT">
+                <Button text=" พิมพ์รายงาน"
+        onAction="#onPrint"
+        style="-fx-background-color: #6E6E8A; -fx-text-fill: white;
+               -fx-background-radius: 12; -fx-padding: 10 18;">
+
+    <graphic>
+        <ImageView fitWidth="18" fitHeight="18" preserveRatio="true">
+            <image>
+                <Image url="@/images/print.png"/>
+            </image>
+        </ImageView>
+    </graphic>
+</Button>
+            </HBox>
+
+            <!-- Table Card (กรอบขอบมน) -->
+<VBox style="-fx-background-color: #FFFFFF;
+             -fx-background-radius: 10;
+             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 12, 0, 0, 3);">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+
+    <!-- TableView อยู่ข้างใน -->
+    <TableView fx:id="table" prefHeight="420"
+               style="-fx-background-color: transparent;
+                      -fx-background-insets: 0;
+                      -fx-padding: 0;">
+        <columns>
+            <TableColumn fx:id="colCustomer" text="ชื่อลูกค้า" prefWidth="340"/>
+            <TableColumn fx:id="colDate" text="วัน/เดือน/ปี ทำรายการ" prefWidth="240"/>
+            <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="220"/>
+            <TableColumn fx:id="colDetail" text="รายละเอียด" prefWidth="218"/>
+        </columns>
+    </TableView>
+</VBox>
+
+
+        </VBox>
+    </center>
+</BorderPane>

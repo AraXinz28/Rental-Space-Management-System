@@ -1,0 +1,62 @@
+/* แถบซ้าย (พื้นเทา เต็มจอ) */
+/* แถบซ้ายสีเทา -> ไม่เว้นขอบ */
+.sidebar-root {
+    -fx-background-color: #eeeeee;
+    -fx-padding: 0;
+    /* ✅ เอาขอบออก */
+}
+
+/* กล่องขาว -> เต็มกว้าง/สูง และชิดบน */
+.sidebar-card {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    /* ✅ ถ้าต้องการให้เต็มชนขอบเหมือนภาพ */
+    -fx-padding: 16;
+    -fx-spacing: 12;
+
+    -fx-min-width: 100%;
+    -fx-max-width: Infinity;
+    -fx-min-height: 100%;
+    -fx-max-height: Infinity;
+
+    -fx-effect: none;
+    /* ✅ ถ้าชนขอบแล้วไม่ควรมีเงา */
+}
+/* กลุ่มเมนู */
+.sidebar-menu {
+    -fx-spacing: 10;
+}
+
+/* เมนูแต่ละอัน */
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-padding: 10 14;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+    -fx-cursor: hand;
+}
+
+.menu-item:hover {
+    -fx-background-color: #f2f2f2;
+}
+
+.menu-item.active {
+    -fx-background-color: #e9e9e9;
+}
+
+/* ข้อความ */
+.menu-text {
+    -fx-text-fill: #4a4a4a;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.menu-item.active .menu-text {
+    -fx-font-weight: 500;
+}
+
+/* ไอคอน */
+.menu-icon {
+    -fx-opacity: 0.65;
+}
