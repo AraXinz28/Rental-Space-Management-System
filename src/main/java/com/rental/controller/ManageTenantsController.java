@@ -9,6 +9,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.util.Arrays;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -232,7 +235,8 @@ public class ManageTenantsController {
 
         Button save = new Button("บันทึก");
         save.setOnAction(e -> {
-            supabase.updateStatusById("booking_demo_status", t.getId(), box.getValue());
+            tenantTable.getColumns().setAll(Arrays.asList(colName, colPhone, colEmail, colContact));
+tenantTable.setColumnResizePolicy(param -> true);
             t.setStatus(box.getValue());
             applyFilters();
             dialog.close();
