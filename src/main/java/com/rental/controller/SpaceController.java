@@ -14,9 +14,11 @@ import com.google.gson.JsonParser;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -297,7 +299,27 @@ public class SpaceController implements Initializable {
                 "-fx-text-fill:white;" +
                 "-fx-background-radius:10;" +
                 "-fx-font-weight:bold;"
+                
         );
+        btnReserve.setOnAction(e -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/booking.fxml"));
+                Parent root = loader.load();
+
+                BookingController controller = loader.getController();
+
+                controller.setStallData(stallId);
+
+                Stage stage = (Stage) btnReserve.getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.centerOnScreen();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+
 
         HBox buttonBar = new HBox(20, btnClose, btnReserve);
         buttonBar.setAlignment(Pos.CENTER);

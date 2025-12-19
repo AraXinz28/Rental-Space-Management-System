@@ -8,6 +8,7 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.rental.controller.AddSpaceController"
             style="-fx-background-color: #f8f9fa;">
+            
 
     <!-- ===== HEADER ===== -->
     <top>

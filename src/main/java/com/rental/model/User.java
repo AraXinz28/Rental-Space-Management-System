@@ -31,4 +31,11 @@ public abstract class User {
 
     // polymorphism: แต่ละ role กลับหน้าแรกไม่เหมือนกัน
     public abstract String getHomeFxml();
+
+    public abstract String getFullName();
+
+    public String getPhone() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPhone'");
+    }
 }
