@@ -77,6 +77,15 @@ public class SpaceManagementController {
                     obj.optString("amenities", "")
             ));
         }
+        /* จัดเรียงตามชื่อโซน ชื่อล็อก */
+            masterList.sort((a, b) -> {
+    int zoneCompare = a.getZoneName()
+            .compareToIgnoreCase(b.getZoneName());
+    if (zoneCompare != 0) return zoneCompare;
+
+        return a.getStallId()
+            .compareToIgnoreCase(b.getStallId());
+        });
 
         zoneTable.setItems(masterList);
 

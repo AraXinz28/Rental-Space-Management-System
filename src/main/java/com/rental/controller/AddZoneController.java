@@ -13,54 +13,69 @@ public class AddZoneController {
 
     private final SupabaseClient supabase = new SupabaseClient();
 
+    private boolean isZoneExists(String zoneName) throws Exception {
+
+    // select * from zone where zone_name = 'A'
+    String response = supabase.selectWhere("zone", "zone_name", zoneName);
+
+    // ถ้ามีข้อมูลกลับมา แปลว่าซ้ำ
+    return response != null && !response.equals("[]");
+    }
+
     @FXML
     private void handleAddZone() {
 
-        String zoneName = zoneNameField.getText().trim().toUpperCase();
-        String slotText = slotCountField.getText().trim();
+    String zoneName = zoneNameField.getText().trim().toUpperCase();
+    String slotText = slotCountField.getText().trim();
 
-        // 1. ตรวจสอบค่าว่าง
-        if (zoneName.isEmpty() || slotText.isEmpty()) {
-            showAlert("กรุณากรอกข้อมูลให้ครบ");
-            return;
-        }
-
-        // 2. ตรวจสอบตัวเลข
-        int slotCount;
-        try {
-            slotCount = Integer.parseInt(slotText);
-            if (slotCount <= 0) {
-                showAlert("จำนวนล็อกต้องมากกว่า 0");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            showAlert("จำนวนล็อกต้องเป็นตัวเลข");
-            return;
-        }
-
-        try {
-            // 3. INSERT ZONE
-            JSONObject zoneBody = new JSONObject();
-            zoneBody.put("zone_name", zoneName);
-            zoneBody.put("slot_count", slotCount);
-            zoneBody.put("zone_status", "เปิดให้บริการ");
-
-            supabase.insert("zone", zoneBody.toString());
-
-            // ⭐ 4. CREATE STALLS AUTOMATICALLY
-            createStalls(zoneName, slotCount);
-
-            showSuccess("เพิ่มโซนและสร้างพื้นที่เรียบร้อย");
-
-            // 5. ล้างฟอร์ม
-            zoneNameField.clear();
-            slotCountField.clear();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("เพิ่มโซนไม่สำเร็จ");
-        }
+    // 1. ตรวจสอบค่าว่าง
+    if (zoneName.isEmpty() || slotText.isEmpty()) {
+        showAlert("กรุณากรอกข้อมูลให้ครบ");
+        return;
     }
+
+    // 2. ตรวจสอบตัวเลข
+    int slotCount;
+    try {
+        slotCount = Integer.parseInt(slotText);
+        if (slotCount <= 0) {
+            showAlert("จำนวนล็อกต้องมากกว่า 0");
+            return;
+        }
+    } catch (NumberFormatException e) {
+        showAlert("จำนวนล็อกต้องเป็นตัวเลข");
+        return;
+    }
+
+    try {
+        // ⭐ 3. ตรวจสอบโซนซ้ำ
+        if (isZoneExists(zoneName)) {
+            showAlert("มีโซนนี้อยู่แล้ว");
+            return;
+        }
+
+        // 4. INSERT ZONE
+        JSONObject zoneBody = new JSONObject();
+        zoneBody.put("zone_name", zoneName);
+        zoneBody.put("slot_count", slotCount);
+        zoneBody.put("zone_status", "เปิดให้บริการ");
+
+        supabase.insert("zone", zoneBody.toString());
+
+        // 5. CREATE STALLS
+        createStalls(zoneName, slotCount);
+
+        showSuccess("เพิ่มโซนและสร้างพื้นที่เรียบร้อย");
+
+        zoneNameField.clear();
+        slotCountField.clear();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert("เพิ่มโซนไม่สำเร็จ");
+    }
+    }
+
 
     // ===== สร้างพื้นที่อัตโนมัติ =====
     private void createStalls(String zoneName, int slotCount) throws Exception {
