@@ -19,7 +19,7 @@ public class Main extends Application {
         primaryStage.setMaximized(true);
 
    
-        SceneManager.switchScene(primaryStage, "/views/booking.fxml");
+        SceneManager.switchScene(primaryStage, "/views/checkPaymentStatus.fxml");
     }
        
 

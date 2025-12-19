@@ -114,52 +114,38 @@
                         </TableView>
                     </VBox>
 
-                    <!-- ===== DETAIL ===== -->
-                    <VBox spacing="15"
-                          style="-fx-background-color:white; -fx-background-radius:12;">
-                        <padding>
-                            <Insets top="20" right="20" bottom="20" left="20"/>
-                        </padding>
+                <!-- ===== DETAIL ===== -->
+<VBox spacing="15"
+      style="-fx-background-color:white; -fx-background-radius:12;">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
 
-                        <!-- หัวข้ออยู่ตลอด -->
-                        <Label text="รายละเอียดการชำระเงิน"
-                               style="-fx-font-size:16; -fx-font-weight:bold;"/>
+    <!-- หัวข้ออยู่ตลอด -->
+    <Label text="รายละเอียดการชำระเงิน"
+           style="-fx-font-size:16; -fx-font-weight:bold;"/>
 
-                        <!-- รายละเอียด (ว่างก่อน) -->
-                        <VBox spacing="6">
-                            <Label fx:id="lblMethod"/>
-                            <Label fx:id="lblDeposit"/>
-                            <Label fx:id="lblRent"/>
-                            <Label fx:id="lblTotal"/>
-                        </VBox>
+    <!-- รายละเอียด (ว่างก่อน) -->
+    <VBox spacing="6">
+        <Label fx:id="lblMethod"/>
+        <Label fx:id="lblDeposit"/>
+        <Label fx:id="lblRent"/>
+        <Label fx:id="lblTotal"/>
+    </VBox>
 
-                        <TextArea fx:id="txtNote"
-                                  promptText="หมายเหตุ"
-                                  prefRowCount="3"/>
+    <!-- รูปสลิป -->
+    <VBox alignment="CENTER">
+        <ImageView fx:id="slipImage"
+                   fitWidth="300"
+                   preserveRatio="true"/>
+    </VBox>
 
-                        <HBox spacing="10"
-                              alignment="CENTER_RIGHT">
-                            <Button text="อนุมัติการชำระเงิน"
-                                    onAction="#handleApprove"
-                                    style="-fx-background-color:#2ecc71; -fx-text-fill:white;"/>
+</VBox>
 
-                            <Button text="ปฏิเสธการชำระเงิน"
-                                    onAction="#handleReject"
-                                    style="-fx-background-color:#e74c3c; -fx-text-fill:white;"/>
-                        </HBox>
+</VBox>
 
-                        <VBox alignment="CENTER">
-                            <ImageView fx:id="slipImage"
-                                       fitWidth="300"
-                                       preserveRatio="true"/>
-                        </VBox>
-
-                    </VBox>
-
-                </VBox>
-
-            </content>
-        </ScrollPane>
-    </center>
+</content>
+</ScrollPane>
+</center>
 
 </BorderPane>

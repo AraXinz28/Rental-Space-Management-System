@@ -19,7 +19,6 @@ public class CheckPaymentStatusController {
     @FXML private TableColumn<PaymentRow, Double> colDeposit, colRent, colTotal;
 
     @FXML private Label lblMethod, lblDeposit, lblRent, lblTotal;
-    @FXML private TextArea txtNote;
     @FXML private ImageView slipImage;
 
     /* ===== DATA ===== */
@@ -113,7 +112,6 @@ public class CheckPaymentStatusController {
         lblDeposit.setText("");
         lblRent.setText("");
         lblTotal.setText("");
-        txtNote.clear();
         slipImage.setImage(null);
     }
 
@@ -162,4 +160,4 @@ public class CheckPaymentStatusController {
         public String getLock() { return lock.get(); }
         public String getMethod() { return method.get(); }
     }
-}
+} 
