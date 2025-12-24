@@ -85,6 +85,10 @@ public class ZoneManagementController {
                         obj.optString("zone_status", "")
                 ));
             }
+            /* จัดเรียงตามชื่อโซน */
+            masterList.sort((a, b) ->
+        a.getZoneName().compareToIgnoreCase(b.getZoneName())
+        );
 
             zoneTable.setItems(masterList);
 
