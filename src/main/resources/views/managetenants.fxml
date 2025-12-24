@@ -28,52 +28,55 @@
 
             <!-- Title -->
             <Label text="จัดการผู้เช่า"
-                   style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #090909ff;"/>
+                   style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #d32f2f;"/>
 
-           <!-- Filter / Sort Section -->
-<VBox spacing="15">
-    <!-- ช่องค้นหา -->
-    <HBox spacing="15" alignment="CENTER_LEFT">
-        <Label text="ชื่อลูกค้า:"/>
-        <TextField fx:id="nameField" promptText="ชื่อลูกค้า" prefWidth="180"/>
+            <!-- Subtitle -->
+            <Label text="รายการที่สถานะเป็น 'ไม่อนุมัติ' — สามารถติดต่อเพื่อคืนเงินหรือชี้แจงเพิ่มเติม"
+                   style="-fx-font-size: 14; -fx-text-fill: #666666;"/>
 
-        <Label text="เบอร์โทร:"/>
-        <TextField fx:id="phoneField" promptText="เบอร์โทร" prefWidth="180"/>
+            <!-- Filter / Sort Section -->
+            <VBox spacing="20" style="-fx-background-color: #f5f5f5; -fx-padding: 20; -fx-background-radius: 10;">
+                
+                <!-- ช่องค้นหา -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="ชื่อลูกค้า:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="nameField" promptText="ค้นหาชื่อลูกค้า" prefWidth="200"/>
 
-        <Label text="อีเมล์:"/>
-        <TextField fx:id="emailField" promptText="อีเมล์" prefWidth="200"/>
+                    <Label text="เบอร์โทร:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="phoneField" promptText="เบอร์โทรศัพท์" prefWidth="180"/>
 
-        <Label text="แสดงต่อหน้า:"/>
-        <ComboBox fx:id="pageSizeCombo" prefWidth="100"/>
-    </HBox>
+                    <Label text="อีเมลล์:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="emailField" promptText="อีเมลล์" prefWidth="220"/>
+                </HBox>
 
-    <!-- ส่วนจัดเรียงตาม + ปุ่มจัดเรียง + รีเซ็ต -->
-<HBox spacing="15" alignment="CENTER_LEFT">
-    <ComboBox fx:id="sortComboBox" prefWidth="220" promptText="จัดเรียงตาม"/>
-    
-    <Button text="จัดเรียง"
-            onAction="#onSortClick"
-            prefWidth="130" prefHeight="35"
-            style="-fx-background-color: #2196f3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                <!-- จัดเรียง + ปุ่ม -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="จัดเรียงตาม:" style="-fx-font-weight: bold;"/>
+                    <ComboBox fx:id="sortComboBox" prefWidth="220" promptText="เลือกการจัดเรียง"/>
 
-    <Button text="รีเซ็ต"
-            onAction="#onResetClick"
-            prefWidth="130" prefHeight="35"
-            style="-fx-background-color: #ff9800; -fx-text-fill: white;"/>
-</HBox>
-</VBox>
+                    <Button text="จัดเรียง"
+                            onAction="#onSortClick"
+                            prefWidth="130" prefHeight="38"
+                            style="-fx-background-color: #2196f3; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;"/>
+
+                    <Button text="รีเซ็ต"
+                            onAction="#onResetClick"
+                            prefWidth="130" prefHeight="38"
+                            style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;"/>
+                </HBox>
+            </VBox>
 
             <!-- Table -->
-            <TableView fx:id="tenantTable" VBox.vgrow="ALWAYS">
+            <TableView fx:id="tenantTable" VBox.vgrow="ALWAYS" style="-fx-background-color: white;">
                 <columns>
-                    <TableColumn fx:id="colName" text="ชื่อลูกค้า" prefWidth="180"/>
-                    <TableColumn fx:id="colEmail" text="อีเมล์" prefWidth="220"/>
-                    <TableColumn fx:id="colPhone" text="เบอร์โทร" prefWidth="140"/>
-                    <TableColumn fx:id="colZone" text="โซน" prefWidth="100"/>
-                    <TableColumn fx:id="colCreatedAt" text="วันที่ทำรายการ" prefWidth="160"/>
-                    <TableColumn fx:id="colRejectReason" text="เหตุผล" prefWidth="300"/>
-                    <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="100"/>
-                    <TableColumn fx:id="colContact" text="ติดต่อ" prefWidth="120"/>
+                    <TableColumn fx:id="colName" text="ชื่อ-สกุลลูกค้า" prefWidth="200"/>
+                    <TableColumn fx:id="colEmail" text="อีเมลล์" prefWidth="240"/>
+                    <TableColumn fx:id="colPhone" text="เบอร์โทรศัพท์" prefWidth="140"/>
+                    <TableColumn fx:id="colZone" text="โซน" prefWidth="100" style="-fx-alignment: CENTER;"/>
+                    <TableColumn fx:id="colCreatedAt" text="วันที่ชำระเงิน" prefWidth="160" style="-fx-alignment: CENTER;"/>
+                    <TableColumn fx:id="colRejectReason" text="เหตุผลที่ไม่อนุมัติ" prefWidth="300"/>
+                    <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="120" style="-fx-alignment: CENTER;"/>
+                    <TableColumn fx:id="colContact" text="การติดต่อ" prefWidth="130" style="-fx-alignment: CENTER;"/>
                 </columns>
 
                 <columnResizePolicy>
@@ -82,5 +85,4 @@
             </TableView>
         </VBox>
     </center>
-
 </BorderPane>

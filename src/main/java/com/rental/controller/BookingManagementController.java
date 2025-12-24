@@ -1,24 +1,36 @@
 package com.rental.controller;
 
-import com.rental.database.SupabaseClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import java.io.IOException;
+import java.net.URL;
 import java.text.Collator;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
-public class BookingManagementController {
+public class BookingManagementController implements Initializable {
 
     @FXML private HeaderController headerController;
 
@@ -34,22 +46,29 @@ public class BookingManagementController {
     @FXML private ComboBox<String> sortCombo;
 
     // ===== Table =====
-    @FXML private TableView<Booking> bookingTable;
-    @FXML private TableColumn<Booking, String> colName;
-    @FXML private TableColumn<Booking, String> colDate;
-    @FXML private TableColumn<Booking, String> colZone;
-    @FXML private TableColumn<Booking, String> colPayment;
-    @FXML private TableColumn<Booking, String> colStatus;
+    @FXML private TableView<PaymentRecord> bookingTable;
+    @FXML private TableColumn<PaymentRecord, String> colName;
+    @FXML private TableColumn<PaymentRecord, String> colDate;
+    @FXML private TableColumn<PaymentRecord, String> colZone;
+    @FXML private TableColumn<PaymentRecord, String> colPayment;
+    @FXML private TableColumn<PaymentRecord, String> colStatus;
 
     @FXML private VBox menu;
 
-    private final ObservableList<Booking> masterData = FXCollections.observableArrayList();
-    private FilteredList<Booking> filteredData;
-    private SortedList<Booking> sortedData;
+    private final ObservableList<PaymentRecord> masterData = FXCollections.observableArrayList();
+    private FilteredList<PaymentRecord> filteredData;
+    private SortedList<PaymentRecord> sortedData;
 
-    // ================= INITIALIZE =================
-    @FXML
-    public void initialize() {
+    // Supabase Config
+    private static final String SUPABASE_URL = "https://sdmipxsxkquuyxvvqpho.supabase.co";
+    private static final String SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDc1MzU0NywiZXhwIjoyMDgwMzI5NTQ3fQ.IqSxzTLKHXlfGdH4RyzaYAIVXrlW7_LsrQEuJBlHJ8k";
+
+    private final OkHttpClient client = new OkHttpClient();
+    private final Gson gson = new Gson();
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
+
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
         menu.setPrefWidth(250);
         SplitPane.setResizableWithParent(menu, false);
 
@@ -60,12 +79,11 @@ public class BookingManagementController {
         setupFiltering();
     }
 
-    // ================= DROPDOWNS =================
     private void setupDropdowns() {
         zoneCombo.getItems().addAll("A", "B", "C", "D", "E", "F", "G");
         zoneCombo.setPromptText("ทุกโซน");
 
-        paymentCombo.getItems().addAll("QR พร้อมเพย์", "โอนผ่านธนาคาร");
+        paymentCombo.getItems().addAll("QR PromptPay", "Bank Transfer");
         paymentCombo.setPromptText("ทุกช่องทาง");
 
         resetBtn.setOnAction(e -> {
@@ -73,24 +91,14 @@ public class BookingManagementController {
             zoneCombo.setValue(null);
             paymentCombo.setValue(null);
             datePicker.setValue(null);
-
             sortCombo.setValue(null);
             bookingTable.getSortOrder().clear();
         });
     }
 
-    // ================= SORT =================
     private void setupSort() {
-        sortCombo.getItems().addAll(
-            "ชื่อ (ก → ฮ)",
-            "ชื่อ (ฮ → ก)"
-            
-        );
-
+        sortCombo.getItems().addAll("ชื่อ (ก → ฮ)", "ชื่อ (ฮ → ก)");
         sortBtn.setOnAction(e -> applySort());
-
-        // ถ้าอยากให้เลือกแล้วเรียงทันที
-        // sortCombo.valueProperty().addListener((o, a, b) -> applySort());
     }
 
     private void applySort() {
@@ -99,70 +107,59 @@ public class BookingManagementController {
 
         bookingTable.getSortOrder().clear();
 
-        switch (option) {
-            case "ชื่อ (ก → ฮ)" -> {
-                colName.setSortType(TableColumn.SortType.ASCENDING);
-                bookingTable.getSortOrder().add(colName);
-            }
-            case "ชื่อ (ฮ → ก)" -> {
-                colName.setSortType(TableColumn.SortType.DESCENDING);
-                bookingTable.getSortOrder().add(colName);
-            }
-           
-            
+        if (option.contains("ก → ฮ")) {
+            colName.setSortType(TableColumn.SortType.ASCENDING);
+            bookingTable.getSortOrder().add(colName);
+        } else {
+            colName.setSortType(TableColumn.SortType.DESCENDING);
+            bookingTable.getSortOrder().add(colName);
         }
     }
 
-    // ================= TABLE =================
     private void setupTable() {
-        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-        colZone.setCellValueFactory(new PropertyValueFactory<>("zone"));
-        colPayment.setCellValueFactory(new PropertyValueFactory<>("payment"));
+        colName.setCellValueFactory(new PropertyValueFactory<>("fullName"));
+        colDate.setCellValueFactory(new PropertyValueFactory<>("paymentDate"));
+        colZone.setCellValueFactory(new PropertyValueFactory<>("stallId"));
+        colPayment.setCellValueFactory(new PropertyValueFactory<>("paymentMethod"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // ----- Thai Sort -----
         Collator thaiCollator = Collator.getInstance(Locale.forLanguageTag("th-TH"));
         colName.setComparator(thaiCollator::compare);
         colPayment.setComparator(thaiCollator::compare);
 
-        // ----- Status Dropdown -----
-        colStatus.setCellFactory(col -> new TableCell<>() {
+        colStatus.setCellFactory(col -> new TableCell<PaymentRecord, String>() {
             private final ComboBox<String> combo = new ComboBox<>(
-                FXCollections.observableArrayList("รอดำเนินการ", "อนุมัติ", "ไม่อนุมัติ")
+                FXCollections.observableArrayList("pending", "approved", "rejected")
             );
 
             {
                 combo.setOnAction(e -> {
-                    Booking booking = getTableView().getItems().get(getIndex());
-                    String newDbStatus = mapToDbStatus(combo.getValue());
+                    PaymentRecord record = getTableView().getItems().get(getIndex());
+                    String newStatus = combo.getValue();
 
-                    if (newDbStatus.equals(booking.getStatus())) return;
+                    if (newStatus.equals(record.getStatus())) return;
 
-                    if ("rejected".equals(newDbStatus)) {
+                    if ("rejected".equals(newStatus)) {
                         String reason = showRejectReasonDialog();
                         if (reason == null) {
-                            combo.setValue(mapToUiStatus(booking.getStatus()));
+                            combo.setValue(record.getStatus());
                             return;
                         }
-                        booking.setStatus("rejected");
-                        booking.setRejectReason(reason);
-                        updateRejectToSupabase(booking.getId(), reason);
+                        updatePaymentStatus(record.getId(), newStatus, reason);
                     } else {
-                        booking.setStatus(newDbStatus);
-                        booking.setRejectReason(null);
-                        updateStatusToSupabase(booking.getId(), newDbStatus);
+                        updatePaymentStatus(record.getId(), newStatus, null);
                     }
+                    record.setStatus(newStatus);
                 });
             }
 
             @Override
             protected void updateItem(String status, boolean empty) {
                 super.updateItem(status, empty);
-                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                if (empty || status == null) {
                     setGraphic(null);
                 } else {
-                    combo.setValue(mapToUiStatus(status));
+                    combo.setValue(status);
                     setGraphic(combo);
                     setAlignment(Pos.CENTER);
                 }
@@ -170,41 +167,56 @@ public class BookingManagementController {
         });
     }
 
-    // ================= LOAD DATA =================
     private void loadDataFromSupabase() {
-        try {
-            SupabaseClient client = new SupabaseClient();
-            String json = client.selectAll("booking_demo_status");
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                String url = SUPABASE_URL + "/rest/v1/payments?select=id,payment_method,payment_date,status,booking:booking_id(full_name,stall_id)";
 
-            JSONArray array = new JSONArray(json);
-            masterData.clear();
+                Request request = new Request.Builder()
+                        .url(url)
+                        .header("apikey", SUPABASE_SERVICE_KEY)
+                        .header("Authorization", "Bearer " + SUPABASE_SERVICE_KEY)
+                        .build();
 
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) throw new IOException("HTTP " + response.code());
+                    String body = response.body().string();
+                    JsonArray array = gson.fromJson(body, JsonArray.class);
 
-                masterData.add(new Booking(
-                    obj.optInt("id"),
-                    obj.optString("customer_name"),
-                    obj.optString("booking_date"),
-                    obj.optString("zone"),
-                    obj.optString("payment_method"),
-                    obj.optString("status", "pending"),
-                    obj.optString("reject_reason", null)
-                ));
+                    masterData.clear();
+                    for (int i = 0; i < array.size(); i++) {
+                        JsonObject obj = array.get(i).getAsJsonObject();
+                        JsonObject booking = obj.getAsJsonObject("booking");
+
+                        String fullName = booking != null ? booking.get("full_name").getAsString() : "ไม่ระบุ";
+                        String stallId = booking != null ? booking.get("stall_id").getAsString() : "ไม่ระบุ";
+                        String paymentMethod = obj.get("payment_method").getAsString();
+                        String paymentDate = obj.get("payment_date").getAsString();
+                        String status = obj.get("status").getAsString();
+                        int id = obj.get("id").getAsInt();
+
+                        String formattedDate = formatThaiDate(paymentDate);
+
+                        masterData.add(new PaymentRecord(id, fullName, formattedDate, stallId, paymentMethod, status));
+                    }
+                }
+                return null;
             }
+        };
 
+        task.setOnSucceeded(e -> {
             filteredData = new FilteredList<>(masterData, p -> true);
             sortedData = new SortedList<>(filteredData);
             sortedData.comparatorProperty().bind(bookingTable.comparatorProperty());
-
             bookingTable.setItems(sortedData);
+        });
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        task.setOnFailed(e -> showAlert(Alert.AlertType.ERROR, "ไม่สามารถโหลดข้อมูลได้"));
+
+        new Thread(task).start();
     }
 
-    // ================= FILTER =================
     private void setupFiltering() {
         Runnable applyFilter = () -> {
             String keyword = searchField.getText() == null ? "" : searchField.getText().toLowerCase().trim();
@@ -212,16 +224,16 @@ public class BookingManagementController {
             String payment = paymentCombo.getValue();
             LocalDate date = datePicker.getValue();
 
-            filteredData.setPredicate(b -> {
+            filteredData.setPredicate(p -> {
                 if (!keyword.isEmpty()) {
-                    if (!b.getName().toLowerCase().contains(keyword)
-                        && !b.getZone().toLowerCase().contains(keyword)) return false;
+                    if (!p.getFullName().toLowerCase().contains(keyword) && !p.getStallId().toLowerCase().contains(keyword)) return false;
                 }
-                if (zone != null && !b.getZone().startsWith(zone)) return false;
-                if (payment != null && !b.getPayment().equals(payment)) return false;
+                if (zone != null && !p.getStallId().startsWith(zone)) return false;
+                if (payment != null && !p.getPaymentMethod().contains(payment.replace("พร้อมเพย์", "PromptPay"))) return false;
                 if (date != null) {
                     try {
-                        if (!LocalDate.parse(b.getDate()).equals(date)) return false;
+                        LocalDate paymentDate = LocalDate.parse(p.getPaymentDate(), DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("th-TH")));
+                        if (!paymentDate.equals(date)) return false;
                     } catch (Exception ignored) {}
                 }
                 return true;
@@ -234,89 +246,86 @@ public class BookingManagementController {
         datePicker.valueProperty().addListener((o, a, b) -> applyFilter.run());
     }
 
-    // ================= DIALOG =================
+    private void updatePaymentStatus(int paymentId, String status, String note) {
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                JsonObject data = new JsonObject();
+                data.addProperty("status", status);
+                if (note != null) data.addProperty("reject_reason", note);
+
+                RequestBody body = RequestBody.create(data.toString(), JSON_MEDIA_TYPE);
+
+                Request request = new Request.Builder()
+                        .url(SUPABASE_URL + "/rest/v1/payments?id=eq." + paymentId)
+                        .patch(body)
+                        .header("apikey", SUPABASE_SERVICE_KEY)
+                        .header("Authorization", "Bearer " + SUPABASE_SERVICE_KEY)
+                        .header("Content-Type", "application/json")
+                        .header("Prefer", "return=minimal")
+                        .build();
+
+                try (Response resp = client.newCall(request).execute()) {
+                    if (!resp.isSuccessful()) throw new Exception("อัปเดตไม่สำเร็จ");
+                }
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> showAlert(Alert.AlertType.INFORMATION, "อัปเดตสถานะสำเร็จ"));
+        task.setOnFailed(e -> showAlert(Alert.AlertType.ERROR, "อัปเดตสถานะล้มเหลว"));
+
+        new Thread(task).start();
+    }
+
     private String showRejectReasonDialog() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("ไม่อนุมัติรายการ");
+        dialog.setTitle("ไม่อนุมัติการชำระเงิน");
         dialog.setHeaderText("กรุณาระบุเหตุผล");
         dialog.setContentText("เหตุผล:");
-        return dialog.showAndWait()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .orElse(null);
+        return dialog.showAndWait().map(String::trim).filter(s -> !s.isEmpty()).orElse(null);
     }
 
-    // ================= SUPABASE =================
-    private void updateStatusToSupabase(int id, String status) {
+    private String formatThaiDate(String dateStr) {
         try {
-            new SupabaseClient().update(
-                "booking_demo_status",
-                "id",
-                String.valueOf(id),
-                "{\"status\":\"" + status + "\",\"reject_reason\":null}"
-            );
+            LocalDate date = LocalDate.parse(dateStr);
+            return date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("th-TH")));
         } catch (Exception e) {
-            e.printStackTrace();
+            return dateStr;
         }
     }
 
-    private void updateRejectToSupabase(int id, String reason) {
-        try {
-            new SupabaseClient().update(
-                "booking_demo_status",
-                "id",
-                String.valueOf(id),
-                String.format("{\"status\":\"rejected\",\"reject_reason\":\"%s\"}",
-                        reason.replace("\"", "\\\""))
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
-    // ================= MAPPING =================
-    private String mapToDbStatus(String ui) {
-        return switch (ui) {
-            case "อนุมัติ" -> "approved";
-            case "ไม่อนุมัติ" -> "rejected";
-            default -> "pending";
-        };
-    }
-
-    private String mapToUiStatus(String db) {
-        return switch (db) {
-            case "approved" -> "อนุมัติ";
-            case "rejected" -> "ไม่อนุมัติ";
-            default -> "รอดำเนินการ";
-        };
-    }
-
-    // ================= MODEL =================
-    public static class Booking {
+    public static class PaymentRecord {
         private final int id;
-        private final String name, date, zone, payment;
+        private final String fullName;
+        private String paymentDate;
+        private final String stallId;
+        private final String paymentMethod;
         private String status;
-        private String rejectReason;
 
-        public Booking(int id, String name, String date, String zone,
-                       String payment, String status, String rejectReason) {
+        public PaymentRecord(int id, String fullName, String paymentDate, String stallId, String paymentMethod, String status) {
             this.id = id;
-            this.name = name;
-            this.date = date;
-            this.zone = zone;
-            this.payment = payment;
+            this.fullName = fullName;
+            this.paymentDate = paymentDate;
+            this.stallId = stallId;
+            this.paymentMethod = paymentMethod;
             this.status = status;
-            this.rejectReason = rejectReason;
         }
 
         public int getId() { return id; }
-        public String getName() { return name; }
-        public String getDate() { return date; }
-        public String getZone() { return zone; }
-        public String getPayment() { return payment; }
+        public String getFullName() { return fullName; }
+        public String getPaymentDate() { return paymentDate; }
+        public void setPaymentDate(String paymentDate) { this.paymentDate = paymentDate; }
+        public String getStallId() { return stallId; }
+        public String getPaymentMethod() { return paymentMethod; }
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
-        public String getRejectReason() { return rejectReason; }
-        public void setRejectReason(String rejectReason) { this.rejectReason = rejectReason; }
     }
 }
