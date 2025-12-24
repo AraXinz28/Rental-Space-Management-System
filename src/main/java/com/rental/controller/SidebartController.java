@@ -9,99 +9,84 @@ import javafx.stage.Stage;
 
 public class SidebartController {
 
-    @FXML private HBox homeMenu;
-    @FXML private HBox searchMenu;
-    @FXML private HBox bookingMenu;
-    @FXML private HBox paymentMenu;
-    @FXML private HBox rentalhistoryMenu;
+    @FXML
+    private HBox homeMenu;
+    @FXML
+    private HBox searchMenu;
+    @FXML
+    private HBox bookingMenu;
+    @FXML
+    private HBox paymentMenu;
+    @FXML
+    private HBox rentalhistoryMenu;
 
     private HBox[] menus;
-    private HBox activeMenu;
-
-    // เก็บเมนูที่ active ล่าสุด
     private static String lastActiveMenu = "home";
 
     @FXML
     private void initialize() {
-        menus = new HBox[]{homeMenu, searchMenu, bookingMenu, paymentMenu, rentalhistoryMenu};
+        menus = new HBox[] { homeMenu, searchMenu, bookingMenu, paymentMenu, rentalhistoryMenu };
 
-        // ตั้งค่าเมนู active ตามครั้งล่าสุด
         switch (lastActiveMenu) {
-            case "home" -> setActive(homeMenu);
             case "search" -> setActive(searchMenu);
             case "booking" -> setActive(bookingMenu);
             case "payment" -> setActive(paymentMenu);
             case "history" -> setActive(rentalhistoryMenu);
-        }
-
-        // Hover effect (สวย ไม่บั๊ค)
-        for (HBox menu : menus) {
-            menu.setOnMouseEntered(e -> {
-                if (menu != activeMenu) {
-                    menu.setStyle("-fx-background-color: #f0f0f0; -fx-cursor: hand;");
-                }
-            });
-
-            menu.setOnMouseExited(e -> {
-                if (menu != activeMenu) {
-                    menu.setStyle("");
-                }
-            });
+            default -> setActive(homeMenu);
         }
     }
 
     private void setActive(HBox menu) {
-        for (HBox m : menus) {
-            m.setStyle(""); // ล้างสีเก่า
-        }
-        menu.setStyle("-fx-background-color: #e0e0e0;");
-        activeMenu = menu;
+        for (HBox m : menus)
+            m.getStyleClass().remove("active");
+        menu.getStyleClass().add("active");
 
-        // บันทึกเมนู active ล่าสุด
-        if (menu == homeMenu) lastActiveMenu = "home";
-        else if (menu == searchMenu) lastActiveMenu = "search";
-        else if (menu == bookingMenu) lastActiveMenu = "booking";
-        else if (menu == paymentMenu) lastActiveMenu = "payment";
-        else if (menu == rentalhistoryMenu) lastActiveMenu = "history";
+        if (menu == homeMenu)
+            lastActiveMenu = "home";
+        else if (menu == searchMenu)
+            lastActiveMenu = "search";
+        else if (menu == bookingMenu)
+            lastActiveMenu = "booking";
+        else if (menu == paymentMenu)
+            lastActiveMenu = "payment";
+        else if (menu == rentalhistoryMenu)
+            lastActiveMenu = "history";
     }
-
-    // =============== เมนูทั้งหมด ===============
 
     @FXML
     private void goToHome(MouseEvent e) {
         setActive(homeMenu);
-        switchToScene(e, "/views/homepage.fxml");
+        switchTo(e, "/views/homepage.fxml");
     }
 
     @FXML
     private void goToSearch(MouseEvent e) {
         setActive(searchMenu);
-        switchToScene(e, "/views/Space.fxml");
+        switchTo(e, "/views/Space.fxml");
     }
 
     @FXML
     private void goToBooking(MouseEvent e) {
         setActive(bookingMenu);
-        switchToScene(e, "/views/booking.fxml");
+        switchTo(e, "/views/booking.fxml");
     }
 
     @FXML
     private void goToPayment(MouseEvent e) {
         setActive(paymentMenu);
-        switchToScene(e, "/views/payment.fxml");
+        switchTo(e, "/views/payment.fxml");
     }
 
     @FXML
     private void goTorentalhistory(MouseEvent e) {
         setActive(rentalhistoryMenu);
-        switchToScene(e, "/views/rentalhistory.fxml");
+        switchTo(e, "/views/rentalhistory.fxml");
     }
 
-    // ฟังก์ชันช่วยสลับหน้า (ลดโค้ดซ้ำ + แก้ error method undefined)
-    private void switchToScene(MouseEvent e, String fxmlPath) {
+    private void switchTo(MouseEvent e, String fxml) {
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, fxmlPath);
+            SceneManager.switchScene(stage, fxml);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

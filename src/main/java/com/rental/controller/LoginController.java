@@ -150,13 +150,14 @@ public class LoginController {
             // ===== 3) สร้าง User object แล้วเก็บใน Session =====
             String username = userJson.optString("username", "");
             String email    = userJson.optString("email", "");
-            String phone    = profile.optString("phone", "-"); // ถ้าไม่มี column นี้ จะได้ "-"
+            String fullName = userJson.optString("full_name", username);
+            String phone    = userJson.optString("phone", "-"); // <-- ดึงจาก users table
 
             User loggedIn;
             if ("admin".equalsIgnoreCase(role)) {
                 loggedIn = new Admin(userId, username, email);
             } else {
-                loggedIn = new Tenant(userId, username, email, phone);
+                loggedIn = new Tenant(userId, username, email, fullName, phone);
             }
 
             Session.login(loggedIn);

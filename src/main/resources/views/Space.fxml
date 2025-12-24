@@ -7,228 +7,117 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            style="-fx-background-color: #f8f9fa; -fx-font-family: 'Tahoma', 'SansSerif';"
-            fx:controller="com.rental.controller.SpaceController">
+            fx:controller="com.rental.controller.SpaceController"
+            style="-fx-background-color:#f8f9fa;">
 
-    <fx:include fx:id="header" source="header.fxml"
+    <!-- ✅ DEFINE OBJECT (สำคัญมาก) -->
+    <fx:define>
+        <ToggleGroup fx:id="zoneGroup"/>
+    </fx:define>
+
+    <!-- HEADER -->
+    <fx:include source="header.fxml"
                 AnchorPane.topAnchor="0"
                 AnchorPane.leftAnchor="0"
                 AnchorPane.rightAnchor="0"/>
 
-    <HBox spacing="0"
-          AnchorPane.topAnchor="80"
+    <!-- BODY -->
+    <HBox AnchorPane.topAnchor="80"
           AnchorPane.leftAnchor="0"
           AnchorPane.rightAnchor="0"
           AnchorPane.bottomAnchor="0">
 
-        <fx:include fx:id="sidebar" source="sidebarTenant.fxml"/>
+        <fx:include source="sidebarTenant.fxml"/>
 
-        <VBox spacing="20" HBox.hgrow="ALWAYS">
-            <padding>
-                <Insets top="20" right="40" bottom="40" left="40"/>
-            </padding>
+        <ScrollPane fitToWidth="true"
+                    HBox.hgrow="ALWAYS"
+                    vbarPolicy="AS_NEEDED"
+                    hbarPolicy="NEVER">
 
-            <children>
+            <content>
+                <VBox spacing="20">
+                    <padding>
+                        <Insets top="20" right="40" bottom="40" left="40"/>
+                    </padding>
 
-                <Label text="ค้นหาพื้นที่"
-                       style="-fx-font-size:24px; -fx-font-weight:bold;"/>
+                    <Label text="ค้นหาพื้นที่"
+                           style="-fx-font-size:24; -fx-font-weight:bold;"/>
 
-                <HBox spacing="20" alignment="CENTER_LEFT">
-                    <TextField promptText="โซน, หมายเลขโซน" prefWidth="300"/>
-                    <ComboBox fx:id="zoneCombo" promptText="ทุกโซน" prefWidth="180"/>
-                    <ComboBox fx:id="statusCombo" promptText="ทุกสถานะ" prefWidth="180"/>
-                    <ComboBox fx:id="typeCombo" promptText="เลือกประเภทสินค้า" prefWidth="180"/>
-                </HBox>
+                    <!-- SEARCH -->
+                    <HBox spacing="15">
+                        <TextField fx:id="searchField"
+                                   promptText="โซน / หมายเลขแผง"
+                                   prefWidth="260"/>
 
-                <HBox spacing="20" alignment="CENTER_LEFT">
-                    <Label text="วันที่ต้องการเช่า"/>
-                    <DatePicker/>
-                    <Button text="ล้างตัวกรอง"/>
-                    <Button text="ค้นหา"/>
-                </HBox>
+                        <ComboBox fx:id="statusCombo"
+                                  promptText="ทุกสถานะ"
+                                  prefWidth="160"/>
 
-                <Separator/>
-
-                <Label text="ผังเเผนที่"
-                       style="-fx-font-size:20px; -fx-font-weight:bold;"/>
-
-                <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
-                    <tabs>
-                        <Tab text="โซน A"/>
-                        <Tab text="โซน B"/>
-                        <Tab text="โซน C"/>
-                        <Tab text="โซน D"/>
-                        <Tab text="โซน E"/>
-                        <Tab text="โซน F"/>
-                        <Tab text="โซน G"/>
-                    </tabs>
-                </TabPane>
-
-                <HBox spacing="30" alignment="CENTER_LEFT">
-                    <HBox spacing="8">
-                        <Rectangle width="20" height="20" fill="#2e8b61ff"/>
-                        <Label text="ว่าง 13"/>
+                        <ComboBox fx:id="typeCombo"
+                                  promptText="ประเภทสินค้า"
+                                  prefWidth="200"/>
                     </HBox>
-                    <HBox spacing="8">
-                        <Rectangle width="20" height="20" fill="#982d2dff"/>
-                        <Label text="ถูกเช่า 15"/>
+
+                    <!-- DATE + BUTTON -->
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="วันที่ต้องการเช่า"/>
+                        <DatePicker fx:id="rentDate"/>
+                        <Button text="ล้างตัวกรอง"
+                                onAction="#handleClearFilter"/>
+                        <Button text="ค้นหา"
+                                onAction="#handleSearch"/>
                     </HBox>
-                    <HBox spacing="8">
-                        <Rectangle width="20" height="20" fill="#bac04dff"/>
-                        <Label text="กำลังดำเนินการ 4"/>
+
+                    <Separator/>
+
+                    <Label text="ผังแผนที่"
+                           style="-fx-font-size:20; -fx-font-weight:bold;"/>
+
+                    <!-- ZONE BUTTON -->
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <ToggleButton text="โซนA" toggleGroup="$zoneGroup" selected="true"/>
+                        <ToggleButton text="โซนB" toggleGroup="$zoneGroup"/>
+                        <ToggleButton text="โซนC" toggleGroup="$zoneGroup"/>
+                        <ToggleButton text="โซนD" toggleGroup="$zoneGroup"/>
+                        <ToggleButton text="โซนE" toggleGroup="$zoneGroup"/>
+                        <ToggleButton text="โซนF" toggleGroup="$zoneGroup"/>
+                        <ToggleButton text="โซนG" toggleGroup="$zoneGroup"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button text="คลิกที่นี่เพื่อดูผังพื้นที่"
+                                onAction="#handleShowMap"
+                                style="-fx-background-color:transparent;
+                                       -fx-text-fill:#778cab;
+                                       -fx-underline:true;"/>
                     </HBox>
-                    <HBox spacing="8">
-                        <Rectangle width="20" height="20" fill="#6c757d"/>
-                        <Label text="ปิดปรับปรุง 2"/>
+
+                    <!-- LEGEND -->
+                    <HBox spacing="25" alignment="CENTER">
+                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#2e8b61ff"/><Label text="ว่าง"/></HBox>
+                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#982d2dff"/><Label text="ถูกเช่า"/></HBox>
+                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#bac04dff"/><Label text="กำลังดำเนินการ"/></HBox>
+                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#6c757d"/><Label text="ปิดปรับปรุง"/></HBox>
                     </HBox>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button text="คลิกที่นี่เพื่อดูผังพื้นที่"
-                            onAction="#handleShowMap"
-                            style="-fx-background-color:transparent; -fx-underline:true;
-                             -fx-text-fill: #778cabff;
-                                       -fx-underline: true;"/>
 
-                </HBox>
+                    <!-- GRID -->
+                    <GridPane fx:id="spaceGrid"
+                              hgap="20"
+                              vgap="20"
+                              alignment="CENTER"
+                              maxWidth="Infinity">
 
-                <!-- ================= GRID ================= -->
-                <GridPane fx:id="spaceGrid" hgap="15" vgap="15" alignment="CENTER">
-                    <columnConstraints>
-                        <ColumnConstraints prefWidth="120"/>
-                        <ColumnConstraints prefWidth="120"/>
-                        <ColumnConstraints prefWidth="120"/>
-                        <ColumnConstraints prefWidth="120"/>
-                        <ColumnConstraints prefWidth="120"/>
-                    </columnConstraints>
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="20"/>
+                        </columnConstraints>
+                    </GridPane>
 
-                    <children>
-
-                        <!-- ROW 0 -->
-                        <VBox GridPane.rowIndex="0" GridPane.columnIndex="0"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A01" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="0" GridPane.columnIndex="1"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#bac04dff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A02" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="0" GridPane.columnIndex="2"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#982d2dff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A03" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="0" GridPane.columnIndex="3"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#982d2dff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A04" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="0" GridPane.columnIndex="4"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A05" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <!-- ROW 1 -->
-                        <VBox GridPane.rowIndex="1" GridPane.columnIndex="0"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A06" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="1" GridPane.columnIndex="1"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A07" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="1" GridPane.columnIndex="2"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A08" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="1" GridPane.columnIndex="3"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#bac04dff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A09" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="1" GridPane.columnIndex="4"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#bac04dff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A10" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <!-- ROW 2 -->
-                        <VBox GridPane.rowIndex="2" GridPane.columnIndex="0"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#6c757d; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A11" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="2" GridPane.columnIndex="1"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#982d2dff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A12" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="2" GridPane.columnIndex="2"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A13" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="2" GridPane.columnIndex="3"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#6c757d; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A14" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                        <VBox GridPane.rowIndex="2" GridPane.columnIndex="4"
-                              alignment="CENTER" onMouseClicked="#handleSpaceClick"
-                              style="-fx-background-color:#2e8b61ff; -fx-background-radius:12;">
-                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                            <Label text="A15" style="-fx-font-size:18; -fx-font-weight:bold;"/>
-                            <Label text="3 x 3"/>
-                        </VBox>
-
-                    </children>
-                </GridPane>
-
-            </children>
-        </VBox>
+                </VBox>
+            </content>
+        </ScrollPane>
     </HBox>
 </AnchorPane>

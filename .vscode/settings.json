@@ -7,5 +7,6 @@
   "css.lint.duplicateProperties": "ignore",
   "css.lint.emptyRules": "ignore",
   "css.lint.zeroUnits": "ignore",
-  "java.debug.settings.onBuildFailureProceed": true
+  "java.debug.settings.onBuildFailureProceed": true,
+  "java.configuration.updateBuildConfiguration": "interactive"
 }
