@@ -24,8 +24,8 @@ public class RentalHistoryPdfReport {
         try (PDDocument doc = new PDDocument()) {
 
             // ===== Load Thai fonts from resources (embed) =====
-            PDType0Font font = loadFont(doc, "/fonts/Prompt-Medium.ttf");
-            PDType0Font fontBold = loadFont(doc, "/fonts/Prompt-SemiBold.ttf");
+            PDType0Font font = loadFont(doc, "/fonts/THSarabunNew.ttf");
+            PDType0Font fontBold = loadFont(doc, "/fonts/THSarabunNew Bold.ttf");
 
             // ===== Page settings =====
             PDRectangle pageSize = PDRectangle.A4;
