@@ -137,17 +137,7 @@
                                   promptText="หมายเหตุ"
                                   prefRowCount="3"/>
 
-                        <HBox spacing="10"
-                              alignment="CENTER_RIGHT">
-                            <Button text="อนุมัติการชำระเงิน"
-                                    onAction="#handleApprove"
-                                    style="-fx-background-color:#2ecc71; -fx-text-fill:white;"/>
-
-                            <Button text="ปฏิเสธการชำระเงิน"
-                                    onAction="#handleReject"
-                                    style="-fx-background-color:#e74c3c; -fx-text-fill:white;"/>
-                        </HBox>
-
+                      
                         <VBox alignment="CENTER">
                             <ImageView fx:id="slipImage"
                                        fitWidth="300"

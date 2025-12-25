@@ -16,7 +16,7 @@ public class Main extends Application {
         // ✅ โหลดหน้าแรกโดยใช้ SceneManager
      
 
-        SceneManager.switchScene(stage, "/views/add_space.fxml");
+        SceneManager.switchScene(stage, "/views/booking_management.fxml");
 
        
     }
