@@ -10,7 +10,6 @@
             fx:controller="com.rental.controller.SpaceController"
             style="-fx-background-color:#f8f9fa;">
 
-    <!-- ✅ DEFINE OBJECT (สำคัญมาก) -->
     <fx:define>
         <ToggleGroup fx:id="zoneGroup"/>
     </fx:define>
@@ -43,29 +42,57 @@
                     <Label text="ค้นหาพื้นที่"
                            style="-fx-font-size:24; -fx-font-weight:bold;"/>
 
-                    <!-- SEARCH -->
-                    <HBox spacing="15">
-                        <TextField fx:id="searchField"
-                                   promptText="โซน / หมายเลขแผง"
-                                   prefWidth="260"/>
+                    <!-- FILTER -->
+                    <VBox spacing="10">
 
-                        <ComboBox fx:id="statusCombo"
-                                  promptText="ทุกสถานะ"
-                                  prefWidth="160"/>
+                        <!-- แถวบน -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
 
-                        <ComboBox fx:id="typeCombo"
-                                  promptText="ประเภทสินค้า"
-                                  prefWidth="200"/>
-                    </HBox>
+                            <TextField fx:id="searchField"
+                                       promptText="โซน / หมายเลขแผง"
+                                       prefWidth="200"/>
 
-                    <!-- DATE + BUTTON -->
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="วันที่ต้องการเช่า"/>
-                        <DatePicker fx:id="rentDate"/>
-                        <Button text="ล้างตัวกรอง"
-                                onAction="#handleClearFilter"/>
-                        <Button text="ค้นหา"
-                                onAction="#handleSearch"/>
+                            <ComboBox fx:id="statusCombo"
+                                      promptText="ทุกสถานะ"
+                                      prefWidth="150"/>
+
+                            <ComboBox fx:id="typeCombo"
+                                      promptText="ประเภทสินค้า"
+                                      prefWidth="220"/>
+                        </HBox>
+
+                        <!-- แถวล่าง -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+
+                            <Label text="วันที่ต้องการเช่า"/>
+
+                            <DatePicker fx:id="rentDate"
+                                        prefWidth="150"/>
+
+                            <Button text="ค้นหา"
+                                    onAction="#handleClearFilter"/>
+
+                           <Button text="ล้างตัวกรอง"
+                                    onAction="#handleClearFilter"
+                                    style="-fx-background-color:#9e9e9e;
+                                           -fx-text-fill:white;
+                                           -fx-background-radius:6;"/>
+
+                            <CheckBox fx:id="onlyAvailableCheck"
+                                      text="แสดงเฉพาะพื้นที่ว่าง"
+                                      onAction="#handleSearch"/>
+                        </HBox>
+
+                    </VBox>
+
+                    <!-- NO RESULT -->
+                    <HBox alignment="CENTER">
+                        <Label fx:id="noResultLabel"
+                               text="ไม่พบพื้นที่ที่ตรงกับเงื่อนไขที่เลือก"
+                               visible="false"
+                               style="-fx-text-fill:#dc3545;
+                                      -fx-font-size:16;
+                                      -fx-font-weight:bold;"/>
                     </HBox>
 
                     <Separator/>
@@ -94,10 +121,22 @@
 
                     <!-- LEGEND -->
                     <HBox spacing="25" alignment="CENTER">
-                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#2e8b61ff"/><Label text="ว่าง"/></HBox>
-                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#982d2dff"/><Label text="ถูกเช่า"/></HBox>
-                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#bac04dff"/><Label text="กำลังดำเนินการ"/></HBox>
-                        <HBox spacing="8"><Rectangle width="18" height="18" fill="#6c757d"/><Label text="ปิดปรับปรุง"/></HBox>
+                        <HBox spacing="8">
+                            <Rectangle width="18" height="18" fill="#2e8b61"/>
+                            <Label text="ว่าง"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Rectangle width="18" height="18" fill="#982d2d"/>
+                            <Label text="ถูกเช่า"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Rectangle width="18" height="18" fill="#bac04d"/>
+                            <Label text="กำลังดำเนินการ"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Rectangle width="18" height="18" fill="#6c757d"/>
+                            <Label text="ปิดปรับปรุง"/>
+                        </HBox>
                     </HBox>
 
                     <!-- GRID -->
