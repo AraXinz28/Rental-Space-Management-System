@@ -141,6 +141,7 @@
                                   promptText="หมายเหตุ"
                                   prefRowCount="3"/>
 
+                      
                         <VBox alignment="CENTER">
                             <ImageView fx:id="slipImage"
                                        fitWidth="300"

@@ -10,8 +10,9 @@ public class Admin extends User {
     public String getHomeFxml() {
         return "/views/zone_management.fxml";
     }
-     @Override
+
+    @Override
     public String getFullName() {
-        return username; // ใช้ username เป็นชื่อเต็ม
+        return username;
     }
 }
