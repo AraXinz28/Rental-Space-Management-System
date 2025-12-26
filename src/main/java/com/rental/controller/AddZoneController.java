@@ -28,13 +28,13 @@ public class AddZoneController {
     String zoneName = zoneNameField.getText().trim().toUpperCase();
     String slotText = slotCountField.getText().trim();
 
-    // 1. ตรวจสอบค่าว่าง
+        // 1. ตรวจสอบค่าว่าง
     if (zoneName.isEmpty() || slotText.isEmpty()) {
         showAlert("กรุณากรอกข้อมูลให้ครบ");
         return;
     }
 
-    // 2. ตรวจสอบตัวเลข
+        // 2. ตรวจสอบตัวเลข
     int slotCount;
     try {
         slotCount = Integer.parseInt(slotText);
@@ -48,7 +48,7 @@ public class AddZoneController {
     }
 
     try {
-        // ⭐ 3. ตรวจสอบโซนซ้ำ
+        // 3. ตรวจสอบโซนซ้ำ
         if (isZoneExists(zoneName)) {
             showAlert("มีโซนนี้อยู่แล้ว");
             return;
