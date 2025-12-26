@@ -29,7 +29,7 @@ public class EditZoneController {
         );
     }
 
-    // รับข้อมูลจากหน้า ZoneManagement
+        // รับข้อมูลจากหน้า ZoneManagement
     public void setZoneData(Zone zone) {
         this.zoneId = zone.getId();
         zoneNameField.setText(zone.getZoneName());
@@ -49,7 +49,7 @@ public class EditZoneController {
 
         showInformation("สำเร็จ", "แก้ไขโซนสำเร็จ");
 
-        // ⭐ กลับไปหน้า zone_management
+        // กลับไปหน้า zone_management
         Stage stage = (Stage) zoneNameField.getScene().getWindow();
         SceneManager.switchScene(stage, "/views/zone_management.fxml");
 

@@ -20,7 +20,6 @@ public class AddSpaceController {
 
     @FXML
     private void initialize() {
-        // ตัวอย่างโซน (ถ้าจะดึงจาก DB ค่อยทำเพิ่ม)
         zoneCombo.getItems().clear();
         zoneCombo.getItems().addAll("A", "B", "C", "D", "E", "F", "G");
     }
