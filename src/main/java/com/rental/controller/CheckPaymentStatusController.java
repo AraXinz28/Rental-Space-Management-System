@@ -59,7 +59,7 @@ public class CheckPaymentStatusController {
     public void initialize() {
 
         /* ===== ComboBox ===== */
-        cbMethod.getItems().addAll("ทั้งหมด", "QR พร้อมเพย์", "Bank Transfer");
+        cbMethod.getItems().addAll("ทั้งหมด", "QR PromptPay", "Bank Transfer");
         cbMethod.setValue("ทั้งหมด");
 
         cbSort.getItems().addAll(

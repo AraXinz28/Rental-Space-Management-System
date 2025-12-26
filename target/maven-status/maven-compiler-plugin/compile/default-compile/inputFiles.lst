@@ -24,11 +24,13 @@ C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\Main.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\Admin.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\Payment.java
+C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\ReceiptData.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\RentalHistoryRow.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\Stall.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\Tenant.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\User.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\model\Zone.java
+C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\report\ReceiptPdfReport.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\report\RentalHistoryPdfReport.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\util\AlertUtil.java
 C:\Users\M S I\OneDrive\Desktop\Rental-Space-Management-System\src\main\java\com\rental\util\Navigation.java

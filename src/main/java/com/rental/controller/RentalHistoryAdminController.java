@@ -1,9 +1,13 @@
 package com.rental.controller;
 
+import com.google.gson.*;
+import com.rental.database.SupabaseClient;
 import com.rental.model.RentalHistoryRow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,8 +15,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class RentalHistoryAdminController {
 
@@ -22,6 +28,12 @@ public class RentalHistoryAdminController {
     private ComboBox<String> cbStatus;
     @FXML
     private DatePicker dpDate;
+
+    // ✅ sort controls ข้างวันที่
+    @FXML
+    private ComboBox<String> cbSortField;
+    @FXML
+    private ComboBox<String> cbSortOrder;
 
     @FXML
     private Button btnPrint;
@@ -34,13 +46,14 @@ public class RentalHistoryAdminController {
     private TableColumn<RentalHistoryRow, LocalDate> colDate;
     @FXML
     private TableColumn<RentalHistoryRow, String> colStatus;
-
-    // ✅ สำคัญ: Void (ไม่ใช้ Button generic)
     @FXML
     private TableColumn<RentalHistoryRow, Void> colDetail;
 
     private final ObservableList<RentalHistoryRow> masterData = FXCollections.observableArrayList();
     private FilteredList<RentalHistoryRow> filtered;
+    private SortedList<RentalHistoryRow> sorted;
+
+    private final SupabaseClient supabase = new SupabaseClient();
 
     private static final DateTimeFormatter TH_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -48,11 +61,8 @@ public class RentalHistoryAdminController {
     public void initialize() {
 
         // ===== status combo =====
-        cbStatus.setItems(FXCollections.observableArrayList("ทั้งหมด", "เสร็จสิ้น", "ยกเลิก"));
+        cbStatus.setItems(FXCollections.observableArrayList("ทั้งหมด", "เสร็จสิ้น", "ยกเลิก", "รอดำเนินการ"));
         cbStatus.getSelectionModel().selectFirst();
-
-        // ===== date default (เอาออกได้) =====
-        dpDate.setValue(LocalDate.of(2025, 11, 20));
 
         // ===== columns =====
         colCustomer.setCellValueFactory(d -> d.getValue().customerNameProperty());
@@ -100,10 +110,9 @@ public class RentalHistoryAdminController {
             }
         });
 
-        // ===== ✅ detail button (วิธีที่ถูกต้องสุด) =====
+        // detail button
         colDetail.setCellFactory(tc -> new TableCell<>() {
             private final Button btn = new Button("ดูรายละเอียด");
-
             {
                 btn.setStyle("""
                         -fx-background-color: #40446A;
@@ -111,11 +120,7 @@ public class RentalHistoryAdminController {
                         -fx-background-radius: 999;
                         -fx-padding: 8 16;
                         """);
-
-                btn.setOnAction(e -> {
-                    RentalHistoryRow row = getTableView().getItems().get(getIndex());
-                    openDetail(row);
-                });
+                btn.setOnAction(e -> openDetail(getTableView().getItems().get(getIndex())));
             }
 
             @Override
@@ -127,26 +132,219 @@ public class RentalHistoryAdminController {
             }
         });
 
-        // ===== sample data =====
-        masterData.addAll(
-                new RentalHistoryRow("นายสมชาย ใจดี", LocalDate.of(2025, 11, 20), "เสร็จสิ้น"),
-                new RentalHistoryRow("นางอัมพร ลองใจ", LocalDate.of(2025, 11, 20), "เสร็จสิ้น"),
-                new RentalHistoryRow("นางสาวร้อนตัว เย็นใจ", LocalDate.of(2025, 11, 20), "เสร็จสิ้น"),
-                new RentalHistoryRow("นายสิงหา ราสัตว์", LocalDate.of(2025, 11, 20), "ยกเลิก"),
-                new RentalHistoryRow("นายก๊อ คั่วพริกเกลือ", LocalDate.of(2025, 11, 20), "เสร็จสิ้น"));
-
+        // ===== bind lists =====
         filtered = new FilteredList<>(masterData, p -> true);
-        table.setItems(filtered);
+        sorted = new SortedList<>(filtered);
+        table.setItems(sorted);
 
-        // ===== filter listeners =====
-        txtCustomer.textProperty().addListener((obs, o, n) -> applyFilter());
-        cbStatus.valueProperty().addListener((obs, o, n) -> applyFilter());
-        dpDate.valueProperty().addListener((obs, o, n) -> applyFilter());
+        // ===== ปรับความกว้างคอลัมน์ให้พอดีทุกหน้าจอ =====
+        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        final double P = 18; // กัน scrollbar
 
-        applyFilter();
+        colCustomer.prefWidthProperty().bind(table.widthProperty().multiply(0.38).subtract(P));
+        colDate.prefWidthProperty().bind(table.widthProperty().multiply(0.22));
+        colStatus.prefWidthProperty().bind(table.widthProperty().multiply(0.20));
+        colDetail.prefWidthProperty().bind(table.widthProperty().multiply(0.20));
+
+        colCustomer.setMinWidth(220);
+        colDate.setMinWidth(160);
+        colStatus.setMinWidth(150);
+        colDetail.setMinWidth(150);
+
+        table.setFixedCellSize(46);
+
+        // ===== sort controls (ข้างวันที่) =====
+        cbSortField.setItems(FXCollections.observableArrayList("ชื่อลูกค้า", "วัน/เดือน/ปี ทำรายการ"));
+        cbSortField.getSelectionModel().selectFirst();
+
+        cbSortOrder.setItems(FXCollections.observableArrayList("ก-ฮ", "ฮ-ก"));
+        cbSortOrder.getSelectionModel().selectFirst();
+
+        cbSortField.valueProperty().addListener((obs, o, n) -> {
+            if ("วัน/เดือน/ปี ทำรายการ".equals(n)) {
+                cbSortOrder.setItems(FXCollections.observableArrayList("ก่อน-หลัง", "หลัง-ก่อน"));
+                cbSortOrder.getSelectionModel().selectFirst();
+            } else {
+                cbSortOrder.setItems(FXCollections.observableArrayList("ก-ฮ", "ฮ-ก"));
+                cbSortOrder.getSelectionModel().selectFirst();
+            }
+            applySort();
+        });
+
+        cbSortOrder.valueProperty().addListener((obs, o, n) -> applySort());
+
+        // ===== filter listeners: reload from DB =====
+        txtCustomer.textProperty().addListener((obs, o, n) -> reloadFromDb());
+        cbStatus.valueProperty().addListener((obs, o, n) -> reloadFromDb());
+        dpDate.valueProperty().addListener((obs, o, n) -> reloadFromDb());
+
+        // โหลดครั้งแรก
+        reloadFromDb();
     }
 
-    // ✅ เปิดหน้ารายละเอียด + ใช้ Scene เดิม (ฟอนต์/CSS ไม่หาย)
+    // ✅ เรียงอัตโนมัติจาก ComboBox
+    private void applySort() {
+        java.text.Collator th = java.text.Collator.getInstance(new java.util.Locale("th", "TH"));
+        th.setStrength(java.text.Collator.PRIMARY);
+
+        String field = cbSortField.getValue();
+        String order = cbSortOrder.getValue();
+
+        Comparator<RentalHistoryRow> cmp;
+
+        if ("วัน/เดือน/ปี ทำรายการ".equals(field)) {
+            cmp = Comparator.comparing(RentalHistoryRow::getDate,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+            if ("หลัง-ก่อน".equals(order))
+                cmp = cmp.reversed();
+        } else {
+            cmp = (a, b) -> th.compare(
+                    a.getCustomerName() == null ? "" : a.getCustomerName(),
+                    b.getCustomerName() == null ? "" : b.getCustomerName());
+            if ("ฮ-ก".equals(order))
+                cmp = cmp.reversed();
+
+            cmp = cmp.thenComparing(RentalHistoryRow::getDate,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+        }
+
+        sorted.setComparator(cmp);
+    }
+
+    private void reloadFromDb() {
+        String name = txtCustomer.getText();
+        String statusUiFilter = cbStatus.getValue();
+        LocalDate date = dpDate.getValue();
+
+        Task<List<RentalHistoryRow>> task = new Task<>() {
+            @Override
+            protected List<RentalHistoryRow> call() throws Exception {
+                // ✅ ต้องให้ SupabaseClient.selectBookings() select payments(status) มาด้วย
+                String json = supabase.selectBookings(name, statusUiFilter, date);
+
+                var parsed = JsonParser.parseString(json);
+                if (!parsed.isJsonArray()) {
+                    throw new RuntimeException("Supabase error: " + json);
+                }
+
+                List<RentalHistoryRow> list = new ArrayList<>();
+                JsonArray arr = parsed.getAsJsonArray();
+
+                for (JsonElement el : arr) {
+                    JsonObject o = el.getAsJsonObject();
+
+                    long bookingId = o.get("booking_id").getAsLong();
+                    String fullName = o.get("full_name").getAsString();
+
+                    // ✅ วันทำรายการ = created_at (timestamp -> yyyy-MM-dd)
+                    String createdAtRaw = o.get("created_at").getAsString();
+                    LocalDate createdAt = LocalDate.parse(createdAtRaw.substring(0, 10));
+
+                    // ✅ status: ใช้ payments.status ล่าสุดก่อน แล้ว fallback bookings.status
+                    String payStatus = extractLatestPaymentStatus(o);
+                    String uiStatus = mapPaymentStatusToUi(payStatus);
+
+                    if (uiStatus == null) {
+                        String statusDb = (o.has("status") && !o.get("status").isJsonNull())
+                                ? o.get("status").getAsString()
+                                : "pending";
+                        uiStatus = mapBookingStatusToUi(statusDb);
+                    }
+
+                    list.add(new RentalHistoryRow(
+                            bookingId,
+                            fullName,
+                            createdAt,
+                            uiStatus));
+                }
+
+                return list;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            masterData.setAll(task.getValue());
+            applySort();
+        });
+
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            ex.printStackTrace();
+            Alert err = new Alert(Alert.AlertType.ERROR);
+            err.setTitle("ผิดพลาด");
+            err.setHeaderText("ดึงข้อมูลประวัติไม่สำเร็จ");
+            err.setContentText(String.valueOf(ex.getMessage()));
+            err.showAndWait();
+        });
+
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
+    }
+
+    // ✅ ดึง payments.status “ล่าสุด” (ถ้าไม่มีคืน null)
+    private static String extractLatestPaymentStatus(JsonObject bookingObj) {
+        if (bookingObj == null || !bookingObj.has("payments") || !bookingObj.get("payments").isJsonArray()) {
+            return null;
+        }
+
+        JsonArray pays = bookingObj.getAsJsonArray("payments");
+        if (pays == null || pays.isEmpty())
+            return null;
+
+        JsonObject latest = null;
+        for (JsonElement pe : pays) {
+            if (!pe.isJsonObject())
+                continue;
+            JsonObject po = pe.getAsJsonObject();
+
+            if (latest == null) {
+                latest = po;
+                continue;
+            }
+
+            String a = (po.has("created_at") && !po.get("created_at").isJsonNull())
+                    ? po.get("created_at").getAsString()
+                    : "";
+            String b = (latest.has("created_at") && !latest.get("created_at").isJsonNull())
+                    ? latest.get("created_at").getAsString()
+                    : "";
+
+            // ISO timestamp compare ได้
+            if (a.compareTo(b) > 0)
+                latest = po;
+        }
+
+        if (latest == null)
+            return null;
+        if (!latest.has("status") || latest.get("status").isJsonNull())
+            return null;
+        return latest.get("status").getAsString();
+    }
+
+    // ✅ payments.status -> UI
+    private static String mapPaymentStatusToUi(String payStatus) {
+        if (payStatus == null)
+            return null;
+        return switch (payStatus) {
+            case "approved" -> "เสร็จสิ้น";
+            case "pending" -> "รอดำเนินการ";
+            case "rejected" -> "ยกเลิก";
+            default -> null;
+        };
+    }
+
+    // ✅ bookings.status -> UI (fallback)
+    private static String mapBookingStatusToUi(String dbStatus) {
+        return switch (dbStatus) {
+            case "paid", "completed" -> "เสร็จสิ้น";
+            case "cancelled" -> "ยกเลิก";
+            case "pending" -> "รอดำเนินการ";
+            default -> dbStatus;
+        };
+    }
+
+    // ✅ เปิดหน้ารายละเอียด
     private void openDetail(RentalHistoryRow row) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/rentalhistorydetail.fxml"));
@@ -168,19 +366,7 @@ public class RentalHistoryAdminController {
         }
     }
 
-    private void applyFilter() {
-        String name = txtCustomer.getText() == null ? "" : txtCustomer.getText().trim().toLowerCase();
-        String status = cbStatus.getValue();
-        LocalDate date = dpDate.getValue();
-
-        filtered.setPredicate(row -> {
-            boolean okName = name.isEmpty() || row.getCustomerName().toLowerCase().contains(name);
-            boolean okStatus = (status == null || "ทั้งหมด".equals(status)) || status.equals(row.getStatus());
-            boolean okDate = (date == null) || date.equals(row.getDate());
-            return okName && okStatus && okDate;
-        });
-    }
-
+    // ✅ พิมพ์รายงาน PDF (เต็ม)
     @FXML
     private void onPrint(ActionEvent event) {
         try {
@@ -190,17 +376,15 @@ public class RentalHistoryAdminController {
                     new javafx.stage.FileChooser.ExtensionFilter("PDF (*.pdf)", "*.pdf"));
             chooser.setInitialFileName("รายงานประวัติการเช่า.pdf");
 
-            java.io.File out = chooser.showSaveDialog(table.getScene().getWindow());
+            File out = chooser.showSaveDialog(table.getScene().getWindow());
             if (out == null)
                 return;
 
-            // ✅ บังคับนามสกุล .pdf
             if (!out.getName().toLowerCase().endsWith(".pdf")) {
-                out = new java.io.File(out.getAbsolutePath() + ".pdf");
+                out = new File(out.getAbsolutePath() + ".pdf");
             }
 
-            // ✅ export
-            java.util.List<com.rental.model.RentalHistoryRow> rows = new java.util.ArrayList<>(table.getItems());
+            List<RentalHistoryRow> rows = new ArrayList<>(table.getItems());
 
             com.rental.report.RentalHistoryPdfReport.export(
                     out,
@@ -209,16 +393,12 @@ public class RentalHistoryAdminController {
                     cbStatus.getValue(),
                     dpDate.getValue());
 
-            System.out.println("SAVED PATH = " + out.getAbsolutePath());
-            System.out.println("EXISTS=" + out.exists() + " SIZE=" + out.length());
-
             Alert ok = new Alert(Alert.AlertType.INFORMATION);
             ok.setTitle("สำเร็จ");
             ok.setHeaderText("สร้างไฟล์ PDF เรียบร้อย");
             ok.setContentText(out.getAbsolutePath());
             ok.showAndWait();
 
-            // ✅ เปิดไฟล์ให้เลย (กันหาไม่เจอ)
             if (java.awt.Desktop.isDesktopSupported()) {
                 java.awt.Desktop.getDesktop().open(out);
             }
@@ -232,5 +412,4 @@ public class RentalHistoryAdminController {
             err.showAndWait();
         }
     }
-
 }

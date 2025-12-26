@@ -69,8 +69,9 @@
                             <DatePicker fx:id="rentDate"
                                         prefWidth="150"/>
 
-                            <Button text="ค้นหา"
-                                    onAction="#handleClearFilter"/>
+                           <Button text="ค้นหา"
+        onAction="#handleSearch"/>
+
 
                            <Button text="ล้างตัวกรอง"
                                     onAction="#handleClearFilter"
