@@ -60,6 +60,21 @@ public class SupabaseClient {
         return response.body();
     }
 
+    // 🔹 INSERT + RETURNING (คืนค่า JSON ของ record ที่ insert)
+    public String insertReturning(String table, String jsonBody, String returningColumn) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url + "/rest/v1/" + table))
+                .header("apikey", key)
+                .header("Authorization", "Bearer " + key)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation") // สำคัญ ต้องคืน record
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body(); // คืนเป็น JSON Array
+    }
+
     // 🔹 UPDATE (ทั่วไป)
     public String update(String table, String column, String value, String jsonBody) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -67,7 +82,7 @@ public class SupabaseClient {
                 .header("apikey", key)
                 .header("Authorization", "Bearer " + key)
                 .header("Content-Type", "application/json")
-                    .header("Prefer", "return=minimal")
+                .header("Prefer", "return=minimal")
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
@@ -88,26 +103,24 @@ public class SupabaseClient {
         return response.body();
     }
 
-    // ✅ NEW: อัปเดตสถานะตาม id โดยเฉพาะ
+    // 🔹 UPDATE by id
+    public String updateById(String table, String jsonBody, int id) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url + "/rest/v1/" + table + "?id=eq." + id))
+                .header("apikey", key)
+                .header("Authorization", "Bearer " + key)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    // 🔹 UPDATE status by id
     public String updateStatusById(String table, int id, String newStatus) throws Exception {
         String jsonBody = "{\"status\":\"" + newStatus + "\"}";
-        return update(table, "id", String.valueOf(id), jsonBody);
+        return updateById(table, jsonBody, id);
     }
-    // 🔹 UPDATE by id (ใช้กับ zone / edit form)
-    public String updateById(String table, String jsonBody, int id) throws Exception {
-
-    HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url + "/rest/v1/" + table + "?id=eq." + id))
-            .header("apikey", key)
-            .header("Authorization", "Bearer " + key)
-            .header("Content-Type", "application/json")
-            .header("Prefer", "return=minimal")
-            .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
-            .build();
-
-    HttpResponse<String> response =
-            client.send(request, HttpResponse.BodyHandlers.ofString());
-
-    return response.body();
-}
 }

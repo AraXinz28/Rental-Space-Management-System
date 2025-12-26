@@ -3,3 +3,16 @@
 target/ 
 *.lst
 maven-status/
+# Maven build output
+target/
+*.class
+
+# IDE files (ถ้ายังไม่มี)
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+
+# Other common
+*.log
