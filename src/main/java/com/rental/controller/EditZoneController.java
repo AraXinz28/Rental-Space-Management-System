@@ -2,6 +2,8 @@ package com.rental.controller;
 
 import com.rental.database.SupabaseClient;
 import com.rental.model.Zone;
+import com.rental.util.SceneManager;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
@@ -27,7 +29,7 @@ public class EditZoneController {
         );
     }
 
-    // รับข้อมูลจากหน้า ZoneManagement
+        // รับข้อมูลจากหน้า ZoneManagement
     public void setZoneData(Zone zone) {
         this.zoneId = zone.getId();
         zoneNameField.setText(zone.getZoneName());
@@ -37,24 +39,28 @@ public class EditZoneController {
 
     @FXML
     private void handleSave() {
-        try {
-            JSONObject body = new JSONObject();
-            body.put("zone_name", zoneNameField.getText());
-            body.put("slot_count", Integer.parseInt(totalLocksField.getText()));
-            body.put("zone_status", statusComboBox.getValue());
+    try {
+        JSONObject body = new JSONObject();
+        body.put("zone_name", zoneNameField.getText().trim());
+        body.put("slot_count", Integer.parseInt(totalLocksField.getText()));
+        body.put("zone_status", statusComboBox.getValue());
 
-            supabase.updateById("zone", body.toString(), zoneId);
+        supabase.updateById("zone", body.toString(), zoneId);
 
-            showInformation("สำเร็จ", "แก้ไขโซนสำเร็จ");
-            closeWindow();
+        showInformation("สำเร็จ", "แก้ไขโซนสำเร็จ");
 
-        } catch (NumberFormatException e) {
-            showError("กรุณากรอกจำนวนล็อกเป็นตัวเลข");
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-        }
+        // กลับไปหน้า zone_management
+        Stage stage = (Stage) zoneNameField.getScene().getWindow();
+        SceneManager.switchScene(stage, "/views/zone_management.fxml");
+
+    } catch (NumberFormatException e) {
+        showError("กรุณากรอกจำนวนล็อกเป็นตัวเลข");
+    } catch (Exception e) {
+        e.printStackTrace();
+        showError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     }
+    }
+
 
     @FXML
     private void handleCancel() {

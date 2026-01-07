@@ -29,7 +29,8 @@ public class SpaceManagementController {
     @FXML private TableColumn<Stall, String> colSize;
     @FXML private TableColumn<Stall, String> colStatus;
     @FXML private TableColumn<Stall, Void> colAction;
-    
+
+    /* ===== Aggregation ===== */
     private ObservableList<Stall> masterList = FXCollections.observableArrayList();
 
     private final SupabaseClient supabase = new SupabaseClient();
@@ -45,8 +46,7 @@ public class SpaceManagementController {
         setupActionColumn();
         loadStallData();
 
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> handleSearch());
-        statusCombo.valueProperty().addListener((obs, oldVal, newVal) -> handleSearch());
+
         
         statusCombo.getItems().addAll(
             "available",
@@ -77,6 +77,15 @@ public class SpaceManagementController {
                     obj.optString("amenities", "")
             ));
         }
+        /* จัดเรียงตามชื่อโซน ชื่อล็อก */
+            masterList.sort((a, b) -> {
+    int zoneCompare = a.getZoneName()
+            .compareToIgnoreCase(b.getZoneName());
+    if (zoneCompare != 0) return zoneCompare;
+
+        return a.getStallId()
+            .compareToIgnoreCase(b.getStallId());
+        });
 
         zoneTable.setItems(masterList);
 
@@ -170,6 +179,8 @@ public class SpaceManagementController {
                     Stall stall = getTableView().getItems().get(getIndex());
 
                     try {
+                        
+                        // Aggregation Controller เรียกใช้งาน EditSpaceController ส่งข้อมูลไปใช้งาน
                         FXMLLoader loader =
                                 new FXMLLoader(getClass().getResource("/views/edit_space.fxml"));
                         Parent root = loader.load();

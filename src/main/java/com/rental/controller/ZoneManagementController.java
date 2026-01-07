@@ -57,10 +57,8 @@ public class ZoneManagementController {
         loadZoneData();
         setupStatusCell();
 
-        searchField.textProperty().addListener((obs, o, n) -> handleSearch());
-        statusCombo.valueProperty().addListener((obs, o, n) -> handleSearch());
 
-        // (แนะนำ) ใส่ค่าลง combo
+        
         statusCombo.getItems().addAll(
             "เปิดให้บริการ",
                         "ปิดปรับปรุง"
@@ -85,6 +83,10 @@ public class ZoneManagementController {
                         obj.optString("zone_status", "")
                 ));
             }
+            /* จัดเรียงตามชื่อโซน */
+            masterList.sort((a, b) ->
+        a.getZoneName().compareToIgnoreCase(b.getZoneName())
+        );
 
             zoneTable.setItems(masterList);
 
@@ -100,7 +102,7 @@ public class ZoneManagementController {
         private final Button editBtn = new Button("Edit");
 
         {
-            // 🎨 ปุ่ม Edit 
+            // ปุ่ม Edit 
             editBtn.setStyle("""
                 -fx-background-color: transparent;
                 -fx-text-fill: #9e9e9e;
@@ -249,4 +251,5 @@ public class ZoneManagementController {
         statusCombo.setValue(null);
         zoneTable.setItems(masterList);
     }
+    
 }

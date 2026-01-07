@@ -21,6 +21,7 @@ public class SidebaradminController {
     private HBox historyMenu;
 
     private HBox[] menus;
+    private HBox activeMenu;
 
     @FXML
     private void initialize() {
@@ -28,59 +29,80 @@ public class SidebaradminController {
 
         String current = SceneManager.getCurrentPage();
         switch (current) {
+            case "zone" -> setActive(zoneMenu);
             case "booking" -> setActive(bookingMenu);
             case "customer" -> setActive(customerMenu);
             case "payment" -> setActive(paymentMenu);
             case "history" -> setActive(historyMenu);
             default -> setActive(zoneMenu);
         }
+
+        // Hover effect (สวย ไม่บั๊ค)
+        for (HBox menu : menus) {
+            menu.setOnMouseEntered(e -> {
+                if (menu != activeMenu) {
+                    menu.setStyle("-fx-background-color: #f0f0f0; -fx-cursor: hand;");
+                }
+            });
+
+            menu.setOnMouseExited(e -> {
+                if (menu != activeMenu) {
+                    menu.setStyle("");
+                }
+            });
+        }
     }
 
     private void setActive(HBox menu) {
-        for (HBox m : menus)
-            m.getStyleClass().remove("active");
-        menu.getStyleClass().add("active");
+        for (HBox m : menus) {
+            m.setStyle("");
+        }
+        menu.setStyle("-fx-background-color: #e0e0e0;");
+        activeMenu = menu;
     }
+
+    // =============== เมนูทั้งหมด ===============
 
     @FXML
     private void goToZone(MouseEvent e) {
-        SceneManager.setCurrentPage("zone");
         setActive(zoneMenu);
-        switchTo(e, "/views/zone_management.fxml");
+        SceneManager.setCurrentPage("zone");
+        switchToScene(e, "/views/zone_management.fxml"); // แก้ path ให้ตรงกับของคุณ
     }
 
     @FXML
     private void goToBooking(MouseEvent e) {
-        SceneManager.setCurrentPage("booking");
         setActive(bookingMenu);
-        switchTo(e, "/views/booking_management.fxml");
+        SceneManager.setCurrentPage("booking");
+        switchToScene(e, "/views/booking_management.fxml");
     }
 
     @FXML
     private void goToCustomer(MouseEvent e) {
-        SceneManager.setCurrentPage("customer");
         setActive(customerMenu);
-        switchTo(e, "/views/managetenants.fxml");
+        SceneManager.setCurrentPage("customer");
+        switchToScene(e, "/views/managetenants.fxml"); // หรือ path ที่ถูกต้อง
     }
 
     @FXML
     private void goToPayment(MouseEvent e) {
-        SceneManager.setCurrentPage("payment");
         setActive(paymentMenu);
-        switchTo(e, "/views/checkPaymentStatus.fxml");
+        SceneManager.setCurrentPage("payment");
+        switchToScene(e, "/views/checkPaymentStatus.fxml");
     }
 
     @FXML
     private void goToHistory(MouseEvent e) {
-        SceneManager.setCurrentPage("history");
         setActive(historyMenu);
-        switchTo(e, "/views/rentalhistorymanage.fxml");
+        SceneManager.setCurrentPage("history");
+        switchToScene(e, "/views/rentalhistorymanage.fxml");
     }
 
-    private void switchTo(MouseEvent e, String fxml) {
+    // ฟังก์ชันช่วยสลับหน้า (ลดโค้ดซ้ำ)
+    private void switchToScene(MouseEvent e, String fxmlPath) {
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         try {
-            SceneManager.switchScene(stage, fxml);
+            SceneManager.switchScene(stage, fxmlPath);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
