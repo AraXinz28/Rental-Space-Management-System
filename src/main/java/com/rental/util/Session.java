@@ -13,4 +13,6 @@ public class Session {
 
     public static String role() { return currentUser == null ? null : currentUser.getRole(); }
     public static String username() { return currentUser == null ? null : currentUser.getUsername(); }
+
+
 }

@@ -88,6 +88,8 @@
                 <!-- Table Title + Buttons -->
             <HBox spacing="20" style="-fx-padding: 5;" HBox.hgrow="ALWAYS">
 
+            
+
     <Label text="รายการประวัติการเช่า"
            style="-fx-font-size: 22px; -fx-font-weight: Regular;"
            HBox.hgrow="ALWAYS" />
@@ -98,21 +100,25 @@
             style="-fx-background-color: #930000ff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
 
     <Button fx:id="btnPrint"
-            text="ปริ้นใบเสร็จ"
-            style="-fx-background-color: #00438aff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
+        text="ปริ้นใบเสร็จ"
+        onAction="#handlePrint"
+        style="-fx-background-color: #00438aff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
 
 </HBox>
 
 
                 <!-- Table -->
-                <TableView fx:id="historyTable" prefHeight="450">
-                    <columns>
-                        <TableColumn fx:id="colItem" text="รายการ" prefWidth="350"/>
-                        <TableColumn fx:id="colDate" text="วัน/เดือน/ปี ที่ทำรายการ" prefWidth="200"/>
-                        <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="150"/>
-                        <TableColumn fx:id="colDetail" text="รายละเอียด" prefWidth="150"/>
-                    </columns>
-                </TableView>
+<TableView fx:id="historyTable" prefWidth="800" prefHeight="400">
+    <columns>
+        <TableColumn fx:id="colItem" text="สินค้า" prefWidth="200"/>
+        <TableColumn fx:id="colStartDate" text="วันที่ทำรายการ" prefWidth="150"/>
+        <TableColumn fx:id="colEndDate" text="วันสิ้นสุดรายการ" prefWidth="150"/>
+        <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="100"/>
+        <TableColumn fx:id="colDetail" text="รายละเอียด" prefWidth="100"/>
+    </columns>
+</TableView>
+
+
 
                 <Region minHeight="60"/>
 
@@ -122,4 +128,4 @@
     </ScrollPane>
 
 </AnchorPane>
-<!-- End of File อิอิอิอิอิอิอิอิอิอิอิ-->
+<!-- End of File -->
