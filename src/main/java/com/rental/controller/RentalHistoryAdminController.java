@@ -100,6 +100,8 @@ public class RentalHistoryAdminController {
                     badge.setStyle(badge.getStyle() + "-fx-background-color: #4F6F4A;");
                 } else if ("ยกเลิก".equals(item)) {
                     badge.setStyle(badge.getStyle() + "-fx-background-color: #6B3F3F;");
+                } else if ("ปฏิเสธการชำระเงิน".equals(item)) {
+                    badge.setStyle(badge.getStyle() + "-fx-background-color: #6B3F3F;");
                 } else {
                     badge.setStyle(badge.getStyle() + "-fx-background-color: #777;");
                 }
@@ -219,8 +221,10 @@ public class RentalHistoryAdminController {
         Task<List<RentalHistoryRow>> task = new Task<>() {
             @Override
             protected List<RentalHistoryRow> call() throws Exception {
-                // ✅ ต้องให้ SupabaseClient.selectBookings() select payments(status) มาด้วย
-                String json = supabase.selectBookings(name, statusUiFilter, date);
+
+                // ✅ ดึงจาก payments เป็นหลัก + สถานะจาก payments.status
+                // ✅ กรองวันที่ด้วย payments.created_at (timestamp) ทำใน SupabaseClient
+                String json = supabase.selectPaymentsForAdminHistory(name, statusUiFilter, date);
 
                 var parsed = JsonParser.parseString(json);
                 if (!parsed.isJsonArray()) {
@@ -234,22 +238,28 @@ public class RentalHistoryAdminController {
                     JsonObject o = el.getAsJsonObject();
 
                     long bookingId = o.get("booking_id").getAsLong();
-                    String fullName = o.get("full_name").getAsString();
 
-                    // ✅ วันทำรายการ = created_at (timestamp -> yyyy-MM-dd)
+                    // ✅ full_name จาก bookings ที่ join มา
+                    String fullName = "";
+                    if (o.has("bookings") && o.get("bookings").isJsonObject()) {
+                        JsonObject b = o.getAsJsonObject("bookings");
+                        if (b.has("full_name") && !b.get("full_name").isJsonNull()) {
+                            fullName = b.get("full_name").getAsString();
+                        }
+                    }
+
+                    // ✅ วันทำรายการ = payments.created_at
                     String createdAtRaw = o.get("created_at").getAsString();
                     LocalDate createdAt = LocalDate.parse(createdAtRaw.substring(0, 10));
 
-                    // ✅ status: ใช้ payments.status ล่าสุดก่อน แล้ว fallback bookings.status
-                    String payStatus = extractLatestPaymentStatus(o);
-                    String uiStatus = mapPaymentStatusToUi(payStatus);
+                    // ✅ status = payments.status เท่านั้น
+                    String payStatus = (o.has("status") && !o.get("status").isJsonNull())
+                            ? o.get("status").getAsString()
+                            : "pending";
 
-                    if (uiStatus == null) {
-                        String statusDb = (o.has("status") && !o.get("status").isJsonNull())
-                                ? o.get("status").getAsString()
-                                : "pending";
-                        uiStatus = mapBookingStatusToUi(statusDb);
-                    }
+                    String uiStatus = mapPaymentStatusToUi(payStatus);
+                    if (uiStatus == null)
+                        uiStatus = payStatus;
 
                     list.add(new RentalHistoryRow(
                             bookingId,
@@ -282,46 +292,6 @@ public class RentalHistoryAdminController {
         t.start();
     }
 
-    // ✅ ดึง payments.status “ล่าสุด” (ถ้าไม่มีคืน null)
-    private static String extractLatestPaymentStatus(JsonObject bookingObj) {
-        if (bookingObj == null || !bookingObj.has("payments") || !bookingObj.get("payments").isJsonArray()) {
-            return null;
-        }
-
-        JsonArray pays = bookingObj.getAsJsonArray("payments");
-        if (pays == null || pays.isEmpty())
-            return null;
-
-        JsonObject latest = null;
-        for (JsonElement pe : pays) {
-            if (!pe.isJsonObject())
-                continue;
-            JsonObject po = pe.getAsJsonObject();
-
-            if (latest == null) {
-                latest = po;
-                continue;
-            }
-
-            String a = (po.has("created_at") && !po.get("created_at").isJsonNull())
-                    ? po.get("created_at").getAsString()
-                    : "";
-            String b = (latest.has("created_at") && !latest.get("created_at").isJsonNull())
-                    ? latest.get("created_at").getAsString()
-                    : "";
-
-            // ISO timestamp compare ได้
-            if (a.compareTo(b) > 0)
-                latest = po;
-        }
-
-        if (latest == null)
-            return null;
-        if (!latest.has("status") || latest.get("status").isJsonNull())
-            return null;
-        return latest.get("status").getAsString();
-    }
-
     // ✅ payments.status -> UI
     private static String mapPaymentStatusToUi(String payStatus) {
         if (payStatus == null)
@@ -329,18 +299,9 @@ public class RentalHistoryAdminController {
         return switch (payStatus) {
             case "approved" -> "เสร็จสิ้น";
             case "pending" -> "รอดำเนินการ";
-            case "rejected" -> "ยกเลิก";
-            default -> null;
-        };
-    }
-
-    // ✅ bookings.status -> UI (fallback)
-    private static String mapBookingStatusToUi(String dbStatus) {
-        return switch (dbStatus) {
-            case "paid", "completed" -> "เสร็จสิ้น";
+            case "rejected" -> "ปฏิเสธการชำระเงิน";
             case "cancelled" -> "ยกเลิก";
-            case "pending" -> "รอดำเนินการ";
-            default -> dbStatus;
+            default -> null;
         };
     }
 

@@ -180,6 +180,68 @@ public class SupabaseClient {
         return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
+    // =====================================================
+    // ✅ ใหม่: สำหรับหน้า “ประวัติ” ฝั่งแอดมิน (ดึงจาก payments เป็นหลัก)
+    // - สถานะตาม payments.status เท่านั้น
+    // - ชื่อ join จาก bookings(full_name)
+    // - กรองวันที่ด้วย payments.created_at (timestamp) แบบช่วงวัน
+    // =====================================================
+    public String selectPaymentsForAdminHistory(String fullNameLike, String uiStatus, LocalDate date) throws Exception {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(url)
+                .append("/rest/v1/payments")
+                // ✅ ระบุ FK ให้ชัวร์
+                .append("?select=id,booking_id,created_at,status,bookings!fk_payments_booking(full_name)")
+                // ✅ เรียงตาม created_at ของ payments
+                .append("&order=created_at.desc");
+
+        // ---- filter: name (จาก bookings.full_name) ----
+        if (fullNameLike != null && !fullNameLike.trim().isEmpty()) {
+            String v = fullNameLike.trim().replace(" ", "%");
+            sb.append("&bookings.full_name=ilike.*").append(encode(v)).append("*");
+        }
+
+        // ---- filter: status (จาก payments.status เท่านั้น) ----
+        if (uiStatus != null && !"ทั้งหมด".equals(uiStatus)) {
+            switch (uiStatus) {
+                case "เสร็จสิ้น" -> sb.append("&status=eq.approved");
+                case "รอดำเนินการ" -> sb.append("&status=eq.pending");
+                case "ยกเลิก" -> sb.append("&status=eq.rejected");
+            }
+        }
+
+        // ---- filter: created_at ช่วงวัน “ตามเวลาไทย” (+07:00) ----
+        if (date != null) {
+            LocalDate next = date.plusDays(1);
+
+            sb.append("&created_at=gte.")
+                    .append(encode(date.toString()))
+                    .append("T00:00:00+07:00");
+
+            sb.append("&created_at=lt.")
+                    .append(encode(next.toString()))
+                    .append("T00:00:00+07:00");
+        }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(sb.toString()))
+                .header("apikey", key)
+                .header("Authorization", "Bearer " + key)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        // ✅ debug ช่วยเช็คว่าเรียก payments จริง + query ถูก
+        System.out.println("ADMIN PAYMENTS URI=" + sb);
+        System.out.println("ADMIN PAYMENTS STATUS=" + response.statusCode());
+        System.out.println("ADMIN PAYMENTS BODY=" + response.body());
+
+        return response.body();
+    }
+
     // ✅ ดึงรายละเอียดตาม booking_id (ของเดิม)
     public String selectBookingDetailById(long bookingId) throws Exception {
 
