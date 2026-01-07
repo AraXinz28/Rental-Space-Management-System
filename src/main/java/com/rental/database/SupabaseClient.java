@@ -21,7 +21,6 @@ public class SupabaseClient {
         this.client = HttpClient.newHttpClient();
     }
 
-
     // ✅ GET: SELECT *
     public String selectAll(String table) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -138,8 +137,7 @@ public class SupabaseClient {
         return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
-    // ✅ สำหรับหน้า “ประวัติ” ดึง bookings พร้อม filter (ใช้ created_at +
-    // payments.status)
+    // ✅ สำหรับหน้า “ประวัติ” ฝั่งแอดมิน (ของเดิม)
     public String selectBookings(String fullNameLike, String uiStatus, LocalDate date) throws Exception {
 
         StringBuilder sb = new StringBuilder();
@@ -153,7 +151,6 @@ public class SupabaseClient {
             sb.append("&full_name=ilike.*").append(encode(v)).append("*");
         }
 
-        // filter status (อิง payments เป็นหลัก)
         if (uiStatus != null && !"ทั้งหมด".equals(uiStatus)) {
             switch (uiStatus) {
                 case "เสร็จสิ้น" -> sb.append("&payments.status=eq.approved");
@@ -166,7 +163,6 @@ public class SupabaseClient {
             }
         }
 
-        // filter date (created_at range)
         if (date != null) {
             LocalDate next = date.plusDays(1);
             sb.append("&created_at=gte.").append(encode(date.toString())).append("T00:00:00");
@@ -184,8 +180,7 @@ public class SupabaseClient {
         return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
-    // ✅ ดึงรายละเอียดตาม booking_id (เอาไปใช้ในหน้า detail) + ดึง
-    // payments.payment_method มาด้วย
+    // ✅ ดึงรายละเอียดตาม booking_id (ของเดิม)
     public String selectBookingDetailById(long bookingId) throws Exception {
 
         String uri = url + "/rest/v1/bookings"
@@ -210,15 +205,12 @@ public class SupabaseClient {
         return response.body();
     }
 
-    // ✅ เพิ่มเมท็อดใหม่ (ไม่ลบของเดิม) สำหรับ join stalls แบบกำหนดชื่อคอลัมน์เอง
-    public String selectBookingDetailByIdWithStalls(long bookingId, String stallField1, String stallField2)
-            throws Exception {
+    // ✅ ของเดิม
+    public String selectJoinBookingsPayments(long userId) throws Exception {
         String uri = url + "/rest/v1/bookings"
-                + "?select=booking_id,stall_id,full_name,phone,product_type,total_price,deposit_price,status,created_at,start_date,end_date,"
-                + "stalls(" + stallField1 + "," + stallField2 + "),"
-                + "payments(id,status,payment_method,payment_date,amount,created_at,reject_reason)"
-                + "&booking_id=eq." + bookingId
-                + "&limit=1";
+                + "?select=booking_id,product_type,start_date,end_date,"
+                + "payments!fk_payments_booking(status,payment_method,amount,payment_date)"
+                + "&user_id=eq." + encode(String.valueOf(userId));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
@@ -228,15 +220,19 @@ public class SupabaseClient {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("DETAIL+STALL STATUS=" + response.statusCode());
-        System.out.println("DETAIL+STALL BODY=" + response.body());
-        return response.body();
+        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
-    // ✅ เพิ่มเมท็อดเช็คโครงสร้าง stalls (ไม่ลบของเดิม)
-    public String selectStallsOneRow() throws Exception {
-        String uri = url + "/rest/v1/stalls?select=*&limit=1";
+    // =====================================================
+    // ✅ ใหม่: Payments-only (ชัวร์) ไม่ผูกชื่อ FK
+    // =====================================================
+    public String selectPaymentsJoinBookings(long userId) throws Exception {
+
+        String uri = url + "/rest/v1/payments"
+                + "?select=id,booking_id,status,payment_method,amount,payment_date,created_at,"
+                + "bookings(booking_id,user_id,product_type,start_date,end_date,full_name,phone,stall_id)"
+                + "&bookings.user_id=eq." + encode(String.valueOf(userId))
+                + "&order=created_at.desc";
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
@@ -247,8 +243,8 @@ public class SupabaseClient {
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("STALLS STATUS=" + response.statusCode());
-        System.out.println("STALLS BODY=" + response.body());
+        System.out.println("PAYMENTS+BOOKINGS STATUS=" + response.statusCode());
+        System.out.println("PAYMENTS+BOOKINGS BODY=" + response.body());
         return response.body();
     }
 
@@ -276,20 +272,4 @@ public class SupabaseClient {
             default -> uiStatus;
         };
     }
-public String selectJoinBookingsPayments(long userId) throws Exception {
-    String uri = url + "/rest/v1/bookings"
-            + "?select=booking_id,product_type,start_date,end_date,"
-            + "payments!fk_payments_booking(status,payment_method,amount,payment_date)"
-            + "&user_id=eq." + encode(String.valueOf(userId));
-
-    HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(uri))
-            .header("apikey", key)
-            .header("Authorization", "Bearer " + key)
-            .header("Content-Type", "application/json")
-            .GET()
-            .build();
-
-    return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
 }
- }
