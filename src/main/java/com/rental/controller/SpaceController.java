@@ -21,6 +21,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -49,6 +50,11 @@ public class SpaceController implements Initializable {
 
     @FXML private ToggleGroup zoneGroup;
     @FXML private GridPane spaceGrid;
+
+    /* ===== เพิ่มตามที่ขอ ===== */
+    @FXML private CheckBox onlyAvailableCheck;
+    @FXML private Label noResultLabel;
+    /* ========================= */
 
     private char currentZone = 'A';
     private String highlightStallId = null;
@@ -90,6 +96,10 @@ public class SpaceController implements Initializable {
             });
         }
 
+        if (noResultLabel != null) {
+            noResultLabel.setVisible(false);
+        }
+
         loadFromSupabase();
     }
 
@@ -97,29 +107,29 @@ public class SpaceController implements Initializable {
     private void handleSearch() {
 
         String text = searchField.getText();
-        if (text == null || text.isBlank()) return;
 
-        text = text.trim().toUpperCase();
+        if (text != null && !text.isBlank()) {
 
-        if (text.startsWith("โซน")) {
-            text = text.replace("โซน", "").trim();
-        }
+            text = text.trim().toUpperCase();
 
-        if (text.length() == 0) return;
+            if (text.startsWith("โซน")) {
+                text = text.replace("โซน", "").trim();
+            }
 
-        currentZone = text.charAt(0);
+            currentZone = text.charAt(0);
 
-        if (text.length() > 1) {
-            highlightStallId = text;
-        } else {
-            highlightStallId = null;
-        }
+            if (text.length() > 1) {
+                highlightStallId = text;
+            } else {
+                highlightStallId = null;
+            }
 
-        for (Toggle t : zoneGroup.getToggles()) {
-            ToggleButton b = (ToggleButton) t;
-            if (b.getText().endsWith(String.valueOf(currentZone))) {
-                b.setSelected(true);
-                break;
+            for (Toggle t : zoneGroup.getToggles()) {
+                ToggleButton b = (ToggleButton) t;
+                if (b.getText().endsWith(String.valueOf(currentZone))) {
+                    b.setSelected(true);
+                    break;
+                }
             }
         }
 
@@ -133,6 +143,11 @@ public class SpaceController implements Initializable {
         typeCombo.setValue(null);
         rentDate.setValue(null);
         highlightStallId = null;
+
+        if (onlyAvailableCheck != null) {
+            onlyAvailableCheck.setSelected(false);
+        }
+
         loadFromSupabase();
     }
 
@@ -140,11 +155,29 @@ public class SpaceController implements Initializable {
 
         spaceGrid.getChildren().clear();
 
+        if (noResultLabel != null) {
+            noResultLabel.setVisible(false);
+        }
+
         try {
+
+            String dbStatus = mapStatusToDb(statusCombo.getValue());
+
             String url = SUPABASE_URL +
                     "/rest/v1/stalls?select=stall_id,size,status" +
-                    "&zone_name=eq." + currentZone +
-                    "&order=stall_id.asc";
+                    "&zone_name=eq." + currentZone;
+
+            if (highlightStallId != null) {
+                url += "&stall_id=eq." + highlightStallId;
+            }
+
+            if (onlyAvailableCheck != null && onlyAvailableCheck.isSelected()) {
+                url += "&status=eq.available";
+            } else if (dbStatus != null) {
+                url += "&status=eq." + dbStatus;
+            }
+
+            url += "&order=stall_id.asc";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -159,6 +192,13 @@ public class SpaceController implements Initializable {
                     );
 
             JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
+
+            if (arr.size() == 0) {
+                if (noResultLabel != null) {
+                    noResultLabel.setVisible(true);
+                }
+                return;
+            }
 
             int index = 0;
             for (JsonElement el : arr) {
@@ -218,6 +258,17 @@ public class SpaceController implements Initializable {
             case "rented" -> "#982d2dff";
             case "processing" -> "#bac04dff";
             default -> "#6c757d";
+        };
+    }
+
+    private String mapStatusToDb(String thaiStatus) {
+        if (thaiStatus == null) return null;
+        return switch (thaiStatus) {
+            case "ว่าง" -> "available";
+            case "ถูกเช่า" -> "rented";
+            case "กำลังดำเนินการ" -> "processing";
+            case "ปิดปรับปรุง" -> "maintenance";
+            default -> null;
         };
     }
 
@@ -285,41 +336,22 @@ public class SpaceController implements Initializable {
         );
 
         Button btnClose = new Button("ปิด");
-        btnClose.setPrefWidth(120);
-        btnClose.setStyle(
-                "-fx-background-color:#9e9e9e;" +
-                "-fx-text-fill:white;" +
-                "-fx-background-radius:10;"
-        );
-
         Button btnReserve = new Button("จอง");
-        btnReserve.setPrefWidth(120);
-        btnReserve.setStyle(
-                "-fx-background-color:#2f3b6e;" +
-                "-fx-text-fill:white;" +
-                "-fx-background-radius:10;" +
-                "-fx-font-weight:bold;"
-                
-        );
+
         btnReserve.setOnAction(e -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/booking.fxml"));
                 Parent root = loader.load();
-
                 BookingController controller = loader.getController();
-
                 controller.setStallData(stallId);
 
                 Stage stage = (Stage) btnReserve.getScene().getWindow();
                 stage.setScene(new Scene(root));
                 stage.centerOnScreen();
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
-
-
 
         HBox buttonBar = new HBox(20, btnClose, btnReserve);
         buttonBar.setAlignment(Pos.CENTER);
@@ -351,13 +383,9 @@ public class SpaceController implements Initializable {
         icon.setPreserveRatio(true);
 
         Label t = new Label(title);
-        t.setStyle("-fx-text-fill:#6c757d; -fx-font-size:13;");
-
         Label v = new Label(value);
-        v.setStyle("-fx-font-size:14; -fx-font-weight:bold;");
 
         VBox text = new VBox(2, t, v);
-
         HBox row = new HBox(14, icon, text);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
