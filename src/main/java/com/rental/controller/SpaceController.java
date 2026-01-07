@@ -5,6 +5,8 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import com.google.gson.JsonArray;
@@ -20,19 +22,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -43,6 +36,7 @@ import javafx.stage.Stage;
 
 public class SpaceController implements Initializable {
 
+    /* ================= FXML ================= */
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusCombo;
     @FXML private ComboBox<String> typeCombo;
@@ -51,11 +45,10 @@ public class SpaceController implements Initializable {
     @FXML private ToggleGroup zoneGroup;
     @FXML private GridPane spaceGrid;
 
-    /* ===== เพิ่มตามที่ขอ ===== */
     @FXML private CheckBox onlyAvailableCheck;
     @FXML private Label noResultLabel;
-    /* ========================= */
 
+    /* ================= STATE ================= */
     private char currentZone = 'A';
     private String highlightStallId = null;
 
@@ -65,6 +58,7 @@ public class SpaceController implements Initializable {
     private static final String SUPABASE_KEY =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTM1NDcsImV4cCI6MjA4MDMyOTU0N30.AG8XwFmTuMPXZe5bjv2YqeIcfvKFRf95CJLDhfDHp0E";
 
+    /* ================= INIT ================= */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
@@ -85,31 +79,37 @@ public class SpaceController implements Initializable {
                 "10) สินค้าสัตว์เลี้ยง"
         );
 
-        if (zoneGroup != null) {
-            zoneGroup.selectedToggleProperty().addListener((obs, o, n) -> {
-                if (n != null) {
-                    ToggleButton btn = (ToggleButton) n;
-                    currentZone = btn.getText().charAt(btn.getText().length() - 1);
-                    highlightStallId = null;
-                    loadFromSupabase();
-                }
-            });
-        }
+        zoneGroup.selectedToggleProperty().addListener((obs, o, n) -> {
+            if (n != null) {
+                ToggleButton btn = (ToggleButton) n;
+                currentZone = btn.getText().charAt(btn.getText().length() - 1);
+                highlightStallId = null;
+                runLoad();
+            }
+        });
 
-        if (noResultLabel != null) {
-            noResultLabel.setVisible(false);
-        }
-
-        loadFromSupabase();
+        noResultLabel.setVisible(false);
+        runLoad();
     }
 
+    /* ================= THREAD ================= */
+    private void runLoad() {
+        new Thread(this::loadFromSupabase).start();
+    }
+
+    /* ================= SEARCH ================= */
     @FXML
     private void handleSearch() {
+
+        if (onlyAvailableCheck.isSelected()) {
+            highlightStallId = null;
+            runLoad();
+            return;
+        }
 
         String text = searchField.getText();
 
         if (text != null && !text.isBlank()) {
-
             text = text.trim().toUpperCase();
 
             if (text.startsWith("โซน")) {
@@ -117,12 +117,7 @@ public class SpaceController implements Initializable {
             }
 
             currentZone = text.charAt(0);
-
-            if (text.length() > 1) {
-                highlightStallId = text;
-            } else {
-                highlightStallId = null;
-            }
+            highlightStallId = text.length() > 1 ? text : null;
 
             for (Toggle t : zoneGroup.getToggles()) {
                 ToggleButton b = (ToggleButton) t;
@@ -131,37 +126,36 @@ public class SpaceController implements Initializable {
                     break;
                 }
             }
+        } else {
+            highlightStallId = null;
         }
 
-        loadFromSupabase();
+        runLoad();
     }
 
     @FXML
     private void handleClearFilter() {
-        searchField.clear();
-        statusCombo.setValue(null);
-        typeCombo.setValue(null);
-        rentDate.setValue(null);
-        highlightStallId = null;
-
-        if (onlyAvailableCheck != null) {
+        Platform.runLater(() -> {
+            searchField.clear();
+            statusCombo.setValue(null);
+            typeCombo.setValue(null);
+            rentDate.setValue(null);
             onlyAvailableCheck.setSelected(false);
-        }
-
-        loadFromSupabase();
+            highlightStallId = null;
+        });
+        runLoad();
     }
 
+    /* ================= DATA ================= */
     private void loadFromSupabase() {
 
-        spaceGrid.getChildren().clear();
-
-        if (noResultLabel != null) {
+        Platform.runLater(() -> {
+            spaceGrid.getChildren().clear();
             noResultLabel.setVisible(false);
-        }
+        });
 
         try {
-
-            String dbStatus = mapStatusToDb(statusCombo.getValue());
+            Map<String, String> paymentStatusMap = loadPaymentStatusByStall();
 
             String url = SUPABASE_URL +
                     "/rest/v1/stalls?select=stall_id,size,status" +
@@ -171,10 +165,8 @@ public class SpaceController implements Initializable {
                 url += "&stall_id=eq." + highlightStallId;
             }
 
-            if (onlyAvailableCheck != null && onlyAvailableCheck.isSelected()) {
+            if (onlyAvailableCheck.isSelected()) {
                 url += "&status=eq.available";
-            } else if (dbStatus != null) {
-                url += "&status=eq." + dbStatus;
             }
 
             url += "&order=stall_id.asc";
@@ -187,16 +179,12 @@ public class SpaceController implements Initializable {
                     .build();
 
             HttpResponse<String> response =
-                    HttpClient.newHttpClient().send(
-                            request, HttpResponse.BodyHandlers.ofString()
-                    );
+                    HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
             JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
 
-            if (arr.size() == 0) {
-                if (noResultLabel != null) {
-                    noResultLabel.setVisible(true);
-                }
+            if (arr.isEmpty()) {
+                Platform.runLater(() -> noResultLabel.setVisible(true));
                 return;
             }
 
@@ -206,23 +194,25 @@ public class SpaceController implements Initializable {
 
                 String stallId = o.get("stall_id").getAsString();
                 String size = o.get("size").isJsonNull() ? "-" : o.get("size").getAsString();
-                String status = o.get("status").isJsonNull() ? null : o.get("status").getAsString();
 
-                VBox box = createBox(stallId, size, status);
-                spaceGrid.add(box, index % 5, index / 5);
+                String finalStatus;
 
-                if (highlightStallId != null &&
-                        stallId.equalsIgnoreCase(highlightStallId)) {
-
-                    Platform.runLater(() -> {
-                        box.setStyle(
-                                box.getStyle() +
-                                "; -fx-border-color:black; -fx-border-width:3;"
-                        );
-                    });
+                // ⭐ FIX: ถ้าเลือกเฉพาะพื้นที่ว่าง ไม่ override ด้วย payment
+                if (onlyAvailableCheck.isSelected()) {
+                    finalStatus = "available";
+                } else {
+                    finalStatus = paymentStatusMap.containsKey(stallId)
+                            ? paymentStatusMap.get(stallId)
+                            : (o.get("status").isJsonNull() ? null : o.get("status").getAsString());
                 }
 
+                VBox box = createBox(stallId, size, finalStatus);
+
+                int col = index % 5;
+                int row = index / 5;
                 index++;
+
+                Platform.runLater(() -> spaceGrid.add(box, col, row));
             }
 
         } catch (Exception e) {
@@ -230,6 +220,53 @@ public class SpaceController implements Initializable {
         }
     }
 
+    /* ================= PAYMENT STATUS ================= */
+    private Map<String, String> loadPaymentStatusByStall() throws Exception {
+
+        Map<String, String> map = new HashMap<>();
+
+        String url = SUPABASE_URL +
+                "/rest/v1/payments?select=status,booking:bookings(stall_id)" +
+                "&order=created_at.desc";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
+
+        for (JsonElement el : arr) {
+            JsonObject o = el.getAsJsonObject();
+            if (o.get("booking").isJsonNull()) continue;
+
+            String stallId = o.getAsJsonObject("booking").get("stall_id").getAsString();
+            String paymentStatus = o.get("status").getAsString();
+
+            if (!map.containsKey(stallId)) {
+                map.put(stallId, mapPaymentToStallStatus(paymentStatus));
+            }
+        }
+        return map;
+    }
+
+    private String mapPaymentToStallStatus(String paymentStatus) {
+        if (paymentStatus == null) return null;
+
+        switch (paymentStatus) {
+            case "approved": return "rented";
+            case "rejected": return "available";
+            case "pending": return "processing";
+            default: return null;
+        }
+    }
+
+    /* ================= UI ================= */
     private VBox createBox(String id, String size, String status) {
 
         Label idLabel = new Label(id);
@@ -240,55 +277,44 @@ public class SpaceController implements Initializable {
         VBox box = new VBox(6, idLabel, sizeLabel);
         box.setAlignment(Pos.CENTER);
         box.setPadding(new Insets(18));
-        box.setMaxWidth(Double.MAX_VALUE);
-
         box.setStyle(
                 "-fx-background-radius:14;" +
                 "-fx-background-color:" + colorByStatus(status) + ";"
         );
 
-        box.setOnMouseClicked(this::handleSpaceClick);
+        box.setOnMouseClicked(e -> handleSpaceClick(e, status));
         return box;
     }
 
     private String colorByStatus(String s) {
         if (s == null) return "#6c757d";
-        return switch (s) {
-            case "available" -> "#2e8b61ff";
-            case "rented" -> "#982d2dff";
-            case "processing" -> "#bac04dff";
-            default -> "#6c757d";
-        };
+
+        switch (s) {
+            case "available": return "#2e8b61";
+            case "rented": return "#982d2d";
+            case "processing": return "#bac04d";
+            default: return "#6c757d";
+        }
     }
 
-    private String mapStatusToDb(String thaiStatus) {
-        if (thaiStatus == null) return null;
-        return switch (thaiStatus) {
-            case "ว่าง" -> "available";
-            case "ถูกเช่า" -> "rented";
-            case "กำลังดำเนินการ" -> "processing";
-            case "ปิดปรับปรุง" -> "maintenance";
-            default -> null;
-        };
-    }
-
+    /* ================= MAP ================= */
     @FXML
     private void handleShowMap() {
-
         ImageView iv = new ImageView(
                 new Image(getClass().getResource("/images/Market.png").toExternalForm())
         );
         iv.setFitWidth(900);
         iv.setPreserveRatio(true);
 
-        Stage st = new Stage();
-        st.initModality(Modality.APPLICATION_MODAL);
-        st.setScene(new Scene(new BorderPane(iv)));
-        st.showAndWait();
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(new Scene(new VBox(iv), 920, 600));
+        stage.setTitle("ผังพื้นที่ตลาด");
+        stage.showAndWait();
     }
 
-    @FXML
-    private void handleSpaceClick(MouseEvent event) {
+    /* ================= DETAIL & BOOKING ================= */
+    private void handleSpaceClick(MouseEvent event, String statusDb) {
 
         VBox box = (VBox) event.getSource();
         Label idLabel = (Label) box.getChildren().get(0);
@@ -297,57 +323,60 @@ public class SpaceController implements Initializable {
         String stallId = idLabel.getText();
         String size = sizeLabel.getText();
 
-        String style = box.getStyle();
-        String statusText = "ปิดปรับปรุง";
-        String statusColor = "#6c757d";
-
-        if (style.contains("#2e8b61")) {
-            statusText = "ว่าง";
-            statusColor = "#2e8b61";
-        } else if (style.contains("#982d2d")) {
-            statusText = "ถูกเช่า";
-            statusColor = "#982d2d";
-        } else if (style.contains("#bac04d")) {
-            statusText = "กำลังดำเนินการ";
-            statusColor = "#bac04d";
-        }
+        String statusText;
+        if ("rented".equals(statusDb)) statusText = "ถูกเช่า";
+        else if ("processing".equals(statusDb)) statusText = "กำลังดำเนินการ";
+        else if ("maintenance".equals(statusDb)) statusText = "ปิดปรับปรุง";
+        else statusText = "ว่าง";
 
         Label title = new Label(stallId);
         title.setFont(Font.font("System", FontWeight.BOLD, 32));
 
         Label status = new Label(statusText);
         status.setStyle(
-                "-fx-background-color:" + statusColor + ";" +
+                "-fx-background-color:" + colorByStatus(statusDb) + ";" +
                 "-fx-text-fill:white;" +
                 "-fx-padding:4 12;" +
-                "-fx-background-radius:12;" +
-                "-fx-font-weight:bold;"
+                "-fx-background-radius:12;"
         );
 
-        HBox header = new HBox(16, title, status);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        VBox detail = new VBox(16,
+        VBox detail = new VBox(18,
                 createDetailRow("iconzone.png", "โซน", "โซน " + stallId.charAt(0)),
                 createDetailRow("iconarea.png", "ขนาดพื้นที่", size + " เมตร"),
                 createDetailRow("iconprice.png", "ราคาค่าเช่า", "300 บาท/วัน"),
                 createDetailRow("iconproduct.png", "ประเภทสินค้า", "-"),
                 createDetailRow("icondate.png", "วันที่เช่า", "-")
         );
+        detail.setAlignment(Pos.CENTER);
 
         Button btnClose = new Button("ปิด");
         Button btnReserve = new Button("จอง");
 
+        btnClose.setPrefWidth(120);
+        btnReserve.setPrefWidth(120);
+
+        btnClose.setStyle("-fx-background-color:#e0e0e0; -fx-background-radius:12;");
+        btnReserve.setStyle("-fx-background-color:#3498db; -fx-text-fill:white; -fx-background-radius:12;");
+
+        if (!"available".equals(statusDb)) {
+            btnReserve.setDisable(true);
+            btnReserve.setOpacity(0.5);
+        }
+
         btnReserve.setOnAction(e -> {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/booking.fxml"));
+                FXMLLoader loader = new FXMLLoader(
+                        getClass().getResource("/views/booking.fxml")
+                );
                 Parent root = loader.load();
+
                 BookingController controller = loader.getController();
                 controller.setStallData(stallId);
 
                 Stage stage = (Stage) btnReserve.getScene().getWindow();
                 stage.setScene(new Scene(root));
                 stage.centerOnScreen();
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -356,20 +385,15 @@ public class SpaceController implements Initializable {
         HBox buttonBar = new HBox(20, btnClose, btnReserve);
         buttonBar.setAlignment(Pos.CENTER);
 
-        VBox root = new VBox(24, header, detail, buttonBar);
-        root.setPadding(new Insets(24));
+        VBox root = new VBox(26, title, status, detail, buttonBar);
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setPadding(new Insets(28));
 
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setScene(new Scene(root));
+        dialog.setScene(new Scene(root, 360, 540));
 
         btnClose.setOnAction(e -> dialog.close());
-
-        if (!statusText.equals("ว่าง")) {
-            btnReserve.setDisable(true);
-            btnReserve.setOpacity(0.5);
-        }
-
         dialog.showAndWait();
     }
 
@@ -379,14 +403,14 @@ public class SpaceController implements Initializable {
                 new Image(getClass().getResource("/images/" + iconFile).toExternalForm())
         );
         icon.setFitWidth(26);
-        icon.setFitHeight(26);
         icon.setPreserveRatio(true);
 
         Label t = new Label(title);
+        t.setStyle("-fx-font-weight:bold;");
         Label v = new Label(value);
 
         VBox text = new VBox(2, t, v);
-        HBox row = new HBox(14, icon, text);
+        HBox row = new HBox(16, icon, text);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
