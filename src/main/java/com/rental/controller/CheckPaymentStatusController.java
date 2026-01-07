@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -73,9 +74,15 @@ public class CheckPaymentStatusController {
         colLock.setCellValueFactory(c -> c.getValue().lockProperty());
         colMethod.setCellValueFactory(c -> c.getValue().methodProperty());
         colDate.setCellValueFactory(c -> c.getValue().dateProperty());
+
         colDeposit.setCellValueFactory(c -> c.getValue().depositProperty().asObject());
         colRent.setCellValueFactory(c -> c.getValue().rentProperty().asObject());
         colTotal.setCellValueFactory(c -> c.getValue().totalProperty().asObject());
+
+        centerAlignTextColumn(colLock);
+        rightAlignNumberColumn(colDeposit);
+        rightAlignNumberColumn(colRent);
+        rightAlignNumberColumn(colTotal);
 
         filteredData = new FilteredList<>(masterData, p -> true);
         paymentTable.setItems(filteredData);
@@ -91,7 +98,6 @@ public class CheckPaymentStatusController {
         cbSort.valueProperty().addListener((obs, o, n) -> handleFilter());
 
         clearDetail();
-
         new Thread(this::loadPayments).start();
     }
 
@@ -262,6 +268,7 @@ public class CheckPaymentStatusController {
         lblDeposit.setText("");
         lblRent.setText("");
         lblTotal.setText("");
+        txtNote.clear();
         slipImage.setImage(null);
     }
 
@@ -334,4 +341,32 @@ public class CheckPaymentStatusController {
         public double getRent() { return rent.get(); }
         public double getTotal() { return total.get(); }
     }
-} 
+
+    // ================= ALIGN TEXT COLUMN =================
+    private void centerAlignTextColumn(TableColumn<PaymentRow, String> column) {
+        column.setCellFactory(tc -> new TableCell<PaymentRow, String>() {
+            @Override
+            protected void updateItem(String value, boolean empty) {
+                super.updateItem(value, empty);
+                setText(empty || value == null ? null : value);
+                setStyle("-fx-alignment: CENTER;");
+            }
+        });
+    }
+
+    // ================= ALIGN NUMBER COLUMN =================
+    private void rightAlignNumberColumn(TableColumn<PaymentRow, Double> column) {
+        column.setCellFactory(tc -> new TableCell<PaymentRow, Double>() {
+            @Override
+            protected void updateItem(Double value, boolean empty) {
+                super.updateItem(value, empty);
+                if (empty || value == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%,.0f ฿", value));
+                }
+                setStyle("-fx-alignment: CENTER-RIGHT;");
+            }
+        });
+    }
+}

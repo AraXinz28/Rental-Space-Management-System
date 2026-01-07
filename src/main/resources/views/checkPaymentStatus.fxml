@@ -68,7 +68,7 @@
                                             prefHeight="36"/>
                             </VBox>
 
-                            <!-- ✅ SORT DROPDOWN -->
+                            <!-- SORT -->
                             <VBox spacing="6">
                                 <Label text="เรียงลำดับ"
                                        style="-fx-font-size:16; -fx-font-weight:bold;"/>
@@ -120,38 +120,40 @@
                         </TableView>
                     </VBox>
 
-                <!-- ===== DETAIL ===== -->
-<VBox spacing="15"
-      style="-fx-background-color:white; -fx-background-radius:12;">
-    <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
-    </padding>
+                    <!-- ===== DETAIL ===== -->
+                    <VBox spacing="15"
+                          style="-fx-background-color:white; -fx-background-radius:12;">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
 
-    <!-- หัวข้ออยู่ตลอด -->
-    <Label text="รายละเอียดการชำระเงิน"
-           style="-fx-font-size:16; -fx-font-weight:bold;"/>
+                        <Label text="รายละเอียดการชำระเงิน"
+                               style="-fx-font-size:16; -fx-font-weight:bold;"/>
 
-    <!-- รายละเอียด (ว่างก่อน) -->
-    <VBox spacing="6">
-        <Label fx:id="lblMethod"/>
-        <Label fx:id="lblDeposit"/>
-        <Label fx:id="lblRent"/>
-        <Label fx:id="lblTotal"/>
-    </VBox>
+                        <VBox spacing="6">
+                            <Label fx:id="lblMethod"/>
+                            <Label fx:id="lblDeposit"/>
+                            <Label fx:id="lblRent"/>
+                            <Label fx:id="lblTotal"/>
+                        </VBox>
 
-    <!-- รูปสลิป -->
-    <VBox alignment="CENTER">
-        <ImageView fx:id="slipImage"
-                   fitWidth="300"
-                   preserveRatio="true"/>
-    </VBox>
+                        <!-- ===== NOTE (เพิ่มเพื่อให้ตรง Controller) ===== -->
+                        <TextArea fx:id="txtNote"
+                                  promptText="หมายเหตุ"
+                                  prefRowCount="3"/>
 
-</VBox>
+                        <VBox alignment="CENTER">
+                            <ImageView fx:id="slipImage"
+                                       fitWidth="300"
+                                       preserveRatio="true"/>
+                        </VBox>
 
-</VBox>
+                    </VBox>
 
-</content>
-</ScrollPane>
-</center>
+                </VBox>
+
+            </content>
+        </ScrollPane>
+    </center>
 
 </BorderPane>
