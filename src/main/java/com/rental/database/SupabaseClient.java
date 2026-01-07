@@ -21,6 +21,7 @@ public class SupabaseClient {
         this.client = HttpClient.newHttpClient();
     }
 
+
     // ✅ GET: SELECT *
     public String selectAll(String table) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -275,4 +276,20 @@ public class SupabaseClient {
             default -> uiStatus;
         };
     }
+public String selectJoinBookingsPayments(long userId) throws Exception {
+    String uri = url + "/rest/v1/bookings"
+            + "?select=booking_id,product_type,start_date,end_date,"
+            + "payments!fk_payments_booking(status,payment_method,amount,payment_date)"
+            + "&user_id=eq." + encode(String.valueOf(userId));
+
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(uri))
+            .header("apikey", key)
+            .header("Authorization", "Bearer " + key)
+            .header("Content-Type", "application/json")
+            .GET()
+            .build();
+
+    return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
 }
+ }
