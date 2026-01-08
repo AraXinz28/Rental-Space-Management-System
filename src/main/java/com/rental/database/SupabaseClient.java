@@ -267,23 +267,6 @@ public class SupabaseClient {
         return response.body();
     }
 
-    // ✅ ของเดิม
-    public String selectJoinBookingsPayments(long userId) throws Exception {
-        String uri = url + "/rest/v1/bookings"
-                + "?select=booking_id,product_type,start_date,end_date,"
-                + "payments!fk_payments_booking(status,payment_method,amount,payment_date)"
-                + "&user_id=eq." + encode(String.valueOf(userId));
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .header("apikey", key)
-                .header("Authorization", "Bearer " + key)
-                .header("Content-Type", "application/json")
-                .GET()
-                .build();
-
-        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-    }
 
     // =====================================================
     // ✅ ใหม่: Payments-only (ชัวร์) ไม่ผูกชื่อ FK
@@ -334,4 +317,20 @@ public class SupabaseClient {
             default -> uiStatus;
         };
     }
+public String selectJoinBookingsPayments(long userId) throws Exception {
+    String uri = url + "/rest/v1/bookings"
+            + "?select=booking_id,product_type,start_date,end_date,"
+            + "payments!fk_payments_booking(status,payment_method,amount,payment_date,reject_reason)"
+            + "&user_id=eq." + encode(String.valueOf(userId));
+
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(uri))
+            .header("apikey", key)
+            .header("Authorization", "Bearer " + key)
+            .header("Content-Type", "application/json")
+            .GET()
+            .build();
+
+    return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+}
 }
