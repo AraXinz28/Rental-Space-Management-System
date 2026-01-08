@@ -16,7 +16,7 @@ public class Main extends Application {
         // ✅ โหลดหน้าแรกโดยใช้ SceneManager
      
 
-        SceneManager.switchScene(stage, "/views/rentalhistory.fxml");
+        SceneManager.switchScene(stage, "/views/homepage.fxml");
 
        
     }

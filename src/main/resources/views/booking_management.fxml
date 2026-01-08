@@ -129,19 +129,11 @@
                                   -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 3);
                                   -fx-border-radius: 12;">
 
-<<<<<<< HEAD
-                    <columns>
-                        <TableColumn fx:id="colName"
-                                     text="ชื่อ-สกุลลูกค้า"
-                                     prefWidth="250"
-                                     style="-fx-alignment: CENTER_LEFT;"/>
-=======
                   <columns>
     <TableColumn fx:id="colName"
                  text="ชื่อ-สกุลลูกค้า"
                  prefWidth="220"
                  style="-fx-alignment: CENTER_LEFT;"/>
->>>>>>> 29ee1a5 (addDate)
 
     <TableColumn fx:id="colDate"
                  text="วันที่ชำระเงิน"
