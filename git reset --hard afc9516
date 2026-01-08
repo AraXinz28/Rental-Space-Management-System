@@ -1,0 +1,32 @@
+[33m810d918[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to origin/master
+[33mafc9516[m HEAD@{1}: rebase (abort): returning to refs/heads/main
+[33m810d918[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{2}: pull origin master --rebase (start): checkout 810d918a6a7e6a67e491ebe486dc3edf9285097f
+[33mafc9516[m HEAD@{3}: commit (merge): Payment/bookingmanage/managetenantRealData
+[33mbb4a0d9[m HEAD@{4}: commit: Ignore build artifacts (target folder) and cleanup
+[33m5ea801f[m HEAD@{5}: reset: moving to HEAD
+[33m5ea801f[m HEAD@{6}: commit (merge): Payment/bookingmanage/managetenantRealData
+[33m388ee86[m HEAD@{7}: reset: moving to HEAD
+[33m388ee86[m HEAD@{8}: checkout: moving from master to main
+[33m4c15042[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{9}: reset: moving to HEAD
+[33m4c15042[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{10}: checkout: moving from main to master
+[33m388ee86[m HEAD@{11}: commit (merge): Push Master
+[33m4b2b097[m HEAD@{12}: commit: Sort&FixSideBar&EditPageManageTenants
+[33m9647b62[m HEAD@{13}: pull origin master: Fast-forward
+[33m66e34e7[m HEAD@{14}: pull origin main: Fast-forward
+[33m5af1a8a[m HEAD@{15}: commit (merge): PaymentMockData
+[33mfb4cf98[m HEAD@{16}: commit: PaymentMockData
+[33mbb5311c[m HEAD@{17}: commit: Fix SideAdmin
+[33mb87fc00[m HEAD@{18}: pull origin main: Fast-forward
+[33m1494306[m HEAD@{19}: reset: moving to HEAD
+[33m1494306[m HEAD@{20}: pull origin main: Fast-forward
+[33mfbf39a6[m HEAD@{21}: commit: Fix font
+[33mde6e7d5[m HEAD@{22}: commit: แก้ Main.java และเพิ่ม style.css ใช้ฟอนต์ Prompt
+[33mca7fdc3[m HEAD@{23}: commit: จัดกาจอง/Header/SidebarAdmin
+[33medb8a18[m[33m ([m[1;32mStashed-Changes[m[33m)[m HEAD@{24}: reset: moving to origin/main
+[33medb8a18[m[33m ([m[1;32mStashed-Changes[m[33m)[m HEAD@{25}: checkout: moving from Stashed-Changes to main
+[33medb8a18[m[33m ([m[1;32mStashed-Changes[m[33m)[m HEAD@{26}: checkout: moving from Stashed-Changes to Stashed-Changes
+[33medb8a18[m[33m ([m[1;32mStashed-Changes[m[33m)[m HEAD@{27}: checkout: moving from Stashed-Changes to Stashed-Changes
+[33medb8a18[m[33m ([m[1;32mStashed-Changes[m[33m)[m HEAD@{28}: checkout: moving from main to Stashed-Changes
+[33medb8a18[m[33m ([m[1;32mStashed-Changes[m[33m)[m HEAD@{29}: checkout: moving from master to main
+[33m4c15042[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{30}: reset: moving to HEAD
+[33m4c15042[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{31}: clone: from https://github.com/AraXinz28/Rental-Space-Management-System.git
