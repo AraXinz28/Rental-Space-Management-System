@@ -52,9 +52,10 @@
               BorderPane.alignment="CENTER_RIGHT">
 
             <Button fx:id="userButton"
-                    text="ลงชื่อเข้าใช้"
-                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #2E355E;"
-                    onAction="#handleUserButton"/>
+        text="ลงชื่อเข้าใช้"
+        focusTraversable="false"
+        style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #2E355E;"
+        onAction="#handleUserButton"/>
 
             <ImageView fitHeight="35" fitWidth="35" preserveRatio="true">
                 <image><Image url="images/user_icon.png"/></image>

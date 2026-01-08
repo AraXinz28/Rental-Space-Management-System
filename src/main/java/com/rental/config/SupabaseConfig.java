@@ -2,9 +2,9 @@ package com.rental.config;
 
 public class SupabaseConfig {
 
-    // ⭐ ใส่ URL ของ Supabase ตรงนี้
+    // ใส่ URL ของ Supabase ตรงนี้
     public static final String SUPABASE_URL = "https://sdmipxsxkquuyxvvqpho.supabase.co";
 
-    // ⭐ ใส่ anon public key ของ Supabase ตรงนี้
+    // ใส่ anon public key ของ Supabase ตรงนี้
     public static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTM1NDcsImV4cCI6MjA4MDMyOTU0N30.AG8XwFmTuMPXZe5bjv2YqeIcfvKFRf95CJLDhfDHp0E";
 }

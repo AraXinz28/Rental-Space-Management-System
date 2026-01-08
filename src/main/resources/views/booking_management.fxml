@@ -8,7 +8,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.rental.controller.BookingManagementController"
-            style="-fx-background-color: #f4f6f9;">
+            style="-fx-background-color: #f8f9fa;">
 
     <!-- ===== Header ด้านบน ===== -->
     <top>
@@ -22,9 +22,15 @@
 
     <!-- ===== Center Content ===== -->
     <center>
-        <VBox spacing="25" VBox.vgrow="ALWAYS">
+        <!-- บังคับให้ VBox ยืดเต็มพื้นที่ และชิดซ้ายบนเหมือนหน้าอื่น -->
+        <VBox spacing="25"
+              VBox.vgrow="ALWAYS"
+              maxWidth="Infinity"
+              BorderPane.alignment="TOP_LEFT">
+
             <padding>
-                <Insets top="30" right="40" bottom="40" left="40"/>
+                <!-- ให้ใกล้เคียงหน้าอื่น (30/30/30/30) -->
+                <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
 
             <!-- ===== หัวข้อหลัก ===== -->
@@ -37,6 +43,7 @@
 
             <!-- ===== Filter Card ===== -->
             <VBox spacing="20"
+                  maxWidth="Infinity"
                   style="-fx-background-color: white;
                          -fx-background-radius: 12;
                          -fx-padding: 25;
@@ -45,7 +52,7 @@
                          -fx-border-radius: 12;">
 
                 <!-- Row 1: ค้นหา + Filters -->
-                <HBox spacing="20" alignment="CENTER_LEFT">
+                <HBox spacing="20" alignment="CENTER_LEFT" maxWidth="Infinity">
                     <Label text="ค้นหา:" style="-fx-font-weight: bold; -fx-font-size: 14; -fx-text-fill: #495057;"/>
                     <TextField fx:id="searchField"
                                promptText="ชื่อลูกค้า, เบอร์โทร หรือ โซน"
@@ -71,13 +78,13 @@
                 </HBox>
 
                 <!-- Row 2: Reset + Sort -->
-                <HBox spacing="15" alignment="CENTER_LEFT">
+                <HBox spacing="15" alignment="CENTER_LEFT" maxWidth="Infinity">
                     <Button fx:id="resetBtn"
                             text="รีเซ็ต"
                             prefWidth="150"
                             prefHeight="42"
-                            style="-fx-background-color: #6c757d; 
-                                   -fx-text-fill: white; 
+                            style="-fx-background-color: #6c757d;
+                                   -fx-text-fill: white;
                                    -fx-font-weight: bold;
                                    -fx-background-radius: 10;
                                    -fx-cursor: hand;">
@@ -97,8 +104,8 @@
                             text="จัดเรียง"
                             prefWidth="140"
                             prefHeight="42"
-                            style="-fx-background-color: #0d6efd; 
-                                   -fx-text-fill: white; 
+                            style="-fx-background-color: #0d6efd;
+                                   -fx-text-fill: white;
                                    -fx-font-weight: bold;
                                    -fx-background-radius: 10;
                                    -fx-cursor: hand;">
@@ -110,22 +117,31 @@
             </VBox>
 
             <!-- ===== Table Section ===== -->
-            <VBox spacing="12">
+            <VBox spacing="12" VBox.vgrow="ALWAYS" maxWidth="Infinity">
                 <Label text="รายการชำระเงินทั้งหมด"
                        style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #343a40;"/>
 
                 <TableView fx:id="bookingTable"
                            VBox.vgrow="ALWAYS"
+                           maxWidth="Infinity"
                            style="-fx-background-color: white;
                                   -fx-background-radius: 12;
                                   -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 3);
                                   -fx-border-radius: 12;">
 
+<<<<<<< HEAD
                   <columns>
     <TableColumn fx:id="colName"
                  text="ชื่อ-สกุลลูกค้า"
                  prefWidth="220"
                  style="-fx-alignment: CENTER_LEFT;"/>
+=======
+                    <columns>
+                        <TableColumn fx:id="colName"
+                                     text="ชื่อ-สกุลลูกค้า"
+                                     prefWidth="250"
+                                     style="-fx-alignment: CENTER_LEFT;"/>
+>>>>>>> bc020a55e197d20f57ab572035e3608536151aa1
 
     <TableColumn fx:id="colDate"
                  text="วันที่ชำระเงิน"
@@ -164,9 +180,9 @@
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                     </columnResizePolicy>
                 </TableView>
-
-                
             </VBox>
+
         </VBox>
     </center>
+
 </BorderPane>

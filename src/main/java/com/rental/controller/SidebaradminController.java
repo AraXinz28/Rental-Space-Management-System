@@ -9,18 +9,23 @@ import javafx.stage.Stage;
 
 public class SidebaradminController {
 
-    @FXML private HBox zoneMenu;
-    @FXML private HBox bookingMenu;
-    @FXML private HBox customerMenu;
-    @FXML private HBox paymentMenu;
-    @FXML private HBox historyMenu;
+    @FXML
+    private HBox zoneMenu;
+    @FXML
+    private HBox bookingMenu;
+    @FXML
+    private HBox customerMenu;
+    @FXML
+    private HBox paymentMenu;
+    @FXML
+    private HBox historyMenu;
 
     private HBox[] menus;
     private HBox activeMenu;
 
     @FXML
     private void initialize() {
-        menus = new HBox[]{zoneMenu, bookingMenu, customerMenu, paymentMenu, historyMenu};
+        menus = new HBox[] { zoneMenu, bookingMenu, customerMenu, paymentMenu, historyMenu };
 
         String current = SceneManager.getCurrentPage();
         switch (current) {
@@ -90,7 +95,7 @@ public class SidebaradminController {
     private void goToHistory(MouseEvent e) {
         setActive(historyMenu);
         SceneManager.setCurrentPage("history");
-        switchToScene(e, "/views/rentalhistory.fxml");
+        switchToScene(e, "/views/rentalhistorymanage.fxml");
     }
 
     // ฟังก์ชันช่วยสลับหน้า (ลดโค้ดซ้ำ)
