@@ -33,10 +33,8 @@
         <content>
             <VBox spacing="30" style="-fx-padding: 30;">
 
-                <!-- Title -->
                 <Label text="ประวัติการเช่า"
                        style="-fx-font-size: 26px; -fx-font-weight: bold;" />
-
 
                 <!-- User Info Box -->
                 <VBox spacing="20"
@@ -54,28 +52,24 @@
                             <ColumnConstraints percentWidth="30"/>
                         </columnConstraints>
 
-                        <!-- Row 1 -->
                         <Label text="ชื่อ:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                         <Label fx:id="lblName" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
                         <Label text="เบอร์โทรศัพท์:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
                         <Label fx:id="lblPhone" text="-" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
 
-                        <!-- Row 2 -->
                         <Label text="โซน:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                         <Label fx:id="lblZone" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
                         <Label text="หมายเลขล็อก:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
                         <Label fx:id="lblLock" text="-" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
 
-                        <!-- Row 3 -->
                         <Label text="ประเภทสินค้า:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
                         <Label fx:id="lblProduct" text="-" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
                         <Label text="วัน/เดือน/ปี ที่ทำรายการ:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
                         <Label fx:id="lblDate" text="-" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
 
-                        <!-- Row 4 -->
                         <Label text="ข้อมูลการชำระเงิน:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                         <Label fx:id="lblPayment" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
@@ -86,46 +80,42 @@
                 </VBox>
 
                 <!-- Table Title + Buttons -->
-            <HBox spacing="20" style="-fx-padding: 5;" HBox.hgrow="ALWAYS">
+                <HBox spacing="20" style="-fx-padding: 5;" HBox.hgrow="ALWAYS">
 
-            
+                    <Label text="รายการประวัติการเช่า"
+                           style="-fx-font-size: 22px;"
+                           HBox.hgrow="ALWAYS" />
 
-    <Label text="รายการประวัติการเช่า"
-           style="-fx-font-size: 22px; -fx-font-weight: Regular;"
-           HBox.hgrow="ALWAYS" />
+                    <Region HBox.hgrow="ALWAYS" />
 
-           <Region HBox.hgrow="ALWAYS" />
-    <Button fx:id="btnCancel"
-            text="ยกเลิก"
-            style="-fx-background-color: #930000ff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
+                    <Button
+                            fx:id="btnCancel"
+                            text="ยกเลิกการจอง"
+                            onAction="#handleCancel"
+                            style="-fx-background-color: #930000ff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
 
-    <Button fx:id="btnPrint"
-        text="ปริ้นใบเสร็จ"
-        onAction="#handlePrint"
-        style="-fx-background-color: #00438aff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
-
-</HBox>
-
+                    <Button fx:id="btnPrint"
+                            text="ปริ้นใบเสร็จ"
+                            onAction="#handlePrint"
+                            style="-fx-background-color: #00438aff; -fx-text-fill: white; -fx-padding: 8 20; -fx-background-radius: 5;" />
+                </HBox>
 
                 <!-- Table -->
-<TableView fx:id="historyTable" prefWidth="800" prefHeight="400">
-    <columns>
-        <TableColumn fx:id="colItem" text="สินค้า" prefWidth="200"/>
-        <TableColumn fx:id="colStartDate" text="วันที่ทำรายการ" prefWidth="150"/>
-        <TableColumn fx:id="colEndDate" text="วันสิ้นสุดรายการ" prefWidth="150"/>
-        <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="100"/>
-        <TableColumn fx:id="colDetail" text="รายละเอียด" prefWidth="100"/>
-    </columns>
-</TableView>
-
-
+                <TableView fx:id="historyTable" prefWidth="800" prefHeight="400">
+                    <columns>
+                        <TableColumn fx:id="colItem" text="สินค้า" prefWidth="200"/>
+                        <TableColumn fx:id="colStartDate" text="วันที่ทำรายการ" prefWidth="150"/>
+                        <TableColumn fx:id="colEndDate" text="วันสิ้นสุดรายการ" prefWidth="150"/>
+                        <TableColumn fx:id="colStatus" text="สถานะ" prefWidth="100"/>
+                        <TableColumn fx:id="colDetail" text="รายละเอียด" prefWidth="100"/>
+                        <TableColumn fx:id="colRejectReason" text="หมายเหตุ" prefWidth="240"/>
+                    </columns>
+                </TableView>
 
                 <Region minHeight="60"/>
 
             </VBox>
         </content>
-
     </ScrollPane>
 
-</AnchorPane>
-<!-- End of File -->
+</AnchorPane> <!-- 01/08/2026 10:30PM -->

@@ -279,7 +279,7 @@ public class SupabaseClient {
 public String selectJoinBookingsPayments(long userId) throws Exception {
     String uri = url + "/rest/v1/bookings"
             + "?select=booking_id,product_type,start_date,end_date,"
-            + "payments!fk_payments_booking(status,payment_method,amount,payment_date)"
+            + "payments!fk_payments_booking(status,payment_method,amount,payment_date,reject_reason)"
             + "&user_id=eq." + encode(String.valueOf(userId));
 
     HttpRequest request = HttpRequest.newBuilder()

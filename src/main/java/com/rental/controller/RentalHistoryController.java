@@ -40,6 +40,8 @@ public class RentalHistoryController {
     @FXML private TableColumn<RentalHistory, String> colEndDate;
     @FXML private TableColumn<RentalHistory, String> colStatus;
     @FXML private TableColumn<RentalHistory, Void> colDetail;
+    @FXML private TableColumn<RentalHistory, String> colRejectReason;
+
     @FXML private TableView<RentalHistory> historyTable;
 
     // ใช้ SupabaseClient แทน JDBC
@@ -53,7 +55,7 @@ historyTable.setTableMenuButtonVisible(false);
 
 // ปิดการสร้างคอลัมน์อัตโนมัติ
 historyTable.setEditable(false);
-historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, colDetail);
+historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, colDetail, colRejectReason);
 
 
 
@@ -80,6 +82,7 @@ historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, c
         colStartDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
         colEndDate.setCellValueFactory(new PropertyValueFactory<>("endDate"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("paymentStatus"));
+        colRejectReason.setCellValueFactory(new PropertyValueFactory<>("rejectReason"));
 
         // Status color
         colStatus.setCellFactory(column -> new TableCell<>() {
@@ -155,38 +158,50 @@ historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, c
         return (obj.has(key) && !obj.get(key).isJsonNull()) ? obj.get(key).getAsString() : "-";
     }
 
-// ใช้ REST API ดึง booking history
+// STEP 3 — ใช้ payments.status + reject_reason
 private void loadBookingHistory(long userId) {
     try {
         String json = client.selectJoinBookingsPayments(userId);
         System.out.println("DEBUG JSON = " + json);
         System.out.println("DEBUG USER_ID = " + userId);
+
         JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
         historyTable.getItems().clear();
 
         for (JsonElement el : arr) {
             JsonObject obj = el.getAsJsonObject();
 
-            // ดึง status จาก booking ก่อน
-            String bookingStatus = (obj.has("status") && !obj.get("status").isJsonNull())
-                    ? obj.get("status").getAsString()
-                    : null;
-
+            // payments (เอา record แรก)
             JsonArray paymentsArr = obj.getAsJsonArray("payments");
-            JsonObject payments = (paymentsArr != null && paymentsArr.size() > 0)
+            JsonObject payment = (paymentsArr != null && paymentsArr.size() > 0)
                     ? paymentsArr.get(0).getAsJsonObject()
                     : null;
 
-            // ถ้า booking มี status ใช้ค่านั้น, ถ้าไม่มีก็ fallback ไปใช้ payments
-            String paymentStatusEn = (bookingStatus != null)
-                    ? bookingStatus
-                    : (payments != null && payments.has("status") && !payments.get("status").isJsonNull())
-                        ? payments.get("status").getAsString()
-                        : "-";
+            // ใช้ status จาก payments เท่านั้น
+            String paymentStatusEn = (payment != null && payment.has("status") && !payment.get("status").isJsonNull())
+                    ? payment.get("status").getAsString()
+                    : "-";
 
-            String payMethod = (payments != null && payments.has("payment_method")) ? payments.get("payment_method").getAsString() : "-";
-            String payAmount = (payments != null && payments.has("amount")) ? payments.get("amount").getAsString() : "-";
-            String payDate = (payments != null && payments.has("payment_date")) ? payments.get("payment_date").getAsString() : "-";
+            // reject_reason (แสดงเฉพาะกรณี rejected)
+            String rejectReason = "-";
+            if (  payment != null &&
+                  payment.has("status") &&
+                  "rejected".equalsIgnoreCase(payment.get("status").getAsString()) &&
+                  payment.has("reject_reason") &&
+                  !payment.get("reject_reason").isJsonNull()) {
+                  rejectReason = payment.get("reject_reason").getAsString();}                 
+
+            String payMethod = (payment != null && payment.has("payment_method"))
+                    ? payment.get("payment_method").getAsString()
+                    : "-";
+
+            String payAmount = (payment != null && payment.has("amount"))
+                    ? payment.get("amount").getAsString()
+                    : "-";
+
+            String payDate = (payment != null && payment.has("payment_date"))
+                    ? payment.get("payment_date").getAsString()
+                    : "-";
 
             historyTable.getItems().add(
                 new RentalHistory(
@@ -197,7 +212,8 @@ private void loadBookingHistory(long userId) {
                     toThaiStatus(paymentStatusEn),
                     payMethod,
                     payAmount,
-                    payDate
+                    payDate,
+                    rejectReason   
                 )
             );
         }
@@ -205,7 +221,6 @@ private void loadBookingHistory(long userId) {
         e.printStackTrace();
     }
 }
-
 
     private void showDetails(RentalHistory data) {
         lblProduct.setText(data.getItemName());
@@ -222,26 +237,32 @@ private void handleCancel() {
     try {
         String bookingId = String.valueOf(selected.getId());
 
-        // อัปเดต bookings โดยใช้ booking_id
-        var res1 = client.update("bookings", "booking_id", bookingId,
-              "{\"status\":\"rejected\"}");
-        System.out.println("Bookings update result: " + res1);
+        // อัปเดต payments เท่านั้น
+        var res = client.update(
+            "payments",
+            "booking_id",
+            bookingId,
+            "{\"status\":\"cancelled\"}"
+        );
+        System.out.println("Payments update result: " + res);
 
-        // อัปเดต payments โดยใช้ booking_id เช่นกัน
-        var res2 = client.update("payments", "booking_id", bookingId,
-              "{\"status\":\"rejected\"}");
-        System.out.println("Payments update result: " + res2);
-
-        // อัปเดตใน local object และตาราง
+        // อัปเดตสถานะในตาราง (ฝั่งผู้ใช้)
         selected.setPaymentStatus("ยกเลิก");
-        historyTable.getItems().set(historyTable.getSelectionModel().getSelectedIndex(), selected);
+        selected.setRejectReason("-"); // ยกเลิกเอง ไม่ต้องมีเหตุผล
+
+        historyTable.getItems().set(
+            historyTable.getSelectionModel().getSelectedIndex(),
+            selected
+        );
         historyTable.refresh();
 
         showDetails(selected);
+
     } catch (Exception e) {
         e.printStackTrace();
     }
 }
+
 
 @FXML
 private void handlePrint() {
@@ -329,7 +350,7 @@ private void handlePrint() {
     }
 }
 
-   // ============================
+// ============================
 //  INNER CLASS
 // ============================
 public static class RentalHistory {
@@ -338,12 +359,16 @@ public static class RentalHistory {
     private final String startDate;
     private final String endDate;
     private String paymentStatus;
+    private String rejectReason;
     private String paymentMethod;
     private String amount;
     private String paymentDate;
 
+    // constructor หลัก (9 args)
     public RentalHistory(long id, String itemName, String startDate, String endDate,
-                         String paymentStatus, String paymentMethod, String amount, String paymentDate) {
+                         String paymentStatus, String paymentMethod, String amount,
+                         String paymentDate, String rejectReason) {
+
         this.id = id;
         this.itemName = itemName;
         this.startDate = startDate;
@@ -352,11 +377,19 @@ public static class RentalHistory {
         this.paymentMethod = paymentMethod;
         this.amount = amount;
         this.paymentDate = paymentDate;
+        this.rejectReason = rejectReason;
     }
 
-    // overload constructor (5 args)
+    // overload constructor (5 args)  แก้ตรงนี้
     public RentalHistory(long id, String itemName, String startDate, String endDate, String paymentStatus) {
-        this(id, itemName, startDate, endDate, paymentStatus, "-", "-", "-");
+        this(
+            id,
+            itemName,
+            startDate,
+            endDate,
+            paymentStatus,
+            "-", "-", "-", "-"   // paymentMethod, amount, paymentDate, rejectReason
+        );
     }
 
     // getters/setters
@@ -364,23 +397,31 @@ public static class RentalHistory {
     public String getItemName() { return itemName; }
     public String getStartDate() { return startDate; }
     public String getEndDate() { return endDate; }
+
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
     public String getPaymentMethod() { return paymentMethod; }
     public String getAmount() { return amount; }
     public String getPaymentDate() { return paymentDate; }
+
+    public String getRejectReason() { return rejectReason; }
+    public void setRejectReason(String rejectReason) { this.rejectReason = rejectReason; }
 }
+
 
 // ============================
 //  HELPER แปลงสถานะอังกฤษ → ไทย
 // ============================
 private String toThaiStatus(String en) {
     if (en == null) return "-";
+
     return switch (en.toLowerCase()) {
-        case "approved", "completed", "paid" -> "เสร็จสิ้น";
-        case "pending" -> "รอดำเนินการ ⏳";
-        case "cancelled", "rejected" -> "ยกเลิก";
+        case "pending" -> "รอดำเนินการ";
+        case "cancelled" -> "ยกเลิก";
+        case "rejected" -> "ถูกปฏิเสธ";
+        case "paid", "approved", "completed" -> "อนุมัติแล้ว";
         default -> en;
     };
 }
-}
+} // 01/08/2026 10:30PM //
