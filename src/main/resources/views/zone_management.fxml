@@ -45,8 +45,8 @@
                         </VBox>
                     </HBox>
                     <HBox spacing="15">
-                        <Button text="กรองข้อมูล" prefHeight="35" prefWidth="100" style="-fx-background-color: #C5C5C5; -fx-text-fill: black; -fx-background-radius: 5;"/>
-                        <Button text="รีเซ็ต" prefHeight="35" prefWidth="100" style="-fx-background-color: #D9D9D9; -fx-text-fill: black; -fx-background-radius: 5;"/>
+                        <Button text="กรองข้อมูล" onAction="#handleSearch" prefHeight="35" prefWidth="100" style="-fx-background-color: #C5C5C5; -fx-text-fill: black; -fx-background-radius: 5;"/>
+                        <Button text="รีเซ็ต" onAction="#handleReset" prefHeight="35" prefWidth="100" style="-fx-background-color: #D9D9D9; -fx-text-fill: black; -fx-background-radius: 5;"/>
                     </HBox>
                 </VBox>
             </VBox>

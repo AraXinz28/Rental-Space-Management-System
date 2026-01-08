@@ -7,7 +7,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.rental.controller.ManageTenantsController"
-            style="-fx-background-color: #ffffff;">
+            style="-fx-background-color: #f8f9fa;">
 
     <!-- HEADER -->
     <top>
@@ -35,7 +35,7 @@
                    style="-fx-font-size: 14; -fx-text-fill: #666666;"/>
 
             <!-- Filter / Sort Section -->
-            <VBox spacing="20" style="-fx-background-color: #f5f5f5; -fx-padding: 20; -fx-background-radius: 10;">
+            <VBox spacing="20" style="-fx-background-color: #ffffffff; -fx-padding: 20; -fx-background-radius: 10;">
                 
                 <!-- ช่องค้นหา -->
                 <HBox spacing="15" alignment="CENTER_LEFT">
