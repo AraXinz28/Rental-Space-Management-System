@@ -14,7 +14,6 @@ public class AddSpaceController {
     @FXML private TextField stallIdField;
     @FXML private TextField sizeField;
     @FXML private TextField priceField;
-    @FXML private TextArea amenitiesField;
 
     private final SupabaseClient supabase = new SupabaseClient();
 

@@ -56,7 +56,9 @@ public class ZoneManagementController {
         setupEditColumn();
         loadZoneData();
         setupStatusCell();
-
+        
+        searchField.textProperty().addListener((obs, o, n) -> handleSearch());
+        statusCombo.valueProperty().addListener((obs, o, n) -> handleSearch());
 
         
         statusCombo.getItems().addAll(
@@ -196,7 +198,7 @@ public class ZoneManagementController {
                 "-fx-padding:4 14;" +
                 "-fx-background-radius:20;";
         case "ปิดปรับปรุง" ->
-                "-fx-background-color:#B7AE75;" +
+                "-fx-background-color:#C0BDBD;" +
                 "-fx-text-fill:white;" +
                 "-fx-padding:4 14;" +
                 "-fx-background-radius:20;";
@@ -245,11 +247,5 @@ public class ZoneManagementController {
 
         zoneTable.setItems(filtered);
     }
-    @FXML
-    private void handleReset() {
-        searchField.clear();
-        statusCombo.setValue(null);
-        zoneTable.setItems(masterList);
-    }
-    
+
 }

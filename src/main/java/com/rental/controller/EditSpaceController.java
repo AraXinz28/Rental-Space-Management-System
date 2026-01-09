@@ -14,17 +14,18 @@ public class EditSpaceController {
     @FXML private TextField stallIdField;
     @FXML private TextField sizeField;
     @FXML private TextField priceField;
-    @FXML private TextArea amenitiesField;
     @FXML private ToggleGroup statusGroup;
     @FXML private RadioButton statusAvailable;
     @FXML private RadioButton statusRented;
     @FXML private RadioButton statusMaintenance;
-    @FXML private RadioButton statusClosed;
+    @FXML private RadioButton statusProcessing;
+
 
     private Stall originalStall;
 
     @FXML
     private void initialize() {
+        zoneCombo.setDisable(true);
         stallIdField.setDisable(true);
         for (char c = 'A'; c <= 'G'; c++) {
             zoneCombo.getItems().add(String.valueOf(c));
@@ -39,13 +40,13 @@ public class EditSpaceController {
         stallIdField.setText(stall.getStallId());
         sizeField.setText(stall.getSize());
         priceField.setText(String.valueOf(stall.getDailyRate()));
-        amenitiesField.setText(stall.getAmenities());
+       
 
         switch (stall.getStatus()) {
             case "available" -> statusAvailable.setSelected(true);
             case "rented" -> statusRented.setSelected(true);
             case "maintenance" -> statusMaintenance.setSelected(true);
-            case "closed" -> statusClosed.setSelected(true);
+            case "processing" -> statusProcessing.setSelected(true);
         }
     }
 
@@ -54,32 +55,36 @@ public class EditSpaceController {
         try {
             double price = Double.parseDouble(priceField.getText());
             String status = getSelectedStatus();
-
+            
+            if (status == null) {
+                showAlert("กรุณาเลือกสถานะพื้นที่");
+            return;
+            }
             SupabaseClient supabase = new SupabaseClient();
-
+            
             String jsonBody = String.format("""
                 {
                   "zone_name": "%s",
                   "size": "%s",
                   "daily_rate": %f,
-                  "status": "%s",
-                  "amenities": "%s"
+                  "status": "%s"
+                  
                 }
                 """,
                 zoneCombo.getValue(),
                 sizeField.getText(),
                 price,
-                status,
-                amenitiesField.getText().replace("\"", "\\\"")
-            );
+                status
 
+            );
+            
             supabase.update(
                 "stalls",
                 "stall_id",
                 originalStall.getStallId(),
                 jsonBody
             );
-
+            
             Stage stage = (Stage) stallIdField.getScene().getWindow();
             SceneManager.switchScene(stage, "/views/space_management.fxml");
 
@@ -96,7 +101,7 @@ public class EditSpaceController {
     if (selected == statusAvailable) return "available";
     if (selected == statusRented) return "rented";
     if (selected == statusMaintenance) return "maintenance";
-    if (selected == statusClosed) return "closed";
+    if (selected == statusProcessing) return "processing";
     return null;
     }
 

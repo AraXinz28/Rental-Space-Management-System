@@ -158,11 +158,13 @@ public class BookingController implements Initializable {
             System.out.println("Raw result from Supabase: " + result);
 
             JsonElement jsonElement = JsonParser.parseString(result);
+            
 
             // ==================== HANDLE RESPONSE ====================
             if (jsonElement.isJsonArray()) {
                 JsonArray arr = jsonElement.getAsJsonArray();
                 if (arr.size() > 0 && arr.get(0).getAsJsonObject().has("booking_id")) {
+                    updateStallToProcessing(spaceId);
                     long generatedId = arr.get(0).getAsJsonObject().get("booking_id").getAsLong();
                     Booking booking = new Booking(userId, spaceId, productType, totalRent, deposit, fullName, email, phone, startD, endD);
                     booking.setBooking_id(generatedId);
@@ -174,6 +176,7 @@ public class BookingController implements Initializable {
             } else if (jsonElement.isJsonObject()) {
                 JsonObject obj = jsonElement.getAsJsonObject();
                 if (obj.has("booking_id")) {
+                    updateStallToProcessing(spaceId);
                     long generatedId = obj.get("booking_id").getAsLong();
                     Booking booking = new Booking(userId, spaceId, productType, totalRent, deposit, fullName, email, phone, startD, endD);
                     booking.setBooking_id(generatedId);
@@ -215,12 +218,31 @@ public class BookingController implements Initializable {
         summaryDeposit.setText("0 ฿");
         summaryTotal.setText("0 ฿");
     }
-
     private void showAlert(Alert.AlertType alertType, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(null);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    private void updateStallToProcessing(String stallId) {
+    try {
+        JsonObject stallUpdate = new JsonObject();
+        stallUpdate.addProperty("status", "processing");
+
+        supabaseClient.update(
+            "stalls",
+            "stall_id",
+            stallId,
+            stallUpdate.toString()
+        );
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert(
+            Alert.AlertType.WARNING,
+            "จองสำเร็จ แต่ไม่สามารถอัปเดตสถานะพื้นที่ได้"
+        );
+    }
     }
 }

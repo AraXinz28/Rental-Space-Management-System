@@ -128,20 +128,7 @@
                                "/>
                 </VBox>
 
-                <!-- สิ่งอำนวยความสะดวก -->
-                <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                    <Label text="สิ่งอำนวยความสะดวก" style="-fx-font-size: 15px;"/>
-                    <TextArea fx:id="amenitiesField"
-                              promptText="ระบุสิ่งอำนวยความสะดวก"
-                              prefWidth="350"
-                              prefHeight="80"
-                              maxWidth="350"
-                              style="
-                                -fx-background-radius: 8;
-                                -fx-font-size: 14px;
-                                -fx-border-radius: 8;
-                              "/>
-                </VBox>
+                
 
                     </children>
             </GridPane>

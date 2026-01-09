@@ -85,7 +85,7 @@ public class BookingManagementController implements Initializable {
                     if (getTableRow() != null && getTableRow().getItem() != null) {
                         PaymentRecord record = getTableRow().getItem();
                         if (!combo.getValue().equals(record.getStatus())) {
-                            updatePaymentStatus(record.getId(), combo.getValue(), null);
+                            updatePaymentStatus(record.getId(),combo.getValue(),record.getStallId(),LocalDate.now());
                             record.setStatus(combo.getValue());
                         }
                     }
@@ -207,27 +207,86 @@ public class BookingManagementController implements Initializable {
         datePicker.valueProperty().addListener((o, a, b) -> applyFilter.run());
     }
 
-    private void updatePaymentStatus(int id, String status, String note) {
-        Task<Void> task = new Task<>() {
-            @Override protected Void call() throws Exception {
-                JsonObject data = new JsonObject();
-                data.addProperty("status", status);
-                RequestBody body = RequestBody.create(data.toString(), JSON_MEDIA_TYPE);
-                Request req = new Request.Builder()
-                        .url(SUPABASE_URL + "/rest/v1/payments?id=eq." + id)
-                        .patch(body)
+    private void updatePaymentStatus(
+        int id,
+        String status,
+        String stallId,
+        LocalDate startDate
+) {
+    Task<Void> task = new Task<>() {
+        @Override
+        protected Void call() throws Exception {
+
+         
+            JsonObject data = new JsonObject();
+            data.addProperty("status", status);
+
+            if ("approved".equals(status) && startDate != null) {
+                data.addProperty("start_date", startDate.toString());
+            }
+
+            RequestBody body =
+                RequestBody.create(data.toString(), JSON_MEDIA_TYPE);
+
+            Request req = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/payments?id=eq." + id)
+                .patch(body)
+                .header("apikey", SUPABASE_SERVICE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_SERVICE_KEY)
+                .build();
+
+            try (Response resp = client.newCall(req).execute()) {
+                if (!resp.isSuccessful())
+                    throw new IOException("Update payment failed");
+            }
+
+            
+            if (stallId != null && !stallId.equals("-")) {
+
+                String newStallStatus = switch (status) {
+                    case "pending" -> "processing";
+                    case "approved" -> "rented";
+                    case "rejected" -> "available";
+                    default -> null;
+                };
+
+                if (newStallStatus != null) {
+                    JsonObject stallUpdate = new JsonObject();
+                    stallUpdate.addProperty("status", newStallStatus);
+
+                    RequestBody stallBody =
+                        RequestBody.create(stallUpdate.toString(), JSON_MEDIA_TYPE);
+
+                    Request stallReq = new Request.Builder()
+                        .url(SUPABASE_URL + "/rest/v1/stalls?stall_id=eq." + stallId)
+                        .patch(stallBody)
                         .header("apikey", SUPABASE_SERVICE_KEY)
                         .header("Authorization", "Bearer " + SUPABASE_SERVICE_KEY)
                         .build();
-                try (Response resp = client.newCall(req).execute()) {
-                    if (!resp.isSuccessful()) throw new IOException("Update failed");
-                }
-                return null;
-            }
-        };
-        new Thread(task).start();
-    }
 
+                    try (Response resp2 = client.newCall(stallReq).execute()) {
+                        if (!resp2.isSuccessful())
+                            throw new IOException("Update stall failed");
+                    }
+                }
+            }
+
+            return null;
+        }
+    };
+
+    task.setOnSucceeded(e ->
+        Platform.runLater(() ->
+            showAlert(Alert.AlertType.INFORMATION, "อัปเดตสถานะเรียบร้อยแล้ว")
+        )
+    );
+
+    task.setOnFailed(e -> task.getException().printStackTrace());
+
+    new Thread(task).start();
+}
+
+    
     private void setupDropdowns() {
         zoneCombo.getItems().addAll("A", "B", "C", "D", "E", "F", "G");
         paymentCombo.getItems().addAll("QR PromptPay", "Bank Transfer");
