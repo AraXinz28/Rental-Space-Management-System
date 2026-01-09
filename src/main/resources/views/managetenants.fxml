@@ -28,10 +28,10 @@
 
             <!-- Title -->
             <Label text="จัดการผู้เช่า"
-                   style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #d32f2f;"/>
+                   style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #000000ff;"/>
 
             <!-- Subtitle -->
-            <Label text="รายการที่สถานะเป็น 'ไม่อนุมัติ' — สามารถติดต่อเพื่อคืนเงินหรือชี้แจงเพิ่มเติม"
+            <Label text="รายการที่สถานะเป็น 'ไม่อนุมัติ/ยกเลิก' — สามารถติดต่อเพื่อคืนเงินหรือชี้แจงเพิ่มเติม"
                    style="-fx-font-size: 14; -fx-text-fill: #666666;"/>
 
             <!-- Filter / Sort Section -->

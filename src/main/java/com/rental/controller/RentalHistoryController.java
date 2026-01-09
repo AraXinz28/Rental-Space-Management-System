@@ -1,99 +1,116 @@
 package com.rental.controller;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.rental.database.SupabaseClient;
+import com.rental.model.ReceiptData;
+import com.rental.report.ReceiptPdfReport;
+import com.rental.util.Session;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import com.rental.util.Session;
-import com.rental.database.SupabaseClient;
 
+import java.awt.Desktop;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
-import com.google.gson.*;
-
+/**
+ * ✅ Payments-only History
+ * - แสดงเฉพาะรายการที่มี payments record (ส่งสลิป/ชำระเงินแล้ว)
+ *
+ * สถานะในตาราง:
+ * - pending => รอดำเนินการ
+ * - approved/paid/completed => สำเร็จ
+ * - rejected => ถูกปฏิเสธ
+ * - cancelled => ยกเลิก
+ *
+ * ปริ้นใบเสร็จ: ได้เฉพาะ "สำเร็จ"
+ *
+ * ✅ ยกเลิก:
+ * - ยกเลิกได้เฉพาะ pending และ สำเร็จ
+ * - อัปเดตเฉพาะตาราง payments
+ */
 public class RentalHistoryController {
+
     // Labels
-    @FXML private Label lblName;
-    @FXML private Label lblPhone;
-    @FXML private Label lblZone;
-    @FXML private Label lblLock;
-    @FXML private Label lblProduct;
-    @FXML private Label lblDate;
-    @FXML private Label lblPayment;
-    @FXML private Label lblCategory;
-    @FXML private Label lblApproval;
+    @FXML
+    private Label lblName;
+    @FXML
+    private Label lblPhone;
+    @FXML
+    private Label lblZone;
+    @FXML
+    private Label lblLock;
+    @FXML
+    private Label lblProduct;
+    @FXML
+    private Label lblDate;
+    @FXML
+    private Label lblPayment;
+    @FXML
+    private Label lblCategory;
+    @FXML
+    private Label lblApproval;
 
     // Buttons
-    @FXML private Button btnCancel;
-    @FXML private Button btnPrint;
+    @FXML
+    private Button btnCancel;
+    @FXML
+    private Button btnPrint;
 
     // Table
-    @FXML private TableColumn<RentalHistory, String> colItem;
-    @FXML private TableColumn<RentalHistory, String> colStartDate;
-    @FXML private TableColumn<RentalHistory, String> colEndDate;
-    @FXML private TableColumn<RentalHistory, String> colStatus;
-    @FXML private TableColumn<RentalHistory, Void> colDetail;
-    @FXML private TableColumn<RentalHistory, String> colRejectReason;
+    @FXML
+    private TableColumn<RentalHistory, String> colItem;
+    @FXML
+    private TableColumn<RentalHistory, String> colStartDate;
+    @FXML
+    private TableColumn<RentalHistory, String> colEndDate;
+    @FXML
+    private TableColumn<RentalHistory, String> colStatus;
+    @FXML
+    private TableColumn<RentalHistory, Void> colDetail;
+    @FXML
+    private TableView<RentalHistory> historyTable;
 
-    @FXML private TableView<RentalHistory> historyTable;
+    private final SupabaseClient supabase = new SupabaseClient();
 
-    // ใช้ SupabaseClient แทน JDBC
-    private final SupabaseClient client = new SupabaseClient();
-
-    @FXML 
+    @FXML
     public void initialize() {
 
-historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-historyTable.setTableMenuButtonVisible(false);
+        historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        historyTable.setTableMenuButtonVisible(false);
+        historyTable.setEditable(false);
+        historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, colDetail);
 
-// ปิดการสร้างคอลัมน์อัตโนมัติ
-historyTable.setEditable(false);
-historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, colDetail, colRejectReason);
-
-
-
-        if (!Session.isLoggedIn()) { 
+        if (!Session.isLoggedIn()) {
             System.out.println("ยังไม่มีผู้ใช้ล็อกอิน");
-            return; 
+            return;
         }
 
-        long currentUserId = Session.getCurrentUser().getId(); 
-        System.out.println("Session userId = " + currentUserId);
+        long currentUserId = Session.getCurrentUser().getId();
 
-        loadUserInfo(currentUserId); 
-        loadBookingHistory(currentUserId);
-
-        // Hover effects
-        btnCancel.setOnMouseEntered(e -> btnCancel.setStyle("-fx-background-color: #9e0404ff; -fx-text-fill: white;"));
-        btnCancel.setOnMouseExited(e -> btnCancel.setStyle("-fx-background-color: #d80202ff; -fx-text-fill: white;"));
-
-        btnPrint.setOnMouseEntered(e -> btnPrint.setStyle("-fx-background-color: #013f8aff; -fx-text-fill: white;"));
-        btnPrint.setOnMouseExited(e -> btnPrint.setStyle("-fx-background-color: #066edcff; -fx-text-fill: white;"));
-
-        // Map columns
         colItem.setCellValueFactory(new PropertyValueFactory<>("itemName"));
         colStartDate.setCellValueFactory(new PropertyValueFactory<>("startDate"));
         colEndDate.setCellValueFactory(new PropertyValueFactory<>("endDate"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("paymentStatus"));
-        colRejectReason.setCellValueFactory(new PropertyValueFactory<>("rejectReason"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("statusTh"));
 
         // Status color
         colStatus.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String status, boolean empty) {
                 super.updateItem(status, empty);
-                if (empty || status == null) { setText(null); setStyle(""); return; }
+                if (empty || status == null) {
+                    setText(null);
+                    setStyle("");
+                    return;
+                }
                 setText(status);
                 switch (status) {
-                    case "เสร็จสิ้น" -> setStyle("-fx-text-fill: #009e0b;");
-                    case "ยกเลิก" -> setStyle("-fx-text-fill: #c80000;");
+                    case "สำเร็จ" -> setStyle("-fx-text-fill: #009e0b;");
+                    case "ยกเลิก", "ถูกปฏิเสธ" -> setStyle("-fx-text-fill: #c80000;");
+                    case "รอดำเนินการ" -> setStyle("-fx-text-fill: #b26b00;");
                     default -> setStyle("");
                 }
             }
@@ -104,10 +121,17 @@ historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, c
             private final Button btn = new Button("ดูรายละเอียด");
             {
                 btn.setOnAction(e -> {
-                    RentalHistory data = getTableView().getItems().get(getIndex());
-                    showDetails(data);
-                });
+    RentalHistory data = getTableView().getItems().get(getIndex());
+
+    // บอก TableView ว่าแถวนี้ถูกเลือก
+    historyTable.getSelectionModel().select(data);
+
+    // แสดงรายละเอียด
+    showDetails(data);
+});
+
             }
+
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
@@ -115,313 +139,466 @@ historyTable.getColumns().setAll(colItem, colStartDate, colEndDate, colStatus, c
             }
         });
 
-        // Button actions
+        // ✅ โหลดแบบ payments-only
+       
+        loadPaymentHistory(currentUserId);
+        historyTable.getSelectionModel().selectedItemProperty()
+    .addListener((obs, oldV, newV) -> {
+        if (newV != null) {
+            loadHeaderFromBooking(newV);
+            showDetails(newV);
+        }
+    });
+
+
+        // Cancel
         btnCancel.setOnAction(e -> handleCancel());
+
+        // Print: เฉพาะ "สำเร็จ"
+        btnPrint.setDisable(true);
+        historyTable.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldV, newV) -> btnPrint.setDisable(newV == null || !isFinished(newV)));
         btnPrint.setOnAction(e -> handlePrint());
     }
 
-    // ใช้ REST API ดึงข้อมูลผู้ใช้
-    private void loadUserInfo(long userId) {
-        try {
-            String json = client.selectWhere("bookings", "user_id", String.valueOf(userId));
-            JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
-            if (!arr.isEmpty()) {
-                JsonObject obj = arr.get(0).getAsJsonObject();
-
-                lblName.setText(getSafe(obj, "full_name"));
-                lblPhone.setText(getSafe(obj, "phone"));
-                lblZone.setText(getSafe(obj, "stall_id"));
-                lblLock.setText(getSafe(obj, "stall_id"));
-                lblProduct.setText(getSafe(obj, "product_type"));
-                lblDate.setText(getSafe(obj, "start_date") + " - " + getSafe(obj, "end_date"));
-
-                JsonArray paymentsArr = obj.getAsJsonArray("payments");
-                JsonObject payments = (paymentsArr != null && paymentsArr.size() > 0)
-                        ? paymentsArr.get(0).getAsJsonObject()
-                        : null;
-
-                String paymentStatusEn = payments != null && payments.has("status") && !payments.get("status").isJsonNull()
-                        ? payments.get("status").getAsString() : "-";
-
-                lblPayment.setText(payments != null ? ("payments: " + paymentStatusEn) : "ยังไม่เชื่อม payments");
-                lblApproval.setText(toThaiStatus(paymentStatusEn));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            lblPayment.setText("ยังไม่เชื่อม payments");
-            lblApproval.setText("-");
-        }
-    }
-
-    // helper ปลอดภัยเวลาหยิบค่า
-    private String getSafe(JsonObject obj, String key) {
-        return (obj.has(key) && !obj.get(key).isJsonNull()) ? obj.get(key).getAsString() : "-";
-    }
-
-// STEP 3 — ใช้ payments.status + reject_reason
-private void loadBookingHistory(long userId) {
+ private void loadHeaderFromBooking(RentalHistory data) {
     try {
-        String json = client.selectJoinBookingsPayments(userId);
-        System.out.println("DEBUG JSON = " + json);
-        System.out.println("DEBUG USER_ID = " + userId);
-
+        String json = supabase.selectBookingDetailById(data.getBookingId());
         JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
-        historyTable.getItems().clear();
+        if (arr.isEmpty()) return;
 
-        for (JsonElement el : arr) {
-            JsonObject obj = el.getAsJsonObject();
+        JsonObject b = arr.get(0).getAsJsonObject();
 
-            // payments (เอา record แรก)
-            JsonArray paymentsArr = obj.getAsJsonArray("payments");
-            JsonObject payment = (paymentsArr != null && paymentsArr.size() > 0)
-                    ? paymentsArr.get(0).getAsJsonObject()
-                    : null;
+        lblName.setText(getStr(b, "full_name", "-"));
+        lblPhone.setText(getStr(b, "phone", "-"));
 
-            // ใช้ status จาก payments เท่านั้น
-            String paymentStatusEn = (payment != null && payment.has("status") && !payment.get("status").isJsonNull())
-                    ? payment.get("status").getAsString()
-                    : "-";
+        String stallId = getStr(b, "stall_id", "-");
+        String[] zl = splitZoneLock(stallId);
+        lblZone.setText(zl[0]);
+        lblLock.setText(zl[1]);
 
-            // reject_reason (แสดงเฉพาะกรณี rejected)
-            String rejectReason = "-";
-            if (  payment != null &&
-                  payment.has("status") &&
-                  "rejected".equalsIgnoreCase(payment.get("status").getAsString()) &&
-                  payment.has("reject_reason") &&
-                  !payment.get("reject_reason").isJsonNull()) {
-                  rejectReason = payment.get("reject_reason").getAsString();}                 
+        lblProduct.setText(getStr(b, "product_type", "-"));
 
-            String payMethod = (payment != null && payment.has("payment_method"))
-                    ? payment.get("payment_method").getAsString()
-                    : "-";
+        String start = getStr(b, "start_date", "-");
+        String end = getStr(b, "end_date", "-");
+        lblDate.setText(start + " - " + end);
 
-            String payAmount = (payment != null && payment.has("amount"))
-                    ? payment.get("amount").getAsString()
-                    : "-";
+        lblPayment.setText(
+            "ช่องทาง: " + data.getPaymentMethod() +
+            " | ยอด: " + data.getAmount()
+        );
 
-            String payDate = (payment != null && payment.has("payment_date"))
-                    ? payment.get("payment_date").getAsString()
-                    : "-";
+        lblApproval.setText(data.getStatusTh());
 
-            historyTable.getItems().add(
-                new RentalHistory(
-                    obj.get("booking_id").getAsLong(),
-                    getSafe(obj, "product_type"),
-                    getSafe(obj, "start_date"),
-                    getSafe(obj, "end_date"),
-                    toThaiStatus(paymentStatusEn),
-                    payMethod,
-                    payAmount,
-                    payDate,
-                    rejectReason   
-                )
-            );
-        }
     } catch (Exception e) {
         e.printStackTrace();
     }
 }
 
+    // =========================
+    // Load history (payments join bookings)
+    // =========================
+    private void loadPaymentHistory(long userId) {
+        try {
+            String json = supabase.selectPaymentsJoinBookings(userId);
+            JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
+
+            historyTable.getItems().clear();
+
+            for (var el : arr) {
+                JsonObject p = el.getAsJsonObject();
+
+                long paymentId = p.has("id") ? p.get("id").getAsLong() : 0;
+
+                String payStatus = getStr(p, "status", "pending");
+                String payMethod = getStr(p, "payment_method", "-");
+                String payAmount = getStr(p, "amount", "-");
+                String payDate = getStr(p, "payment_date", "-");
+
+                JsonObject b = p.has("bookings") && p.get("bookings").isJsonObject()
+                        ? p.getAsJsonObject("bookings")
+                        : null;
+
+                // ✅ กันแถว "-" : ถ้า booking ไม่ติดมา ไม่แสดง
+                if (b == null)
+                    continue;
+
+                long bookingId = b.has("booking_id") ? b.get("booking_id").getAsLong() : 0;
+                String productType = getStr(b, "product_type", "-");
+                String startDate = getStr(b, "start_date", "-");
+                String endDate = getStr(b, "end_date", "-");
+
+                String statusTh = mapPaymentStatusToUi(payStatus);
+
+                historyTable.getItems().add(new RentalHistory(
+                        paymentId,
+                        bookingId,
+                        productType,
+                        startDate,
+                        endDate,
+                        payStatus,
+                        statusTh,
+                        payMethod,
+                        payAmount,
+                        payDate));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================
+    // Detail
+    // =========================
     private void showDetails(RentalHistory data) {
         lblProduct.setText(data.getItemName());
         lblDate.setText(data.getStartDate() + " - " + data.getEndDate());
         lblPayment.setText("ช่องทาง: " + data.getPaymentMethod() + " | ยอด: " + data.getAmount());
-        lblApproval.setText(data.getPaymentStatus());
-        
-    } 
-@FXML
+        lblApproval.setText(data.getStatusTh());
+    }
+
+    // =========================
+    // Cancel: ยกเลิกได้เฉพาะ "รอดำเนินการ" และ "สำเร็จ"
+    // อัปเดตเฉพาะตาราง payments
+    // =========================
+   @FXML
 private void handleCancel() {
     RentalHistory selected = historyTable.getSelectionModel().getSelectedItem();
-    if (selected == null) return;
-
-    try {
-        String bookingId = String.valueOf(selected.getId());
-
-        // อัปเดต payments เท่านั้น
-        var res = client.update(
-            "payments",
-            "booking_id",
-            bookingId,
-            "{\"status\":\"cancelled\"}"
-        );
-        System.out.println("Payments update result: " + res);
-
-        // อัปเดตสถานะในตาราง (ฝั่งผู้ใช้)
-        selected.setPaymentStatus("ยกเลิก");
-        selected.setRejectReason("-"); // ยกเลิกเอง ไม่ต้องมีเหตุผล
-
-        historyTable.getItems().set(
-            historyTable.getSelectionModel().getSelectedIndex(),
-            selected
-        );
-        historyTable.refresh();
-
-        showDetails(selected);
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-
-@FXML
-private void handlePrint() {
-    RentalHistory selected = historyTable.getSelectionModel().getSelectedItem();
     if (selected == null) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("แจ้งเตือน");
-        alert.setHeaderText(null);
-        alert.setContentText("กรุณาเลือกรายการก่อนพิมพ์ใบเสร็จ");
-        alert.showAndWait();
+        showAlert(Alert.AlertType.WARNING, "แจ้งเตือน", "กรุณาเลือกรายการก่อนยกเลิก");
         return;
     }
 
-    try (PDDocument document = new PDDocument()) {
-        PDPage page = new PDPage();
-        document.addPage(page);
+    System.out.println("=== เริ่มยกเลิก ===");
+    System.out.println("Payment ID: " + selected.getPaymentId());
+    System.out.println("Status EN ปัจจุบัน: " + selected.getStatusEn());
+    System.out.println("Status TH ปัจจุบัน: " + selected.getStatusTh());
 
-        // โหลดฟอนต์ไทยจาก resources (ต้องมีไฟล์ THSarabunNew.ttf ใน resources/fonts/)
-        PDType0Font font = PDType0Font.load(document,
-            getClass().getResourceAsStream("/fonts/THSarabunNew.ttf"));
+    String en = (selected.getStatusEn() == null) ? "" : selected.getStatusEn().trim().toLowerCase();
+    boolean canCancel = en.equals("pending") || isFinished(selected);
 
-        PDPageContentStream contentStream = new PDPageContentStream(document, page);
+    System.out.println("สามารถยกเลิกได้ไหม: " + canCancel);
 
-        // หัวข้อกลางหน้า
-        contentStream.beginText();
-        contentStream.setFont(font, 18);
-        contentStream.setLeading(22f);
-        contentStream.newLineAtOffset(220, 750);
-        contentStream.showText("ใบเสร็จการเช่า");
-        contentStream.endText();
+    if (!canCancel) {
+        showAlert(Alert.AlertType.WARNING, "ไม่สามารถยกเลิกได้",
+                "ยกเลิกได้เฉพาะ \"รอดำเนินการ\" หรือ \"สำเร็จ\" เท่านั้น\n" +
+                        "สถานะปัจจุบัน: " + selected.getStatusTh());
+        return;
+    }
 
-        // เส้นคั่น
-        contentStream.moveTo(50, 730);
-        contentStream.lineTo(550, 730);
-        contentStream.stroke();
+    try {
+        long paymentId = selected.getPaymentId();
 
-        // เนื้อหา
-        contentStream.beginText();
-        contentStream.setFont(font, 14);
-        contentStream.setLeading(20f);
-        contentStream.newLineAtOffset(70, 700);
-
-        contentStream.showText("ลูกค้า: " + lblName.getText()); contentStream.newLine();
-        contentStream.showText("เบอร์โทร: " + lblPhone.getText()); contentStream.newLine();
-        contentStream.showText("สินค้า: " + selected.getItemName()); contentStream.newLine();
-        contentStream.showText("วันที่เริ่ม: " + selected.getStartDate()); contentStream.newLine();
-        contentStream.showText("วันที่สิ้นสุด: " + selected.getEndDate()); contentStream.newLine();
-        contentStream.showText("สถานะชำระ: " + selected.getPaymentStatus()); contentStream.newLine();
-        contentStream.showText("ช่องทางชำระ: " + selected.getPaymentMethod()); contentStream.newLine();
-        contentStream.showText("ยอดชำระ: " + selected.getAmount()); contentStream.newLine();
-        contentStream.showText("วันที่ชำระ: " + selected.getPaymentDate());
-
-        contentStream.endText();
-        contentStream.close();
-
-        // ทำให้ชื่อไฟล์ปลอดภัย: ใช้เฉพาะ A-Z, a-z, 0-9
-        String safeName = lblName.getText().replaceAll("[^A-Za-z0-9]", "_");
-
-        // สร้างโฟลเดอร์ C:/RECEIPTS ถ้ายังไม่มี
-        File directory = new File("C:/RECEIPTS");
-        if (!directory.exists()) {
-            directory.mkdirs();
+        if (paymentId <= 0) {
+            throw new IllegalArgumentException("Payment ID ไม่ถูกต้อง: " + paymentId);
         }
 
-        // ตั้งชื่อไฟล์ให้บันทึกในโฟลเดอร์ที่ปลอดภัย
-        String fileName = "C:/RECEIPTS/receipt_" + selected.getId() + "_" + safeName + ".pdf";
+        System.out.println("กำลังอัปเดต payment_id = " + paymentId + " เป็น cancelled");
 
-        // บันทึกไฟล์
-        document.save(fileName);
+        // เรียกอัปเดตเฉพาะ payments
+        String result = supabase.updatePaymentStatus(paymentId, "cancelled");
 
-        // แจ้งผู้ใช้เมื่อสำเร็จ
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("สำเร็จ");
-        alert.setHeaderText(null);
-        alert.setContentText("สร้างใบเสร็จเรียบร้อยแล้ว!\nไฟล์: " + fileName);
-        alert.showAndWait();
+        System.out.println("ผลการอัปเดตจาก Supabase: " + result);
+
+        // Refresh ข้อมูลใหม่ทั้งหมด
+        loadPaymentHistory(Session.getCurrentUser().getId());
+
+        // อัปเดต UI ทันที
+        selected.setStatusEn("cancelled");
+        selected.setStatusTh("ยกเลิก");
+        historyTable.refresh();
+
+        showDetails(selected);
+        btnPrint.setDisable(true);
+
+        showAlert(Alert.AlertType.INFORMATION, "สำเร็จ",
+                "ยกเลิกการชำระเงินเรียบร้อยแล้ว\n(payment_id: " + paymentId + ")");
 
     } catch (Exception e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("ผิดพลาด");
-        alert.setHeaderText(null);
-        alert.setContentText("ไม่สามารถสร้างใบเสร็จได้: " + e.getMessage());
-        alert.showAndWait();
+        System.err.println("ยกเลิก ERROR: " + e.getMessage());
         e.printStackTrace();
+        showAlert(Alert.AlertType.ERROR, "ผิดพลาด",
+                "ยกเลิกไม่สำเร็จ\n" + e.getMessage() +
+                        "\n(ดู console เพื่อรายละเอียดเพิ่ม)");
     }
 }
+    // =========================
+    // Print receipt (ใช้ bookingId)
+    // =========================
+    @FXML
+    private void handlePrint() {
+        RentalHistory selected = historyTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "แจ้งเตือน", "กรุณาเลือกรายการก่อนพิมพ์ใบเสร็จ");
+            return;
+        }
 
-// ============================
-//  INNER CLASS
-// ============================
-public static class RentalHistory {
-    private final long id;
-    private final String itemName;
-    private final String startDate;
-    private final String endDate;
-    private String paymentStatus;
-    private String rejectReason;
-    private String paymentMethod;
-    private String amount;
-    private String paymentDate;
+        if (!isFinished(selected)) {
+            showAlert(Alert.AlertType.WARNING, "ไม่สามารถพิมพ์ได้",
+                    "สามารถพิมพ์ใบเสร็จได้เฉพาะรายการที่มีสถานะ \"สำเร็จ\" เท่านั้น\n" +
+                            "สถานะปัจจุบัน: " + selected.getStatusTh());
+            return;
+        }
 
-    // constructor หลัก (9 args)
-    public RentalHistory(long id, String itemName, String startDate, String endDate,
-                         String paymentStatus, String paymentMethod, String amount,
-                         String paymentDate, String rejectReason) {
+        try {
+            ReceiptData receipt = buildReceiptDataFromDb(selected.getBookingId());
 
-        this.id = id;
-        this.itemName = itemName;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.paymentStatus = paymentStatus;
-        this.paymentMethod = paymentMethod;
-        this.amount = amount;
-        this.paymentDate = paymentDate;
-        this.rejectReason = rejectReason;
+            var chooser = new javafx.stage.FileChooser();
+            chooser.setTitle("บันทึกใบเสร็จเป็น PDF");
+            chooser.getExtensionFilters().add(
+                    new javafx.stage.FileChooser.ExtensionFilter("PDF (*.pdf)", "*.pdf"));
+            chooser.setInitialFileName("ใบเสร็จ_RC-" + receipt.bookingId + ".pdf");
+
+            File out = chooser.showSaveDialog(historyTable.getScene().getWindow());
+            if (out == null)
+                return;
+
+            if (!out.getName().toLowerCase().endsWith(".pdf")) {
+                out = new File(out.getAbsolutePath() + ".pdf");
+            }
+
+            ReceiptPdfReport.export(out, receipt);
+
+            showAlert(Alert.AlertType.INFORMATION, "สำเร็จ",
+                    "สร้างใบเสร็จ PDF เรียบร้อย\nไฟล์: " + out.getAbsolutePath());
+
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(out);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "ผิดพลาด", "พิมพ์ใบเสร็จไม่สำเร็จ: " + ex.getMessage());
+        }
     }
 
-    // overload constructor (5 args)  แก้ตรงนี้
-    public RentalHistory(long id, String itemName, String startDate, String endDate, String paymentStatus) {
-        this(
-            id,
-            itemName,
-            startDate,
-            endDate,
-            paymentStatus,
-            "-", "-", "-", "-"   // paymentMethod, amount, paymentDate, rejectReason
-        );
+    // =========================
+    // Build receipt (bookings + payments ล่าสุด)
+    // =========================
+    private ReceiptData buildReceiptDataFromDb(long bookingId) throws Exception {
+        String json = supabase.selectBookingDetailById(bookingId);
+        var parsed = JsonParser.parseString(json);
+
+        if (!parsed.isJsonArray())
+            throw new RuntimeException("Supabase error response: " + json);
+
+        JsonArray arr = parsed.getAsJsonArray();
+        if (arr.isEmpty())
+            throw new RuntimeException("ไม่พบข้อมูล booking_id=" + bookingId);
+
+        JsonObject o = arr.get(0).getAsJsonObject();
+
+        ReceiptData rd = new ReceiptData();
+        rd.bookingId = bookingId;
+
+        rd.fullName = getStr(o, "full_name", "-");
+        rd.phone = getStr(o, "phone", "-");
+        rd.productType = getStr(o, "product_type", "-");
+
+        rd.startDate = parseDate(getStr(o, "start_date", null));
+        rd.endDate = parseDate(getStr(o, "end_date", null));
+
+        rd.deposit = getDecimal(o, "deposit_price");
+        rd.total = getDecimal(o, "total_price");
+
+        rd.stallId = getStr(o, "stall_id", "-");
+
+        String paymentMethod = "-";
+        String payStatus = null;
+
+        if (o.has("payments") && o.get("payments").isJsonArray()) {
+            JsonArray pays = o.getAsJsonArray("payments");
+
+            JsonObject latest = null;
+            for (var pe : pays) {
+                JsonObject po = pe.getAsJsonObject();
+                if (latest == null)
+                    latest = po;
+                else {
+                    String a = getStr(po, "created_at", "");
+                    String b = getStr(latest, "created_at", "");
+                    if (a.compareTo(b) > 0)
+                        latest = po;
+                }
+            }
+
+            if (latest != null) {
+                String pm = getStr(latest, "payment_method", "-");
+                if (pm != null && !pm.isBlank() && !pm.equals("-"))
+                    paymentMethod = pm;
+                payStatus = getStr(latest, "status", null);
+            }
+        }
+
+        rd.paymentMethod = paymentMethod;
+
+        String finalStatusEn = (payStatus != null ? payStatus : getStr(o, "status", "pending"));
+        rd.status = mapPaymentStatusToUi(finalStatusEn);
+
+        String[] z = splitZoneLock(rd.stallId);
+        rd.zone = z[0];
+        rd.lockNo = z[1];
+
+        return rd;
     }
 
-    // getters/setters
-    public long getId() { return id; }
-    public String getItemName() { return itemName; }
-    public String getStartDate() { return startDate; }
-    public String getEndDate() { return endDate; }
+    // =========================
+    // Helpers
+    // =========================
+    private boolean isFinished(RentalHistory r) {
+        String en = r.getStatusEn();
+        if (en == null)
+            return false;
+        String s = en.trim().toLowerCase();
+        return s.equals("approved") || s.equals("paid") || s.equals("completed");
+    }
 
-    public String getPaymentStatus() { return paymentStatus; }
-    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+    private static String mapPaymentStatusToUi(String payStatus) {
+        if (payStatus == null)
+            return "รอดำเนินการ";
+        return switch (payStatus.toLowerCase()) {
+            case "approved", "paid", "completed" -> "สำเร็จ";
+            case "rejected" -> "ถูกปฏิเสธ";
+            case "cancelled", "canceled" -> "ยกเลิก";
+            case "pending" -> "รอดำเนินการ";
+            default -> "รอดำเนินการ";
+        };
+    }
 
-    public String getPaymentMethod() { return paymentMethod; }
-    public String getAmount() { return amount; }
-    public String getPaymentDate() { return paymentDate; }
+    private static String getStr(JsonObject o, String key, String def) {
+        if (o == null || !o.has(key) || o.get(key).isJsonNull())
+            return def;
+        try {
+            return o.get(key).getAsString();
+        } catch (Exception e) {
+            return def;
+        }
+    }
 
-    public String getRejectReason() { return rejectReason; }
-    public void setRejectReason(String rejectReason) { this.rejectReason = rejectReason; }
+    private static LocalDate parseDate(String s) {
+        if (s == null || s.isBlank())
+            return null;
+        return LocalDate.parse(s);
+    }
+
+    private static BigDecimal getDecimal(JsonObject o, String key) {
+        if (o == null || !o.has(key) || o.get(key).isJsonNull())
+            return BigDecimal.ZERO;
+        try {
+            return o.get(key).getAsBigDecimal();
+        } catch (Exception e) {
+            try {
+                return new BigDecimal(o.get(key).getAsString());
+            } catch (Exception ex) {
+                return BigDecimal.ZERO;
+            }
+        }
+    }
+
+    private static String[] splitZoneLock(String stallId) {
+        if (stallId == null || stallId.isBlank() || "-".equals(stallId))
+            return new String[] { "-", "-" };
+        String s = stallId.replace("-", "").replace(" ", "").trim();
+        if (s.length() >= 2 && Character.isLetter(s.charAt(0))) {
+            return new String[] { String.valueOf(s.charAt(0)), s.substring(1) };
+        }
+        return new String[] { "-", stallId };
+
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String msg) {
+        Alert a = new Alert(type);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
+    }
+
+    // =========================
+    // Model for table
+    // =========================
+    public static class RentalHistory {
+        private final long paymentId;
+        private final long bookingId;
+
+        private final String itemName;
+        private final String startDate;
+        private final String endDate;
+
+        private String statusEn;
+        private String statusTh;
+
+        private final String paymentMethod;
+        private final String amount;
+        private final String paymentDate;
+
+        public RentalHistory(long paymentId, long bookingId,
+                String itemName, String startDate, String endDate,
+                String statusEn, String statusTh,
+                String paymentMethod, String amount, String paymentDate) {
+            this.paymentId = paymentId;
+            this.bookingId = bookingId;
+            this.itemName = itemName;
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.statusEn = statusEn;
+            this.statusTh = statusTh;
+            this.paymentMethod = paymentMethod;
+            this.amount = amount;
+            this.paymentDate = paymentDate;
+        }
+
+        public long getPaymentId() {
+            return paymentId;
+        }
+
+        public long getBookingId() {
+            return bookingId;
+        }
+
+        public long getId() {
+            return bookingId;
+        }
+
+        public String getItemName() {
+            return itemName;
+        }
+
+        public String getStartDate() {
+            return startDate;
+        }
+
+        public String getEndDate() {
+            return endDate;
+        }
+
+        public String getStatusEn() {
+            return statusEn;
+        }
+
+        public void setStatusEn(String statusEn) {
+            this.statusEn = statusEn;
+        }
+
+        public String getStatusTh() {
+            return statusTh;
+        }
+
+        public void setStatusTh(String statusTh) {
+            this.statusTh = statusTh;
+        }
+
+        public String getPaymentMethod() {
+            return paymentMethod;
+        }
+
+        public String getAmount() {
+            return amount;
+        }
+
+        public String getPaymentDate() {
+            return paymentDate;
+        }
+    }
 }
-
-
-// ============================
-//  HELPER แปลงสถานะอังกฤษ → ไทย
-// ============================
-private String toThaiStatus(String en) {
-    if (en == null) return "-";
-
-    return switch (en.toLowerCase()) {
-        case "pending" -> "รอดำเนินการ";
-        case "cancelled" -> "ยกเลิก";
-        case "rejected" -> "ถูกปฏิเสธ";
-        case "paid", "approved", "completed" -> "อนุมัติแล้ว";
-        default -> en;
-    };
-}
-} // 01/08/2026 12:15 //

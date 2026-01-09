@@ -58,7 +58,6 @@ public class ManageTenantsController {
 
     @FXML
     public void initialize() {
-       
         sortComboBox.setItems(FXCollections.observableArrayList(
                 "ชื่อ (ก → ฮ)",
                 "ชื่อ (ฮ → ก)"
@@ -74,7 +73,7 @@ public class ManageTenantsController {
         colRejectReason.setCellValueFactory(new PropertyValueFactory<>("rejectReason"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // สีสถานะ
+        // สีสถานะ (รองรับทั้ง rejected และ cancelled)
         colStatus.setCellFactory(column -> new TableCell<Tenant, String>() {
             @Override
             protected void updateItem(String status, boolean empty) {
@@ -84,7 +83,13 @@ public class ManageTenantsController {
                     setStyle("");
                 } else {
                     setText(status);
-                    setStyle("-fx-text-fill: #c80000; -fx-font-weight: bold;");
+                    if ("ไม่อนุมัติ".equals(status)) {
+                        setStyle("-fx-text-fill: #c80000; -fx-font-weight: bold;"); // แดงเข้ม
+                    } else if ("ยกเลิก".equals(status)) {
+                        setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;"); // ส้ม
+                    } else {
+                        setStyle("");
+                    }
                 }
             }
         });
@@ -107,7 +112,7 @@ public class ManageTenantsController {
             }
         });
 
-        // โหลดข้อมูลจาก payments (เฉพาะ rejected)
+        // โหลดข้อมูล
         loadRejectedPayments();
         tenantTable.setItems(filteredData);
 
@@ -118,15 +123,14 @@ public class ManageTenantsController {
         emailField.textProperty().addListener((obs, o, n) -> applyFilters());
     }
 
-  private void loadRejectedPayments() {
+   private void loadRejectedPayments() {
     Task<Void> task = new Task<>() {
         @Override
         protected Void call() throws Exception {
-            // แก้ตรงนี้ให้ถูกต้องตามโครงสร้างจริง
             String url = SUPABASE_URL + "/rest/v1/payments"
-                    + "?status=eq.rejected"
-                    + "&select=id,payment_date,reject_reason,booking_id(*)"  // เปลี่ยนเป็น booking_id(*) เพื่อดึงข้อมูลจากตาราง bookings ทั้งหมดที่เกี่ยวข้อง
-                    + "&order=created_at.desc";  // เรียงล่าสุดก่อน (optional แต่แนะนำ)
+                    + "?or=(status.eq.rejected,status.eq.cancelled)"
+                    + "&select=id,status,created_at,payment_date,reject_reason,booking_id(*)"
+                    + "&order=created_at.desc";
 
             Request request = new Request.Builder()
                     .url(url)
@@ -136,35 +140,58 @@ public class ManageTenantsController {
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
-                    throw new IOException("HTTP " + response.code() + ": " + response.body().string());
+                    throw new IOException("HTTP error " + response.code() + ": " + response.body().string());
                 }
+
                 String body = response.body().string();
-                System.out.println("Raw JSON response: " + body);  // debug ดูใน console
+                System.out.println("Raw JSON → " + body);  // ช่วย debug มาก!
 
                 JsonArray array = gson.fromJson(body, JsonArray.class);
 
                 masterData.clear();
+
                 for (int i = 0; i < array.size(); i++) {
                     JsonObject obj = array.get(i).getAsJsonObject();
 
-                    // ดึงข้อมูลจากตาราง bookings ผ่าน relationship
-                    JsonObject booking = obj.getAsJsonObject("booking_id");  // ชื่อ key จะเป็น booking_id เพราะเราใช้ booking_id(*)
+                    JsonObject booking = obj.has("booking_id") && !obj.get("booking_id").isJsonNull()
+                            ? obj.getAsJsonObject("booking_id")
+                            : null;
 
-                    String fullName = booking != null && booking.has("full_name") ? booking.get("full_name").getAsString() : "ไม่ระบุ";
-                    String email = booking != null && booking.has("email") ? booking.get("email").getAsString() : "-";
-                    String phone = booking != null && booking.has("phone") ? booking.get("phone").getAsString() : "-";
-                    String stallId = booking != null && booking.has("stall_id") ? booking.get("stall_id").getAsString() : "-";
+                    String fullName = (booking != null && booking.has("full_name") && !booking.get("full_name").isJsonNull())
+                            ? booking.get("full_name").getAsString()
+                            : "ไม่พบข้อมูลผู้เช่า";
 
-                    // payment_date อาจเป็น null ได้บ้าง ต้องเช็ค
-                    String paymentDateStr = obj.has("payment_date") && !obj.get("payment_date").isJsonNull()
-                            ? obj.get("payment_date").getAsString()
-                            : obj.get("created_at").getAsString().substring(0, 10);  // fallback ใช้ created_at
+                    String email = (booking != null && booking.has("email") && !booking.get("email").isJsonNull())
+                            ? booking.get("email").getAsString()
+                            : "-";
+
+                    String phone = (booking != null && booking.has("phone") && !booking.get("phone").isJsonNull())
+                            ? booking.get("phone").getAsString()
+                            : "-";
+
+                    String stallId = (booking != null && booking.has("stall_id") && !booking.get("stall_id").isJsonNull())
+                            ? booking.get("stall_id").getAsString()
+                            : "-";
+String paymentDateStr;
+if (obj.has("payment_date") && !obj.get("payment_date").isJsonNull()) {
+    paymentDateStr = obj.get("payment_date").getAsString();
+} else if (obj.has("created_at") && !obj.get("created_at").isJsonNull()) {
+    paymentDateStr = obj.get("created_at").getAsString().substring(0, 10);
+} else {
+    paymentDateStr = "";
+}
+
 
                     String formattedDate = formatThaiDate(paymentDateStr);
 
                     String rejectReason = obj.has("reject_reason") && !obj.get("reject_reason").isJsonNull()
                             ? obj.get("reject_reason").getAsString()
                             : "-";
+
+                 String dbStatus = obj.has("status") && !obj.get("status").isJsonNull()
+        ? obj.get("status").getAsString()
+        : "";
+                    String displayStatus = "rejected".equals(dbStatus) ? "ไม่อนุมัติ" : "ยกเลิก";
 
                     masterData.add(new Tenant(
                             obj.get("id").getAsInt(),
@@ -173,7 +200,8 @@ public class ManageTenantsController {
                             phone,
                             stallId,
                             formattedDate,
-                            rejectReason
+                            rejectReason,
+                            displayStatus
                     ));
                 }
             }
@@ -181,8 +209,9 @@ public class ManageTenantsController {
         }
     };
 
+    // ส่วนที่เหลือเหมือนเดิม...
     task.setOnSucceeded(e -> {
-        System.out.println("โหลดข้อมูลสำเร็จ: " + masterData.size() + " รายการ");
+        System.out.println("โหลดสำเร็จ → " + masterData.size() + " รายการ");
         filteredData.setAll(masterData);
         onSortClick();
         tenantTable.refresh();
@@ -190,12 +219,11 @@ public class ManageTenantsController {
 
     task.setOnFailed(e -> {
         Throwable ex = task.getException();
-        String msg = ex != null ? ex.getMessage() : "Unknown error";
-        showAlert(Alert.AlertType.ERROR, "โหลดข้อมูลล้มเหลว", msg);
-        ex.printStackTrace();
+        showAlert(Alert.AlertType.ERROR, "โหลดข้อมูลล้มเหลว", ex != null ? ex.getMessage() : "ไม่ทราบสาเหตุ");
+        if (ex != null) ex.printStackTrace();
     });
 
-    new Thread(task).start();  // อย่าลืม start task!
+    new Thread(task).start();
 }
 
     @FXML
@@ -246,23 +274,37 @@ public class ManageTenantsController {
         String name = tenant.getName().trim();
         String zone = tenant.getZone().trim();
         String reason = tenant.getRejectReason().trim();
+        String status = tenant.getStatus();
 
         if (email.isEmpty() || email.equals("-")) {
             showAlert(Alert.AlertType.WARNING, "ไม่มีอีเมลล์", "ผู้เช่ารายนี้ไม่มีอีเมลล์ที่บันทึกไว้");
             return;
         }
 
-        String subject = "[Rental System] แจ้งผลการปฏิเสธคำขอเช่าพื้นที่ - คุณ" + name + " (โซน " + zone + ")";
+        String subject;
+        String body;
+
+        if ("ยกเลิก".equals(status)) {
+            subject = "[Rental System] แจ้งการยกเลิกคำขอเช่าพื้นที่ - คุณ" + name + " (โซน " + zone + ")";
+            body = "เรียน คุณ" + name + "\n\n" +
+                   "เราขอแจ้งว่าคำขอเช่าพื้นที่โซน " + zone + " ของท่านได้ถูกยกเลิกเรียบร้อยแล้ว ตามที่ท่านแจ้งความประสงค์\n\n" +
+                   "หากท่านได้ชำระเงินมัดจำหรือค่าจองไว้ก่อนหน้านี้ ทีมงานจะดำเนินการคืนเงินให้ท่านเต็มจำนวนโดยเร็วที่สุด\n" +
+                   "กรุณาติดต่อกลับเพื่อแจ้งช่องทางการคืนเงินที่สะดวก (เช่น เลขบัญชีธนาคาร ชื่อบัญชี และชื่อธนาคาร)\n\n" +
+                   "หากมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม ยินดีให้บริการทุกเมื่อค่ะ\n" +
+                   "ขอบคุณที่ใช้บริการ\n\n" +
+                   "ด้วยความเคารพ\nทีมงาน Rental Space Management";
+        } else { // ไม่อนุมัติ (rejected)
+            subject = "[Rental System] แจ้งผลการพิจารณาคำขอเช่าพื้นที่ - คุณ" + name + " (โซน " + zone + ")";
+            body = "เรียน คุณ" + name + "\n\n" +
+                   "เราต้องขออภัยเป็นอย่างยิ่งที่ต้องแจ้งให้ทราบว่า คำขอเช่าพื้นที่โซน " + zone + " ของท่านไม่ผ่านการพิจารณา\n\n" +
+                   "เหตุผล: " + (reason.equals("-") ? "ไม่ระบุ" : reason) + "\n\n" +
+                   "หากท่านได้ชำระเงินมัดจำหรือค่าจองไว้ก่อนหน้านี้ ทีมงานยินดีดำเนินการคืนเงินให้ท่านเต็มจำนวนโดยเร็วที่สุด\n" +
+                   "กรุณาติดต่อกลับเพื่อแจ้งช่องทางการคืนเงินที่สะดวก (เช่น เลขบัญชีธนาคาร ชื่อบัญชี และชื่อธนาคาร)\n\n" +
+                   "เราขอขอบคุณที่ท่านให้ความสนใจในบริการของเรา และหวังว่าจะมีโอกาสให้บริการท่านในโอกาสต่อไป\n\n" +
+                   "ด้วยความเคารพ\nทีมงาน Rental Space Management";
+        }
+
         String encodedSubject = URLEncoder.encode(subject, StandardCharsets.UTF_8);
-
-        String body = "สวัสดีค่ะ/ครับ คุณ" + name + "\n\n" +
-                      "เราต้องขออภัยที่ต้องแจ้งว่าคำขอเช่าพื้นที่โซน " + zone + " ของท่านไม่ผ่านการพิจารณา\n\n" +
-                      "เหตุผล: " + (reason.equals("-") ? "ไม่ระบุ" : reason) + "\n\n" +
-                      "หากท่านได้ชำระเงินมัดจำหรือค่าจองแล้ว เรายินดีดำเนินการคืนเงินให้เต็มจำนวน\n" +
-                      "กรุณาติดต่อกลับเพื่อแจ้งช่องทางการคืนเงินที่สะดวก (เช่น เลขบัญชีธนาคาร พร้อมชื่อบัญชี)\n\n" +
-                      "ขอบคุณที่สนใจบริการของเรา\n" +
-                      "ทีมงาน Rental Space Management";
-
         String encodedBody = URLEncoder.encode(body, StandardCharsets.UTF_8);
 
         String mailtoLink = "https://mail.google.com/mail/?view=cm&fs=1&to=" + email +
@@ -272,7 +314,7 @@ public class ManageTenantsController {
         try {
             Desktop.getDesktop().browse(new URI(mailtoLink));
         } catch (Exception ex) {
-            showAlert(Alert.AlertType.ERROR, "เปิด Gmail ไม่ได้", "กรุณาคัดลอกอีเมลล์นี้: " + email);
+            showAlert(Alert.AlertType.ERROR, "เปิด Gmail ไม่สำเร็จ", "กรุณาคัดลอกอีเมลล์นี้ด้วยตนเอง: " + email);
         }
     }
 
@@ -303,7 +345,7 @@ public class ManageTenantsController {
         private final SimpleStringProperty status = new SimpleStringProperty();
         private final int id;
 
-        public Tenant(int id, String name, String email, String phone, String zone, String createdAt, String rejectReason) {
+        public Tenant(int id, String name, String email, String phone, String zone, String createdAt, String rejectReason, String status) {
             this.id = id;
             this.name.set(name);
             this.email.set(email);
@@ -311,7 +353,7 @@ public class ManageTenantsController {
             this.zone.set(zone);
             this.createdAt.set(createdAt);
             this.rejectReason.set(rejectReason);
-            this.status.set("ไม่อนุมัติ");
+            this.status.set(status);
         }
 
         public int getId() { return id; }
@@ -321,6 +363,7 @@ public class ManageTenantsController {
         public String getZone() { return zone.get(); }
         public String getCreatedAt() { return createdAt.get(); }
         public String getRejectReason() { return rejectReason.get(); }
+        public String getStatus() { return status.get(); }
 
         public SimpleStringProperty nameProperty() { return name; }
         public SimpleStringProperty emailProperty() { return email; }

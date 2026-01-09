@@ -3,6 +3,8 @@ package com.rental.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.rental.controller.BookingManagementController.PaymentRecord;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -78,30 +80,61 @@ public class BookingManagementController implements Initializable {
         Collator thaiCollator = Collator.getInstance(Locale.of("th", "TH"));
         colName.setComparator(thaiCollator::compare);
 
-        colStatus.setCellFactory(col -> new TableCell<>() {
-            private final ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList("pending", "approved", "rejected"));
-            {
-                combo.setOnAction(e -> {
-                    if (getTableRow() != null && getTableRow().getItem() != null) {
-                        PaymentRecord record = getTableRow().getItem();
-                        if (!combo.getValue().equals(record.getStatus())) {
-                            updatePaymentStatus(record.getId(), combo.getValue(), null);
-                            record.setStatus(combo.getValue());
-                        }
-                    }
-                });
+     colStatus.setCellFactory(col -> new TableCell<>() {
+    private final ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList(
+            "pending", "approved", "rejected", "cancelled"  // ← เพิ่มบรรทัดนี้
+    ));
+    {
+     combo.setOnAction(e -> {
+    if (getTableRow() == null || getTableRow().getItem() == null) return;
+
+    PaymentRecord record = getTableRow().getItem();
+    String newStatus = combo.getValue();
+
+    if (newStatus.equals(record.getStatus())) return;
+
+    // 👉 ถ้า rejected ให้ถามเหตุผลก่อน
+    if ("rejected".equals(newStatus)) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("เหตุผลการปฏิเสธ");
+        dialog.setHeaderText("กรุณากรอกเหตุผลในการปฏิเสธ");
+        dialog.setContentText("เหตุผล:");
+
+        dialog.showAndWait().ifPresentOrElse(reason -> {
+            if (reason.trim().isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "กรุณากรอกเหตุผล");
+                combo.setValue(record.getStatus()); // rollback
+            } else {
+                updatePaymentStatus(
+                        record.getId(),
+                        newStatus,
+                        record.getStallId(),
+                        null,
+                        reason
+                );
+                record.setStatus(newStatus);
+                bookingTable.refresh();
             }
-            @Override
-            protected void updateItem(String status, boolean empty) {
-                super.updateItem(status, empty);
-                if (empty || status == null) setGraphic(null);
-                else {
-                    combo.setValue(status);
-                    setGraphic(combo);
-                    setAlignment(Pos.CENTER);
-                }
-            }
-        });
+        }, () -> combo.setValue(record.getStatus())); // กด cancel
+    } else {
+        updatePaymentStatus(record.getId(), newStatus, record.getStallId(), null, null);
+        record.setStatus(newStatus);
+        bookingTable.refresh();
+    }
+});
+    }
+    @Override
+    protected void updateItem(String status, boolean empty) {
+        super.updateItem(status, empty);
+        if (empty || status == null) {
+            setGraphic(null);
+        } else {
+            combo.setValue(status);
+            setGraphic(combo);
+            setAlignment(Pos.CENTER);
+        }
+    }
+});
     }
 
     private void loadDataFromSupabase() {
@@ -207,24 +240,73 @@ public class BookingManagementController implements Initializable {
         datePicker.valueProperty().addListener((o, a, b) -> applyFilter.run());
     }
 
-    private void updatePaymentStatus(int id, String status, String note) {
-        Task<Void> task = new Task<>() {
-            @Override protected Void call() throws Exception {
-                JsonObject data = new JsonObject();
-                data.addProperty("status", status);
-                RequestBody body = RequestBody.create(data.toString(), JSON_MEDIA_TYPE);
-                Request req = new Request.Builder()
-                        .url(SUPABASE_URL + "/rest/v1/payments?id=eq." + id)
-                        .patch(body)
+  private void updatePaymentStatus(
+        int id,
+        String status,
+        String stallId,
+        LocalDate startDate,
+        String rejectReason
+)
+ {
+    Task<Void> task = new Task<>() {
+        @Override
+        protected Void call() throws Exception {
+            JsonObject data = new JsonObject();
+            data.addProperty("status", status);
+
+            // ถ้า approved และมี startDate → อัปเดต start_date
+            if ("approved".equals(status) && startDate != null) {
+                data.addProperty("start_date", startDate.toString());
+            }
+            // 👉 ถ้า rejected ให้บันทึกเหตุผล
+if ("rejected".equals(status) && rejectReason != null) {
+    data.addProperty("reject_reason", rejectReason);
+}
+
+
+            RequestBody body = RequestBody.create(data.toString(), JSON_MEDIA_TYPE);
+
+            Request req = new Request.Builder()
+                    .url(SUPABASE_URL + "/rest/v1/payments?id=eq." + id)
+                    .patch(body)
+                    .header("apikey", SUPABASE_SERVICE_KEY)
+                    .header("Authorization", "Bearer " + SUPABASE_SERVICE_KEY)
+                    .header("Prefer", "return=minimal")
+                    .build();
+
+            try (Response resp = client.newCall(req).execute()) {
+                if (!resp.isSuccessful()) {
+                    throw new IOException("Update payment failed: " + resp.code() + " - " + resp.message());
+                }
+            }
+
+            // อัปเดต stalls เฉพาะเมื่อ approved เท่านั้น (ไม่ทำตอน cancelled หรืออื่น ๆ)
+            if ("approved".equals(status) && stallId != null && !stallId.equals("-")) {
+                JsonObject stallUpdate = new JsonObject();
+                stallUpdate.addProperty("status", "rented");
+
+                RequestBody stallBody = RequestBody.create(stallUpdate.toString(), JSON_MEDIA_TYPE);
+
+                Request stallReq = new Request.Builder()
+                        .url(SUPABASE_URL + "/rest/v1/stalls?stall_id=eq." + stallId)
+                        .patch(stallBody)
                         .header("apikey", SUPABASE_SERVICE_KEY)
                         .header("Authorization", "Bearer " + SUPABASE_SERVICE_KEY)
                         .build();
-                try (Response resp = client.newCall(req).execute()) {
-                    if (!resp.isSuccessful()) throw new IOException("Update failed");
+
+                try (Response resp2 = client.newCall(stallReq).execute()) {
+                    if (!resp2.isSuccessful()) {
+                        System.err.println("Update stall failed: " + resp2.code());
+                    }
                 }
-                return null;
             }
-        };
+
+            return null;
+        }
+    };
+
+    // ... ส่วน onSucceeded และ onFailed เดิมยังคงไว้ ...
+
         new Thread(task).start();
     }
 

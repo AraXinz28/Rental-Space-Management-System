@@ -1,0 +1,67 @@
+[1mdiff --git a/src/main/java/com/rental/Main.java b/src/main/java/com/rental/Main.java[m
+[1mindex 44637f8..5c79db3 100644[m
+[1m--- a/src/main/java/com/rental/Main.java[m
+[1m+++ b/src/main/java/com/rental/Main.java[m
+[36m@@ -16,7 +16,7 @@[m [mpublic class Main extends Application {[m
+         // ✅ โหลดหน้าแรกโดยใช้ SceneManager[m
+      [m
+ [m
+[31m-        SceneManager.switchScene(stage, "/views/homepage.fxml");[m
+[32m+[m[32m        SceneManager.switchScene(stage, "/views/rentalhistory.fxml");[m
+ [m
+        [m
+     }[m
+[1mdiff --git a/src/main/java/com/rental/controller/BookingManagementController.java b/src/main/java/com/rental/controller/BookingManagementController.java[m
+[1mindex 909707b..0161cd6 100644[m
+[1m--- a/src/main/java/com/rental/controller/BookingManagementController.java[m
+[1m+++ b/src/main/java/com/rental/controller/BookingManagementController.java[m
+[36m@@ -78,30 +78,61 @@[m [mpublic class BookingManagementController implements Initializable {[m
+         Collator thaiCollator = Collator.getInstance(Locale.of("th", "TH"));[m
+         colName.setComparator(thaiCollator::compare);[m
+ [m
+[31m-        colStatus.setCellFactory(col -> new TableCell<>() {[m
+[31m-            private final ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList("pending", "approved", "rejected"));[m
+[31m-            {[m
+[31m-                combo.setOnAction(e -> {[m
+[31m-                    if (getTableRow() != null && getTableRow().getItem() != null) {[m
+[31m-                        PaymentRecord record = getTableRow().getItem();[m
+[31m-                        if (!combo.getValue().equals(record.getStatus())) {[m
+[31m-                            updatePaymentStatus(record.getId(),combo.getValue(),record.getStallId(),LocalDate.now());[m
+[31m-                            record.setStatus(combo.getValue());[m
+[31m-                        }[m
+[31m-                    }[m
+[31m-                });[m
+[31m-            }[m
+[31m-            @Override[m
+[31m-            protected void updateItem(String status, boolean empty) {[m
+[31m-                super.updateItem(status, empty);[m
+[31m-                if (empty || status == null) setGraphic(null);[m
+[31m-                else {[m
+[31m-                    combo.setValue(status);[m
+[31m-                    setGraphic(combo);[m
+[31m-                    setAlignment(Pos.CENTER);[m
+[31m-                }[m
+[32m+[m[32m   colStatus.setCellFactory(col -> new TableCell<>() {[m
+[32m+[m[32m    private final ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList([m
+[32m+[m[32m            "pending", "approved", "rejected", "cancelled"  // ← เพิ่มบรรทัดนี้[m
+[32m+[m[32m    ));[m
+[32m+[m[32m    {[m
+[32m+[m[32m      combo.setOnAction(e -> {[m
+[32m+[m[32m    if (getTableRow() == null || getTableRow().getItem() == null) return;[m
+[32m+[m
+[32m+[m[32m    PaymentRecord record = getTableRow().getItem();[m
+[32m+[m[32m    String newStatus = combo.getValue();[m
+[32m+[m
+[32m+[m[32m    if (newStatus.equals(record.getStatus())) return;[m
+[32m+[m
+[32m+[m[32m    // 👉 ถ้า rejected ให้ถามเหตุผลก่อน[m
+[32m+[m[32m    if ("rejected".equals(newStatus)) {[m
+[32m+[m[32m        TextInputDialog dialog = new TextInputDialog();[m
+[32m+[m[32m        dialog.setTitle("เหตุผลการปฏิเสธ");[m
+[32m+[m[32m        dialog.setHeaderText("กรุณากรอกเหตุผลในการปฏิเสธ");[m
+[32m+[m[32m        dialog.setContentText("เหตุผล:");[m
+[32m+[m
+[32m+[m[32m        dialog.showAndWait().ifPresentOrElse(reason -> {[m
+[32m+[m[32m            if (reason.trim().isEmpty()) {[m
+[32m+[m[32m                showAlert(Alert.AlertType.WARNING, "กรุณากรอกเหตุผล");[m
+[32m+[m[32m                combo.setValue(record.getStatus()); // rollback[m

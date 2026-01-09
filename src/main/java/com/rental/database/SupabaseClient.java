@@ -181,19 +181,15 @@ public class SupabaseClient {
     }
 
     // =====================================================
-    // ✅ ใหม่: สำหรับหน้า “ประวัติ” ฝั่งแอดมิน (ดึงจาก payments เป็นหลัก)
-    // - สถานะตาม payments.status เท่านั้น
-    // - ชื่อ join จาก bookings(full_name)
-    // - กรองวันที่ด้วย payments.created_at (timestamp) แบบช่วงวัน
+    // ✅ ใหม่: สำหรับหน้า “ประวัติ” ฝั่งแอดมิน (ดึงจาก payments เป็นหลัก) - แก้ไขแล้ว
     // =====================================================
     public String selectPaymentsForAdminHistory(String fullNameLike, String uiStatus, LocalDate date) throws Exception {
 
         StringBuilder sb = new StringBuilder();
         sb.append(url)
                 .append("/rest/v1/payments")
-                // ✅ ระบุ FK ให้ชัวร์
-                .append("?select=id,booking_id,created_at,status,bookings!fk_payments_booking(full_name)")
-                // ✅ เรียงตาม created_at ของ payments
+                // ✅ แก้ไขตรงนี้: ใช้ default relation (ไม่ระบุ !ชื่อยาว) → ทำงานแน่นอน
+                .append("?select=id,booking_id,created_at,status,bookings(full_name)")
                 .append("&order=created_at.desc");
 
         // ---- filter: name (จาก bookings.full_name) ----
@@ -214,14 +210,11 @@ public class SupabaseClient {
         // ---- filter: created_at ช่วงวัน “ตามเวลาไทย” (+07:00) ----
         if (date != null) {
             LocalDate next = date.plusDays(1);
+            String start = date + "T00:00:00+07:00";
+            String end = next + "T00:00:00+07:00";
 
-            sb.append("&created_at=gte.")
-                    .append(encode(date.toString()))
-                    .append("T00:00:00+07:00");
-
-            sb.append("&created_at=lt.")
-                    .append(encode(next.toString()))
-                    .append("T00:00:00+07:00");
+            sb.append("&created_at=gte.").append(encode(start));
+            sb.append("&created_at=lt.").append(encode(end));
         }
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -234,7 +227,7 @@ public class SupabaseClient {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        // ✅ debug ช่วยเช็คว่าเรียก payments จริง + query ถูก
+        // debug
         System.out.println("ADMIN PAYMENTS URI=" + sb);
         System.out.println("ADMIN PAYMENTS STATUS=" + response.statusCode());
         System.out.println("ADMIN PAYMENTS BODY=" + response.body());
@@ -267,17 +260,12 @@ public class SupabaseClient {
         return response.body();
     }
 
-
-    // =====================================================
-    // ✅ ใหม่: Payments-only (ชัวร์) ไม่ผูกชื่อ FK
-    // =====================================================
-    public String selectPaymentsJoinBookings(long userId) throws Exception {
-
-        String uri = url + "/rest/v1/payments"
-                + "?select=id,booking_id,status,payment_method,amount,payment_date,created_at,"
-                + "bookings(booking_id,user_id,product_type,start_date,end_date,full_name,phone,stall_id)"
-                + "&bookings.user_id=eq." + encode(String.valueOf(userId))
-                + "&order=created_at.desc";
+    // ✅ ของเดิม
+    public String selectJoinBookingsPayments(long userId) throws Exception {
+        String uri = url + "/rest/v1/bookings"
+                + "?select=booking_id,product_type,start_date,end_date,"
+                + "payments!fk_payments_booking(status,payment_method,amount,payment_date)"
+                + "&user_id=eq." + encode(String.valueOf(userId));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
@@ -287,41 +275,18 @@ public class SupabaseClient {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("PAYMENTS+BOOKINGS STATUS=" + response.statusCode());
-        System.out.println("PAYMENTS+BOOKINGS BODY=" + response.body());
-        return response.body();
+        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
-    // ===== Helpers =====
-    private static String encode(String s) {
-        if (s == null)
-            return "";
-        return URLEncoder.encode(s, StandardCharsets.UTF_8);
-    }
-
-    private static String escapeJson(String s) {
-        if (s == null)
-            return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    // ✅ UI(ไทย) -> DB
-    private static String mapStatusToDb(String uiStatus) {
-        if (uiStatus == null)
-            return "";
-        return switch (uiStatus) {
-            case "เสร็จสิ้น" -> "completed";
-            case "ยกเลิก" -> "cancelled";
-            case "รอดำเนินการ" -> "pending";
-            default -> uiStatus;
-        };
-    }
-public String selectJoinBookingsPayments(long userId) throws Exception {
-    String uri = url + "/rest/v1/bookings"
-            + "?select=booking_id,product_type,start_date,end_date,"
-            + "payments!fk_payments_booking(status,payment_method,amount,payment_date,reject_reason)"
-            + "&user_id=eq." + encode(String.valueOf(userId));
+    // =====================================================
+    // ✅ ใหม่: Payments-only (ชัวร์) ไม่ผูกชื่อ FK
+    // =====================================================
+ public String selectPaymentsJoinBookings(long userId) throws Exception {
+    String uri = url + "/rest/v1/payments"
+        + "?select=id,booking_id,status,payment_method,amount,payment_date,created_at,"
+        + "bookings(booking_id,user_id,product_type,start_date,end_date,full_name,phone,stall_id)"
+        + "&bookings.user_id=eq." + encode(String.valueOf(userId))
+        + "&order=created_at.desc";
 
     HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(uri))
@@ -331,6 +296,61 @@ public String selectJoinBookingsPayments(long userId) throws Exception {
             .GET()
             .build();
 
-    return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    System.out.println("PAYMENTS+BOOKINGS STATUS=" + response.statusCode());
+    System.out.println("PAYMENTS+BOOKINGS BODY=" + response.body());
+    return response.body();
 }
+
+
+    /**
+     * อัปเดตสถานะเฉพาะในตาราง payments โดยใช้ payment_id
+     */
+    public String updatePaymentStatus(long paymentId, String newStatus) throws Exception {
+    String jsonBody = "{\"status\":\"" + escapeJson(newStatus) + "\"}";
+
+    String uri = url + "/rest/v1/payments?id=eq." 
+            + encode(String.valueOf(paymentId));
+
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(uri))
+            .header("apikey", key)
+            .header("Authorization", "Bearer " + key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+            .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    if (response.statusCode() >= 400) {
+        throw new RuntimeException("อัปเดตสถานะ payment ล้มเหลว: " +
+                response.statusCode() + " - " + response.body());
+    }
+
+    System.out.println("อัปเดต payment id " + paymentId + " เป็น " + newStatus + " สำเร็จ");
+    return response.body();
+}
+
+    // ===== Helpers =====
+    private static String encode(String s) {
+        if (s == null) return "";
+        return URLEncoder.encode(s, StandardCharsets.UTF_8);
+    }
+
+    private static String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    // ✅ UI(ไทย) -> DB
+    private static String mapStatusToDb(String uiStatus) {
+        if (uiStatus == null) return "";
+        return switch (uiStatus) {
+            case "เสร็จสิ้น" -> "approved";     // เปลี่ยนให้ตรงกับ payments.status
+            case "ยกเลิก" -> "rejected";
+            case "รอดำเนินการ" -> "pending";
+            default -> uiStatus;
+        };
+    }
 }
