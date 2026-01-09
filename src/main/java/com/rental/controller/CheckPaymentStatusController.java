@@ -16,7 +16,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -41,7 +40,6 @@ public class CheckPaymentStatusController {
     @FXML private Label lblDeposit;
     @FXML private Label lblRent;
     @FXML private Label lblTotal;
-    @FXML private TextArea txtNote;
     @FXML private ImageView slipImage;
 
     /* ================= DATA ================= */
@@ -69,20 +67,35 @@ public class CheckPaymentStatusController {
         );
         cbSort.setValue("ชื่อลูกค้า (ก → ฮ)");
 
-        /* ===== Table ===== */
-        colShop.setCellValueFactory(c -> c.getValue().shopProperty());
-        colLock.setCellValueFactory(c -> c.getValue().lockProperty());
-        colMethod.setCellValueFactory(c -> c.getValue().methodProperty());
-        colDate.setCellValueFactory(c -> c.getValue().dateProperty());
+       /* ===== Table ===== */
+colShop.setCellValueFactory(c -> c.getValue().shopProperty());
+colLock.setCellValueFactory(c -> c.getValue().lockProperty());
+colMethod.setCellValueFactory(c -> c.getValue().methodProperty());
+colDate.setCellValueFactory(c -> c.getValue().dateProperty());
 
-        colDeposit.setCellValueFactory(c -> c.getValue().depositProperty().asObject());
-        colRent.setCellValueFactory(c -> c.getValue().rentProperty().asObject());
-        colTotal.setCellValueFactory(c -> c.getValue().totalProperty().asObject());
+colDeposit.setCellValueFactory(c -> c.getValue().depositProperty().asObject());
+colRent.setCellValueFactory(c -> c.getValue().rentProperty().asObject());
+colTotal.setCellValueFactory(c -> c.getValue().totalProperty().asObject());
 
-        centerAlignTextColumn(colLock);
-        rightAlignNumberColumn(colDeposit);
-        rightAlignNumberColumn(colRent);
-        rightAlignNumberColumn(colTotal);
+centerAlignTextColumn(colLock);
+centerAlignTextColumn(colMethod); 
+centerAlignTextColumn(colDate);   
+rightAlignNumberColumn(colDeposit);
+rightAlignNumberColumn(colRent);
+rightAlignNumberColumn(colTotal);
+
+
+        /* ===== ทำให้ตารางเต็มความกว้างหน้าจอ (แก้เฉพาะจุดนี้) ===== */
+        paymentTable.widthProperty().addListener((obs, oldW, newW) -> {
+            double w = newW.doubleValue() - 20; // เผื่อ scrollbar
+            colShop.setPrefWidth(w * 0.18);
+            colLock.setPrefWidth(w * 0.10);
+            colMethod.setPrefWidth(w * 0.15);
+            colDeposit.setPrefWidth(w * 0.12);
+            colRent.setPrefWidth(w * 0.12);
+            colTotal.setPrefWidth(w * 0.13);
+            colDate.setPrefWidth(w * 0.20);
+        });
 
         filteredData = new FilteredList<>(masterData, p -> true);
         paymentTable.setItems(filteredData);
@@ -246,11 +259,6 @@ public class CheckPaymentStatusController {
     /* ================= ACTION ================= */
 
     @FXML
-    private void handleViewProof() {
-        showDetail(paymentTable.getSelectionModel().getSelectedItem());
-    }
-
-    @FXML
     private void handleReset() {
         txtSearch.clear();
         cbMethod.setValue("ทั้งหมด");
@@ -268,7 +276,6 @@ public class CheckPaymentStatusController {
         lblDeposit.setText("");
         lblRent.setText("");
         lblTotal.setText("");
-        txtNote.clear();
         slipImage.setImage(null);
     }
 
@@ -279,7 +286,6 @@ public class CheckPaymentStatusController {
         lblDeposit.setText("- ค่ามัดจำ: " + row.getDeposit() + " ฿");
         lblRent.setText("- ค่าเช่า: " + row.getRent() + " ฿");
         lblTotal.setText("- ยอดรวม: " + row.getTotal() + " ฿");
-        txtNote.setText(row.getNote());
 
         if (row.getImageUrl() != null) {
             slipImage.setImage(new Image(row.getImageUrl(), true));
