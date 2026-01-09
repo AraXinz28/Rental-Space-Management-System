@@ -56,9 +56,8 @@
                                       promptText="ทุกสถานะ"
                                       prefWidth="150"/>
 
-                            <ComboBox fx:id="typeCombo"
-                                      promptText="ประเภทสินค้า"
-                                      prefWidth="220"/>
+                       
+
                         </HBox>
 
                         <!-- แถวล่าง -->
@@ -69,11 +68,10 @@
                             <DatePicker fx:id="rentDate"
                                         prefWidth="150"/>
 
-                           <Button text="ค้นหา"
-        onAction="#handleSearch"/>
+                            <Button text="ค้นหา"
+                                    onAction="#handleSearch"/>
 
-
-                           <Button text="ล้างตัวกรอง"
+                            <Button text="ล้างตัวกรอง"
                                     onAction="#handleClearFilter"
                                     style="-fx-background-color:#9e9e9e;
                                            -fx-text-fill:white;

@@ -38,60 +38,35 @@
                             <Insets top="20" right="20" bottom="20" left="20"/>
                         </padding>
 
-                        <HBox spacing="20" alignment="TOP_LEFT">
+                        <HBox spacing="20">
 
-                            <!-- ค้นหา -->
                             <VBox spacing="6">
-                                <Label text="ค้นหา"
-                                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+                                <Label text="ค้นหา" style="-fx-font-size:15; -fx-font-weight:bold;"/>
                                 <TextField fx:id="txtSearch"
                                            promptText="ชื่อลูกค้า / โซนล็อก"
-                                           prefWidth="260"
-                                           prefHeight="36"/>
+                                           prefWidth="240"/>
                             </VBox>
 
-                            <!-- การชำระเงิน -->
                             <VBox spacing="6">
-                                <Label text="การชำระเงิน"
-                                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
-                                <ComboBox fx:id="cbMethod"
-                                          prefWidth="260"
-                                          prefHeight="36"/>
+                                <Label text="การชำระเงิน" style="-fx-font-size:15; -fx-font-weight:bold;"/>
+                                <ComboBox fx:id="cbMethod" prefWidth="200"/>
                             </VBox>
 
-                            <!-- วันที่ชำระ -->
                             <VBox spacing="6">
-                                <Label text="วันที่ชำระ"
-                                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
-                                <DatePicker fx:id="dpDate"
-                                            prefWidth="260"
-                                            prefHeight="36"/>
+                                <Label text="วันที่ชำระ" style="-fx-font-size:15; -fx-font-weight:bold;"/>
+                                <DatePicker fx:id="dpDate" prefWidth="200"/>
                             </VBox>
 
-                            <!-- SORT -->
                             <VBox spacing="6">
-                                <Label text="เรียงลำดับ"
-                                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
-                                <ComboBox fx:id="cbSort"
-                                          prefWidth="260"
-                                          prefHeight="36"/>
+                                <Label text="เรียงลำดับ" style="-fx-font-size:15; -fx-font-weight:bold;"/>
+                                <ComboBox fx:id="cbSort" prefWidth="200"/>
                             </VBox>
 
                         </HBox>
 
-                        <HBox spacing="10">
-                            <Button text="ดูหลักฐานการโอนเงิน"
-                                    onAction="#handleViewProof"
-                                    style="-fx-background-color:#34495e; -fx-text-fill:white;"/>
-
-                            <Button text="กรองข้อมูล"
-                                    onAction="#handleFilter"
-                                    style="-fx-background-color:#3498db; -fx-text-fill:white;"/>
-
-                            <Button text="รีเซ็ต"
-                                    onAction="#handleReset"
-                                    style="-fx-background-color:#6c757d; -fx-text-fill:white;"/>
-                        </HBox>
+                        <Button text="รีเซ็ต"
+                                onAction="#handleReset"
+                                style="-fx-background-color:#6c757d; -fx-text-fill:white;"/>
                     </VBox>
 
                     <!-- ===== TABLE ===== -->
@@ -105,48 +80,63 @@
                                style="-fx-font-size:16; -fx-font-weight:bold;"/>
 
                         <TableView fx:id="paymentTable"
-                                   prefHeight="220">
-
+                                   VBox.vgrow="ALWAYS">
                             <columns>
                                 <TableColumn fx:id="colShop" text="ชื่อลูกค้า"/>
-                                <TableColumn fx:id="colLock" text="โซน ล็อก"/>
+                                <TableColumn fx:id="colLock" text="โซน / ล็อก"/>
                                 <TableColumn fx:id="colMethod" text="วิธีชำระเงิน"/>
                                 <TableColumn fx:id="colDeposit" text="ค่ามัดจำ"/>
                                 <TableColumn fx:id="colRent" text="ค่าเช่า"/>
                                 <TableColumn fx:id="colTotal" text="ยอดรวม"/>
                                 <TableColumn fx:id="colDate" text="วันที่ชำระ"/>
                             </columns>
-
                         </TableView>
                     </VBox>
 
-                    <!-- ===== DETAIL ===== -->
+                    <!-- ===== DETAIL (WEB STYLE CARD) ===== -->
                     <VBox spacing="15"
-                          style="-fx-background-color:white; -fx-background-radius:12;">
+                          style="-fx-background-color:white;
+                                 -fx-background-radius:14;
+                                 -fx-effect:dropshadow(gaussian, rgba(0,0,0,0.08), 12,0,0,4);">
                         <padding>
-                            <Insets top="20" right="20" bottom="20" left="20"/>
+                            <Insets top="24" right="24" bottom="24" left="24"/>
                         </padding>
 
                         <Label text="รายละเอียดการชำระเงิน"
-                               style="-fx-font-size:16; -fx-font-weight:bold;"/>
+                               style="-fx-font-size:17; -fx-font-weight:bold;"/>
 
-                        <VBox spacing="6">
-                            <Label fx:id="lblMethod"/>
-                            <Label fx:id="lblDeposit"/>
-                            <Label fx:id="lblRent"/>
-                            <Label fx:id="lblTotal"/>
-                        </VBox>
+                        <HBox spacing="30">
 
-                        <!-- ===== NOTE (เพิ่มเพื่อให้ตรง Controller) ===== -->
-                        <TextArea fx:id="txtNote"
-                                  promptText="หมายเหตุ"
-                                  prefRowCount="3"/>
+                            <!-- LEFT : INFO -->
+                            <VBox spacing="14" prefWidth="420">
+                                <Label fx:id="lblMethod"
+                                       style="-fx-font-size:15; -fx-font-weight:bold;"/>
 
-                        <VBox alignment="CENTER">
-                            <ImageView fx:id="slipImage"
-                                       fitWidth="300"
-                                       preserveRatio="true"/>
-                        </VBox>
+                                <VBox spacing="8"
+                                      style="-fx-background-color:#f8f9fa;
+                                             -fx-background-radius:10;
+                                             -fx-padding:14;">
+                                    <Label fx:id="lblDeposit" style="-fx-font-size:14;"/>
+                                    <Label fx:id="lblRent" style="-fx-font-size:14;"/>
+                                    <Separator/>
+                                    <Label fx:id="lblTotal"
+                                           style="-fx-font-size:16;
+                                                  -fx-font-weight:bold;
+                                                  -fx-text-fill:#198754;"/>
+                                </VBox>
+                            </VBox>
+
+                            <!-- RIGHT : IMAGE -->
+                            <VBox spacing="10" alignment="CENTER" prefWidth="360">
+                                <ImageView fx:id="slipImage"
+                                           fitWidth="300"
+                                           preserveRatio="true"
+                                           style="-fx-border-color:#e0e0e0;
+                                                  -fx-border-radius:8;
+                                                  -fx-background-radius:8;"/>
+                            </VBox>
+
+                        </HBox>
 
                     </VBox>
 

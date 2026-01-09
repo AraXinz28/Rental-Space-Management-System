@@ -39,7 +39,6 @@ public class SpaceController implements Initializable {
     /* ================= FXML ================= */
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusCombo;
-    @FXML private ComboBox<String> typeCombo;
     @FXML private DatePicker rentDate;
 
     @FXML private ToggleGroup zoneGroup;
@@ -66,19 +65,6 @@ public class SpaceController implements Initializable {
                 "ว่าง", "ถูกเช่า", "กำลังดำเนินการ", "ปิดปรับปรุง"
         );
 
-        typeCombo.getItems().setAll(
-                "1) อาหาร / เครื่องดื่ม",
-                "2) แฟชั่น / เสื้อผ้า",
-                "3) เครื่องประดับ / กระเป๋า / รองเท้า",
-                "4) ของใช้ในบ้าน / ของตกแต่ง",
-                "5) เบ็ดเตล็ด / สินค้าทั่วไป",
-                "6) ของสด / ผัก / ผลไม้",
-                "7) ความงาม / สกินแคร์",
-                "8) ของเล่น / โมเดล",
-                "9) งานแฮนด์เมด / งานคราฟต์",
-                "10) สินค้าสัตว์เลี้ยง"
-        );
-
         zoneGroup.selectedToggleProperty().addListener((obs, o, n) -> {
             if (n != null) {
                 ToggleButton btn = (ToggleButton) n;
@@ -101,12 +87,7 @@ public class SpaceController implements Initializable {
     @FXML
     private void handleSearch() {
 
-        if (onlyAvailableCheck.isSelected()) {
-            highlightStallId = null;
-            runLoad();
-            return;
-        }
-
+        highlightStallId = null;
         String text = searchField.getText();
 
         if (text != null && !text.isBlank()) {
@@ -116,18 +97,12 @@ public class SpaceController implements Initializable {
                 text = text.replace("โซน", "").trim();
             }
 
-            currentZone = text.charAt(0);
-            highlightStallId = text.length() > 1 ? text : null;
-
-            for (Toggle t : zoneGroup.getToggles()) {
-                ToggleButton b = (ToggleButton) t;
-                if (b.getText().endsWith(String.valueOf(currentZone))) {
-                    b.setSelected(true);
-                    break;
+            if (text.length() >= 1 && Character.isLetter(text.charAt(0))) {
+                currentZone = text.charAt(0);
+                if (text.length() > 1) {
+                    highlightStallId = text;
                 }
             }
-        } else {
-            highlightStallId = null;
         }
 
         runLoad();
@@ -138,7 +113,6 @@ public class SpaceController implements Initializable {
         Platform.runLater(() -> {
             searchField.clear();
             statusCombo.setValue(null);
-            typeCombo.setValue(null);
             rentDate.setValue(null);
             onlyAvailableCheck.setSelected(false);
             highlightStallId = null;
@@ -196,8 +170,6 @@ public class SpaceController implements Initializable {
                 String size = o.get("size").isJsonNull() ? "-" : o.get("size").getAsString();
 
                 String finalStatus;
-
-                // ⭐ FIX: ถ้าเลือกเฉพาะพื้นที่ว่าง ไม่ override ด้วย payment
                 if (onlyAvailableCheck.isSelected()) {
                     finalStatus = "available";
                 } else {
@@ -266,6 +238,48 @@ public class SpaceController implements Initializable {
         }
     }
 
+    /* ================= BOOKING INFO ================= */
+    private Map<String, String> loadBookingInfoByStall(String stallId) {
+
+        try {
+            String url = SUPABASE_URL +
+                    "/rest/v1/bookings?select=product_type,start_date,end_date" +
+                    "&stall_id=eq." + stallId +
+                    "&order=created_at.desc&limit=1";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response =
+                    HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+            JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
+
+            if (arr.isEmpty()) return null;
+
+            JsonObject o = arr.get(0).getAsJsonObject();
+
+            Map<String, String> result = new HashMap<>();
+            result.put("product_type",
+                    o.get("product_type").isJsonNull() ? "-" : o.get("product_type").getAsString());
+
+            result.put("date_range",
+                    (!o.get("start_date").isJsonNull() && !o.get("end_date").isJsonNull())
+                            ? o.get("start_date").getAsString() + " - " + o.get("end_date").getAsString()
+                            : "-");
+
+            return result;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /* ================= UI ================= */
     private VBox createBox(String id, String size, String status) {
 
@@ -287,14 +301,13 @@ public class SpaceController implements Initializable {
     }
 
     private String colorByStatus(String s) {
-        if (s == null) return "#6c757d";
-
         switch (s) {
             case "available": return "#2e8b61";
             case "rented": return "#982d2d";
             case "processing": return "#bac04d";
-            default: return "#6c757d";
+            case "maintenance": return "#6c757d";
         }
+        return "#6c757d";
     }
 
     /* ================= MAP ================= */
@@ -313,7 +326,7 @@ public class SpaceController implements Initializable {
         stage.showAndWait();
     }
 
-    /* ================= DETAIL & BOOKING ================= */
+    /* ================= DETAIL ================= */
     private void handleSpaceClick(MouseEvent event, String statusDb) {
 
         VBox box = (VBox) event.getSource();
@@ -323,11 +336,19 @@ public class SpaceController implements Initializable {
         String stallId = idLabel.getText();
         String size = sizeLabel.getText();
 
-        String statusText;
-        if ("rented".equals(statusDb)) statusText = "ถูกเช่า";
-        else if ("processing".equals(statusDb)) statusText = "กำลังดำเนินการ";
-        else if ("maintenance".equals(statusDb)) statusText = "ปิดปรับปรุง";
-        else statusText = "ว่าง";
+        String statusText =
+                "rented".equals(statusDb) ? "ถูกเช่า" :
+                "processing".equals(statusDb) ? "กำลังดำเนินการ" :
+                "maintenance".equals(statusDb) ? "ปิดปรับปรุง" : "ว่าง";
+
+        String productType = "-";
+        String dateRange = "-";
+
+        Map<String, String> bookingInfo = loadBookingInfoByStall(stallId);
+        if (bookingInfo != null) {
+            productType = bookingInfo.get("product_type");
+            dateRange = bookingInfo.get("date_range");
+        }
 
         Label title = new Label(stallId);
         title.setFont(Font.font("System", FontWeight.BOLD, 32));
@@ -344,8 +365,8 @@ public class SpaceController implements Initializable {
                 createDetailRow("iconzone.png", "โซน", "โซน " + stallId.charAt(0)),
                 createDetailRow("iconarea.png", "ขนาดพื้นที่", size + " เมตร"),
                 createDetailRow("iconprice.png", "ราคาค่าเช่า", "300 บาท/วัน"),
-                createDetailRow("iconproduct.png", "ประเภทสินค้า", "-"),
-                createDetailRow("icondate.png", "วันที่เช่า", "-")
+                createDetailRow("iconproduct.png", "ประเภทสินค้า", productType),
+                createDetailRow("icondate.png", "วันที่เช่า", dateRange)
         );
         detail.setAlignment(Pos.CENTER);
 
