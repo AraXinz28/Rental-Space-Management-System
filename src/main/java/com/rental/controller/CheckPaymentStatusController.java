@@ -4,6 +4,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.Collator;
+import java.util.Locale;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -14,6 +16,8 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -47,6 +51,9 @@ public class CheckPaymentStatusController {
             FXCollections.observableArrayList();
 
     private FilteredList<PaymentRow> filteredData;
+    private SortedList<PaymentRow> sortedData;
+
+    private Collator thaiCollator;
 
     private static final String SUPABASE_URL =
             "https://sdmipxsxkquuyxvvqpho.supabase.co";
@@ -54,10 +61,13 @@ public class CheckPaymentStatusController {
     private static final String SUPABASE_KEY =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWlweHN4a3F1dXl4dnZxcGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTM1NDcsImV4cCI6MjA4MDMyOTU0N30.AG8XwFmTuMPXZe5bjv2YqeIcfvKFRf95CJLDhfDHp0E";
 
+    /* ================= INIT ================= */
     @FXML
     public void initialize() {
 
-        /* ===== ComboBox ===== */
+        thaiCollator = Collator.getInstance(new Locale("th", "TH"));
+        thaiCollator.setStrength(Collator.PRIMARY);
+
         cbMethod.getItems().addAll("ทั้งหมด", "QR PromptPay", "Bank Transfer");
         cbMethod.setValue("ทั้งหมด");
 
@@ -67,56 +77,51 @@ public class CheckPaymentStatusController {
         );
         cbSort.setValue("ชื่อลูกค้า (ก → ฮ)");
 
-       /* ===== Table ===== */
-colShop.setCellValueFactory(c -> c.getValue().shopProperty());
-colLock.setCellValueFactory(c -> c.getValue().lockProperty());
-colMethod.setCellValueFactory(c -> c.getValue().methodProperty());
-colDate.setCellValueFactory(c -> c.getValue().dateProperty());
+        colShop.setCellValueFactory(c -> c.getValue().shopProperty());
+        colLock.setCellValueFactory(c -> c.getValue().lockProperty());
+        colMethod.setCellValueFactory(c -> c.getValue().methodProperty());
+        colDate.setCellValueFactory(c -> c.getValue().dateProperty());
+        colDeposit.setCellValueFactory(c -> c.getValue().depositProperty().asObject());
+        colRent.setCellValueFactory(c -> c.getValue().rentProperty().asObject());
+        colTotal.setCellValueFactory(c -> c.getValue().totalProperty().asObject());
 
-colDeposit.setCellValueFactory(c -> c.getValue().depositProperty().asObject());
-colRent.setCellValueFactory(c -> c.getValue().rentProperty().asObject());
-colTotal.setCellValueFactory(c -> c.getValue().totalProperty().asObject());
-
-centerAlignTextColumn(colLock);
-centerAlignTextColumn(colMethod); 
-centerAlignTextColumn(colDate);   
-rightAlignNumberColumn(colDeposit);
-rightAlignNumberColumn(colRent);
-rightAlignNumberColumn(colTotal);
-
-
-        /* ===== ทำให้ตารางเต็มความกว้างหน้าจอ (แก้เฉพาะจุดนี้) ===== */
-        paymentTable.widthProperty().addListener((obs, oldW, newW) -> {
-            double w = newW.doubleValue() - 20; // เผื่อ scrollbar
-            colShop.setPrefWidth(w * 0.18);
-            colLock.setPrefWidth(w * 0.10);
-            colMethod.setPrefWidth(w * 0.15);
-            colDeposit.setPrefWidth(w * 0.12);
-            colRent.setPrefWidth(w * 0.12);
-            colTotal.setPrefWidth(w * 0.13);
-            colDate.setPrefWidth(w * 0.20);
+        // ⭐ Comparator ภาษาไทย
+        colShop.setComparator((a, b) -> {
+            if (a == null && b == null) return 0;
+            if (a == null) return -1;
+            if (b == null) return 1;
+            return thaiCollator.compare(a, b);
         });
 
+        centerAlignTextColumn(colLock);
+        centerAlignTextColumn(colMethod);
+        centerAlignTextColumn(colDate);
+        rightAlignNumberColumn(colDeposit);
+        rightAlignNumberColumn(colRent);
+        rightAlignNumberColumn(colTotal);
+
         filteredData = new FilteredList<>(masterData, p -> true);
-        paymentTable.setItems(filteredData);
+        sortedData = new SortedList<>(filteredData);
 
-        paymentTable.getSelectionModel().selectedItemProperty().addListener(
-                (obs, old, row) -> showDetail(row)
-        );
+        sortedData.comparatorProperty().bind(paymentTable.comparatorProperty());
+        paymentTable.setItems(sortedData);
 
-        /* ===== REAL-TIME FILTER ===== */
+        paymentTable.getSelectionModel().selectedItemProperty()
+                .addListener((obs, old, row) -> showDetail(row));
+
         txtSearch.textProperty().addListener((obs, o, n) -> handleFilter());
         cbMethod.valueProperty().addListener((obs, o, n) -> handleFilter());
         dpDate.valueProperty().addListener((obs, o, n) -> handleFilter());
-        cbSort.valueProperty().addListener((obs, o, n) -> handleFilter());
+        cbSort.valueProperty().addListener((obs, o, n) -> applySort());
+
+        // เรียงเริ่มต้นตามค่าที่ตั้งไว้ (เรียงครั้งแรก)
+        applySort();
 
         clearDetail();
         new Thread(this::loadPayments).start();
     }
 
-    /* ================= FILTER + SORT ================= */
-
-    @FXML
+    /* ================= FILTER & SORT ================= */
     private void handleFilter() {
 
         String keyword = txtSearch.getText().trim();
@@ -127,16 +132,16 @@ rightAlignNumberColumn(colTotal);
 
             boolean matchKeyword =
                     keyword.isEmpty()
-                    || row.getShop().contains(keyword)
-                    || row.getLock().contains(keyword);
+                            || row.getShop().contains(keyword)
+                            || row.getLock().contains(keyword);
 
             boolean matchMethod =
                     method.equals("ทั้งหมด")
-                    || row.getMethod().equals(method);
+                            || row.getMethod().equals(method);
 
             boolean matchDate =
                     date == null
-                    || row.getDate().equals(date);
+                            || row.getDate().equals(date);
 
             return matchKeyword && matchMethod && matchDate;
         });
@@ -160,10 +165,8 @@ rightAlignNumberColumn(colTotal);
     }
 
     /* ================= LOAD DATA ================= */
-
     private void loadPayments() {
         try {
-
             String url = SUPABASE_URL +
                     "/rest/v1/payments" +
                     "?select=id,booking_id,payment_method,payment_date,amount,proof_image_url,note";
@@ -176,40 +179,32 @@ rightAlignNumberColumn(colTotal);
                     .build();
 
             HttpResponse<String> response =
-                    HttpClient.newHttpClient().send(
-                            request, HttpResponse.BodyHandlers.ofString()
-                    );
+                    HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
             JsonArray payments = JsonParser.parseString(response.body()).getAsJsonArray();
+            ObservableList<PaymentRow> temp = FXCollections.observableArrayList();
 
             for (int i = 0; i < payments.size(); i++) {
                 JsonObject p = payments.get(i).getAsJsonObject();
 
                 long bookingId = p.get("booking_id").getAsLong();
-                String method = p.get("payment_method").getAsString();
-                String date = p.get("payment_date").getAsString();
-                double total = p.get("amount").getAsDouble();
-                String note = p.get("note").isJsonNull() ? "" : p.get("note").getAsString();
-                String imageUrl = p.get("proof_image_url").isJsonNull()
-                        ? null : p.get("proof_image_url").getAsString();
-
                 BookingInfo booking = loadBooking(bookingId);
                 if (booking == null) continue;
 
-                PaymentRow row = new PaymentRow(
+                temp.add(new PaymentRow(
                         booking.fullName,
                         booking.stallId,
-                        method,
-                        date,
+                        p.get("payment_method").getAsString(),
+                        p.get("payment_date").getAsString(),
                         booking.deposit,
                         booking.rent,
-                        total,
-                        note,
-                        imageUrl
-                );
-
-                Platform.runLater(() -> masterData.add(row));
+                        p.get("amount").getAsDouble(),
+                        p.get("note").isJsonNull() ? "" : p.get("note").getAsString(),
+                        p.get("proof_image_url").isJsonNull() ? null : p.get("proof_image_url").getAsString()
+                ));
             }
+
+            Platform.runLater(() -> masterData.setAll(temp));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -218,37 +213,31 @@ rightAlignNumberColumn(colTotal);
 
     private BookingInfo loadBooking(long bookingId) {
         try {
-
             String url = SUPABASE_URL +
                     "/rest/v1/bookings" +
                     "?select=full_name,stall_id,deposit_price,total_price" +
                     "&booking_id=eq." + bookingId;
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .GET()
-                    .build();
-
             HttpResponse<String> response =
                     HttpClient.newHttpClient().send(
-                            request, HttpResponse.BodyHandlers.ofString()
+                            HttpRequest.newBuilder()
+                                    .uri(URI.create(url))
+                                    .header("apikey", SUPABASE_KEY)
+                                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                                    .GET()
+                                    .build(),
+                            HttpResponse.BodyHandlers.ofString()
                     );
 
             JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
             if (arr.isEmpty()) return null;
 
             JsonObject b = arr.get(0).getAsJsonObject();
-
             BookingInfo info = new BookingInfo();
             info.fullName = b.get("full_name").getAsString();
             info.stallId = b.get("stall_id").getAsString();
-            info.deposit = b.get("deposit_price").isJsonNull()
-                    ? 0 : b.get("deposit_price").getAsDouble();
-            info.rent = b.get("total_price").isJsonNull()
-                    ? 0 : b.get("total_price").getAsDouble();
-
+            info.deposit = b.get("deposit_price").isJsonNull() ? 0 : b.get("deposit_price").getAsDouble();
+            info.rent = b.get("total_price").isJsonNull() ? 0 : b.get("total_price").getAsDouble();
             return info;
 
         } catch (Exception e) {
@@ -256,20 +245,21 @@ rightAlignNumberColumn(colTotal);
         }
     }
 
-    /* ================= ACTION ================= */
-
-    @FXML
-    private void handleReset() {
-        txtSearch.clear();
-        cbMethod.setValue("ทั้งหมด");
-        dpDate.setValue(null);
-        cbSort.setValue("ชื่อลูกค้า (ก → ฮ)");
-        filteredData.setPredicate(p -> true);
-        paymentTable.getSelectionModel().clearSelection();
-        clearDetail();
-    }
-
     /* ================= DETAIL ================= */
+    private void showDetail(PaymentRow row) {
+        if (row == null) return;
+
+        lblMethod.setText("วิธีชำระเงิน: " + row.getMethod());
+        lblDeposit.setText("- ค่ามัดจำ: " + row.getDeposit() + " ฿");
+        lblRent.setText("- ค่าเช่า: " + row.getRent() + " ฿");
+        lblTotal.setText("- ยอดรวม: " + row.getTotal() + " ฿");
+
+        slipImage.setImage(
+                row.getImageUrl() != null
+                        ? new Image(row.getImageUrl(), true)
+                        : null
+        );
+    }
 
     private void clearDetail() {
         lblMethod.setText("");
@@ -279,23 +269,19 @@ rightAlignNumberColumn(colTotal);
         slipImage.setImage(null);
     }
 
-    private void showDetail(PaymentRow row) {
-        if (row == null) return;
-
-        lblMethod.setText("วิธีชำระเงิน: " + row.getMethod());
-        lblDeposit.setText("- ค่ามัดจำ: " + row.getDeposit() + " ฿");
-        lblRent.setText("- ค่าเช่า: " + row.getRent() + " ฿");
-        lblTotal.setText("- ยอดรวม: " + row.getTotal() + " ฿");
-
-        if (row.getImageUrl() != null) {
-            slipImage.setImage(new Image(row.getImageUrl(), true));
-        } else {
-            slipImage.setImage(null);
-        }
+    /* ================= ACTION (แก้เป็น public + รับ ActionEvent) ================= */
+    @FXML
+    public void handleReset(ActionEvent event) {
+        txtSearch.clear();
+        cbMethod.setValue("ทั้งหมด");
+        dpDate.setValue(null);
+        cbSort.setValue("ชื่อลูกค้า (ก → ฮ)");
+        filteredData.setPredicate(p -> true);
+        paymentTable.getSelectionModel().clearSelection();
+        clearDetail();
     }
 
-    /* ================= MODEL ================= */
-
+    /* ================= INNER CLASSES ================= */
     private static class BookingInfo {
         String fullName;
         String stallId;
@@ -341,26 +327,28 @@ rightAlignNumberColumn(colTotal);
         public String getLock() { return lock.get(); }
         public String getMethod() { return method.get(); }
         public String getDate() { return date.get(); }
-        public String getNote() { return note.get(); }
         public String getImageUrl() { return imageUrl.get(); }
         public double getDeposit() { return deposit.get(); }
         public double getRent() { return rent.get(); }
         public double getTotal() { return total.get(); }
     }
 
-    // ================= ALIGN TEXT COLUMN =================
+    /* ================= TABLE STYLE ================= */
     private void centerAlignTextColumn(TableColumn<PaymentRow, String> column) {
         column.setCellFactory(tc -> new TableCell<PaymentRow, String>() {
             @Override
             protected void updateItem(String value, boolean empty) {
                 super.updateItem(value, empty);
-                setText(empty || value == null ? null : value);
+                if (empty || value == null) {
+                    setText(null);
+                } else {
+                    setText(value);
+                }
                 setStyle("-fx-alignment: CENTER;");
             }
         });
     }
 
-    // ================= ALIGN NUMBER COLUMN =================
     private void rightAlignNumberColumn(TableColumn<PaymentRow, Double> column) {
         column.setCellFactory(tc -> new TableCell<PaymentRow, Double>() {
             @Override
