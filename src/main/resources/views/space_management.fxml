@@ -54,6 +54,13 @@
                                       prefWidth="200"
                                       prefHeight="35"/>
                         </VBox>
+                        <VBox spacing="6">
+                            <Label text="วันที่จอง"/>
+                            <DatePicker fx:id="filterDate"
+                                        promptText="เลือกวันที่"
+                                        prefWidth="200"
+                                        prefHeight="35"/>
+                        </VBox>
                     </HBox>
                 </VBox>
             </VBox>

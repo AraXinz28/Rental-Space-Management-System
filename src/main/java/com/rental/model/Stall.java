@@ -1,6 +1,6 @@
 package com.rental.model;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class Stall {
 
@@ -10,26 +10,29 @@ public class Stall {
     private String status;
     private double dailyRate;
 
-    
-    private LocalDateTime bookingDate;
+    // ===== booking range =====
+    private LocalDate bookingStart;
+    private LocalDate bookingEnd;
 
-    // constructor เดิม 
+    // constructor เดิม (ไม่มี booking)
     public Stall(String zoneName, String stallId, String size,
                  String status, double dailyRate) {
-        this(zoneName, stallId, size, status, dailyRate, null);
+        this(zoneName, stallId, size, status, dailyRate, null, null);
     }
 
-    // constructor ใหม่ (มีวันที่)
+    // constructor ใหม่ (รองรับช่วงวัน)
     public Stall(String zoneName, String stallId, String size,
                  String status, double dailyRate,
-                 LocalDateTime bookingDate) {
+                 LocalDate bookingStart,
+                 LocalDate bookingEnd) {
 
         this.zoneName = zoneName;
         this.stallId = stallId;
         this.size = size;
         this.status = status;
         this.dailyRate = dailyRate;
-        this.bookingDate = bookingDate;
+        this.bookingStart = bookingStart;
+        this.bookingEnd = bookingEnd;
     }
 
     // ===== getters =====
@@ -38,5 +41,7 @@ public class Stall {
     public String getSize() { return size; }
     public String getStatus() { return status; }
     public double getDailyRate() { return dailyRate; }
-    public LocalDateTime getBookingDate() { return bookingDate; }
+
+    public LocalDate getBookingStart() { return bookingStart; }
+    public LocalDate getBookingEnd() { return bookingEnd; }
 }

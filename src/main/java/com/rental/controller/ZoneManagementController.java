@@ -6,22 +6,19 @@ import com.rental.util.SceneManager;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-
 public class ZoneManagementController {
-    
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusCombo;
@@ -29,54 +26,40 @@ public class ZoneManagementController {
     @FXML private TableView<Zone> zoneTable;
     @FXML private TableColumn<Zone, String> colZoneName;
     @FXML private TableColumn<Zone, Integer> colSlot;
-    @FXML private TableColumn<Zone, Void> colAction;
     @FXML private TableColumn<Zone, String> colStatus;
-    @FXML private Button zoneTab;
-    @FXML private Button spaceTab;
+    @FXML private TableColumn<Zone, Void> colAction;
 
-    private ObservableList<Zone> masterList = FXCollections.observableArrayList();
-
+    private final ObservableList<Zone> masterList = FXCollections.observableArrayList();
     private final SupabaseClient supabase = new SupabaseClient();
 
-    /* ===== INITIALIZE ===== */
+    /* ================= INITIALIZE ================= */
     @FXML
     private void initialize() {
-        colStatus.setCellValueFactory(
-            new PropertyValueFactory<>("zoneStatus")
-        );
-        colZoneName.setCellValueFactory(
-                new PropertyValueFactory<>("zoneName")
-        );
-        colSlot.setCellValueFactory(
-                new PropertyValueFactory<>("slotCount")
-        );
-        colAction.setCellValueFactory(
-                param -> new ReadOnlyObjectWrapper<>(null)
-        );
+
+        colZoneName.setCellValueFactory(new PropertyValueFactory<>("zoneName"));
+        colSlot.setCellValueFactory(new PropertyValueFactory<>("slotCount"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("zoneStatus"));
+        colAction.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(null));
+
+        setupStatusCell();
         setupEditColumn();
         loadZoneData();
-        setupStatusCell();
-        
+
         searchField.textProperty().addListener((obs, o, n) -> handleSearch());
         statusCombo.valueProperty().addListener((obs, o, n) -> handleSearch());
 
-        
-        statusCombo.getItems().addAll(
-            "เปิดให้บริการ",
-                        "ปิดปรับปรุง"
-        );
+        statusCombo.getItems().addAll("เปิดให้บริการ", "ปิดปรับปรุง");
     }
-    /* ===== LOAD ZONE DATA ===== */
-    private void loadZoneData() {
 
-    masterList.clear();
+    /* ================= LOAD DATA ================= */
+    private void loadZoneData() {
+        masterList.clear();
 
         try {
-            String response = supabase.selectAll("zone");
-            JSONArray array = new JSONArray(response);
+            JSONArray arr = new JSONArray(supabase.selectAll("zone"));
 
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
 
                 masterList.add(new Zone(
                         obj.getInt("id"),
@@ -85,10 +68,9 @@ public class ZoneManagementController {
                         obj.optString("zone_status", "")
                 ));
             }
-            /* จัดเรียงตามชื่อโซน */
+
             masterList.sort((a, b) ->
-        a.getZoneName().compareToIgnoreCase(b.getZoneName())
-        );
+                    a.getZoneName().compareToIgnoreCase(b.getZoneName()));
 
             zoneTable.setItems(masterList);
 
@@ -97,60 +79,163 @@ public class ZoneManagementController {
         }
     }
 
-    /* ===== EDIT COLUMN ===== */
+    /* ================= STATUS CELL ================= */
+    private void setupStatusCell() {
+        colStatus.setCellFactory(col -> new TableCell<>() {
+
+            private final Label label = new Label();
+
+            @Override
+            protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
+
+                if (empty || status == null) {
+                    setGraphic(null);
+                    return;
+                }
+
+                label.setText(status);
+                label.setStyle(getStatusStyle(status));
+                setGraphic(label);
+                setAlignment(Pos.CENTER);
+            }
+        });
+    }
+
+    private String getStatusStyle(String status) {
+        return switch (status) {
+            case "เปิดให้บริการ" ->
+                "-fx-background-color:#4F6A4A;-fx-text-fill:white;-fx-padding:4 14;-fx-background-radius:20;";
+            case "ปิดปรับปรุง" ->
+                "-fx-background-color:#C0BDBD;-fx-text-fill:white;-fx-padding:4 14;-fx-background-radius:20;";
+            default ->
+                "-fx-background-color:#999;-fx-text-fill:white;-fx-padding:4 14;-fx-background-radius:20;";
+        };
+    }
+
+    /* ================= EDIT COLUMN ================= */
     private void setupEditColumn() {
     colAction.setCellFactory(col -> new TableCell<>() {
 
         private final Button editBtn = new Button("Edit");
+        private final Button deleteBtn = new Button("Delete");
+        private final HBox box = new HBox(10, editBtn, deleteBtn);
 
         {
-            // ปุ่ม Edit 
-            editBtn.setStyle("""
-                -fx-background-color: transparent;
-                -fx-text-fill: #9e9e9e;
-                -fx-font-weight: bold;
-                -fx-cursor: hand;
-            """);
+            box.setAlignment(Pos.CENTER);
 
-            editBtn.setOnMouseEntered(e ->
-                editBtn.setStyle("""
-                    -fx-background-color: transparent;
-                    -fx-text-fill: #616161;
-                    -fx-font-weight: bold;
-                    -fx-cursor: hand;
-                """)
+            editBtn.setStyle(
+                "-fx-background-color:transparent;-fx-text-fill:#9e9e9e;"
+            );
+            deleteBtn.setStyle(
+                "-fx-background-color:transparent;-fx-text-fill:#B00020;"
             );
 
-            editBtn.setOnMouseExited(e ->
-                editBtn.setStyle("""
-                    -fx-background-color: transparent;
-                    -fx-text-fill: #9e9e9e;
-                    -fx-font-weight: bold;
-                    -fx-cursor: hand;
-                """)
+            editBtn.setOnAction(e ->
+                goToEditZone(getTableView().getItems().get(getIndex()))
             );
 
-            editBtn.setOnAction(e -> {
-                Zone zone = getTableView().getItems().get(getIndex());
-                goToEditZone(zone); 
-            });
+            deleteBtn.setOnAction(e ->
+                confirmDelete(getTableView().getItems().get(getIndex()))
+            );
         }
 
         @Override
         protected void updateItem(Void item, boolean empty) {
             super.updateItem(item, empty);
-            setGraphic(empty ? null : editBtn);
-            setAlignment(Pos.CENTER);
+            setGraphic(empty ? null : box);
         }
-    });
-}
+        });
+    }
 
-    /* ===== GO EDIT ZONE ===== */
+    private void confirmDelete(Zone zone) {
+    try {
+        /* ===== CHECK: มี stall ถูกเช่าอยู่ไหม ===== */
+        String res = supabase.selectWhere(
+            "stalls",
+            "zone_name",
+            zone.getZoneName()
+        );
+
+        JSONArray arr = new JSONArray(res);
+        for (int i = 0; i < arr.length(); i++) {
+            if ("rented".equals(arr.getJSONObject(i).getString("status"))) {
+                new Alert(
+                    Alert.AlertType.WARNING,
+                    "ไม่สามารถลบโซนที่มีพื้นที่ถูกเช่าอยู่"
+                ).showAndWait();
+                return; // หยุดตรงนี้ ไม่ไปลบ
+            }
+        }
+
+        /* ===== ถ้าไม่มี rented ค่อยถามยืนยัน ===== */
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("ยืนยันการลบ");
+        alert.setHeaderText(null);
+        alert.setContentText(
+            "การลบโซนนี้จะลบพื้นที่ทั้งหมดในโซนด้วย\nต้องการดำเนินการต่อหรือไม่?"
+        );
+
+        alert.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                deleteZoneWithStalls(zone);
+            }
+        });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(
+                Alert.AlertType.ERROR,
+                "เกิดข้อผิดพลาดในการตรวจสอบข้อมูลพื้นที่"
+            ).showAndWait();
+        }
+    }
+
+    private void deleteZoneWithStalls(Zone zone) {
+    try {
+        /* ===== delete stalls (child) ===== */
+        supabase.delete(
+            "stalls",
+            "zone_name",
+            zone.getZoneName()
+        );
+
+        /* ===== delete zone (parent) ===== */
+        supabase.delete(
+            "zone",
+            "id",
+            String.valueOf(zone.getId())
+        );
+
+        loadZoneData(); // refresh table
+
+        new Alert(
+            Alert.AlertType.INFORMATION,
+            "ลบโซนและพื้นที่เรียบร้อยแล้ว"
+        ).showAndWait();
+
+        } catch (Exception e) {
+        e.printStackTrace();
+        new Alert(
+            Alert.AlertType.ERROR,
+            "ไม่สามารถลบโซนได้"
+            ).showAndWait();
+        }
+        
+    }
+
+    
+
+    /* ================= NAVIGATION ================= */
     private void goToEditZone(Zone zone) {
         try {
             FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("/views/edit_zone.fxml"));
             Parent root = loader.load();
+
+            loader.getController()
+                  .getClass()
+                  .cast(loader.getController());
 
             EditZoneController controller = loader.getController();
             controller.setZoneData(zone);
@@ -162,90 +247,47 @@ public class ZoneManagementController {
             e.printStackTrace();
         }
     }
-    /* ===== ADD ZONE ===== */
-    @FXML
-    private void goToAddZone() {
-        try {
-            Stage stage = (Stage) zoneTable.getScene().getWindow();
-            SceneManager.switchScene(stage, "/views/add_zone.fxml");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    private void setupStatusCell() {
-        colStatus.setCellFactory(col -> new TableCell<>() {
-        private final Label label = new Label();
-        @Override
-        protected void updateItem(String status, boolean empty) {
-            super.updateItem(status, empty);
 
-            if (empty || status == null || status.isBlank()) {
-                setGraphic(null);
-            } else {
-                label.setText(status);
-                label.setStyle(getStatusStyle(status));
-                setGraphic(label);
-                setAlignment(Pos.CENTER);
-            }
-        }
-    });
-    }
-    private String getStatusStyle(String status) {
-    return switch (status) {
-        case "เปิดให้บริการ" ->
-                "-fx-background-color:#4F6A4A;" +
-                "-fx-text-fill:white;" +
-                "-fx-padding:4 14;" +
-                "-fx-background-radius:20;";
-        case "ปิดปรับปรุง" ->
-                "-fx-background-color:#C0BDBD;" +
-                "-fx-text-fill:white;" +
-                "-fx-padding:4 14;" +
-                "-fx-background-radius:20;";
-        default ->
-                "-fx-background-color:#999;" +
-                "-fx-text-fill:white;" +
-                "-fx-padding:4 14;" +
-                "-fx-background-radius:20;";
-    };
-    }
     @FXML
-    private void goToSpaceManagement() {
-        try {
-            Stage stage = (Stage) zoneTable.getScene().getWindow();
-            SceneManager.switchScene(stage, "/views/space_management.fxml");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void goToAddZone() throws Exception {
+        SceneManager.switchScene(
+            (Stage) zoneTable.getScene().getWindow(),
+            "/views/add_zone.fxml"
+        );
     }
+
+    @FXML
+    private void goToSpaceManagement() throws Exception {
+        SceneManager.switchScene(
+            (Stage) zoneTable.getScene().getWindow(),
+            "/views/space_management.fxml"
+        );
+    }
+
+    /* ================= SEARCH ================= */
     @FXML
     private void handleSearch() {
-
         String keyword = searchField.getText() == null
-                ? ""
-                : searchField.getText().trim().toLowerCase();
+                ? "" : searchField.getText().toLowerCase();
 
         String selectedStatus = statusCombo.getValue();
 
         ObservableList<Zone> filtered = FXCollections.observableArrayList();
 
-        for (Zone zone : masterList) {
-
+        for (Zone z : masterList) {
             boolean matchKeyword =
-                    keyword.isEmpty()
-                    || zone.getZoneName().toLowerCase().contains(keyword);
+                keyword.isEmpty()
+                || z.getZoneName().toLowerCase().contains(keyword);
 
             boolean matchStatus =
-                    selectedStatus == null
-                    || selectedStatus.equals("ทุกสถานะ")
-                    || zone.getZoneStatus().equals(selectedStatus);
+                selectedStatus == null
+                || z.getZoneStatus().equals(selectedStatus);
 
             if (matchKeyword && matchStatus) {
-                filtered.add(zone);
+                filtered.add(z);
             }
         }
 
         zoneTable.setItems(filtered);
     }
-
 }

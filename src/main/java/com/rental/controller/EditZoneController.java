@@ -18,8 +18,11 @@ public class EditZoneController {
     @FXML private ComboBox<String> statusComboBox;
 
     private final SupabaseClient supabase = new SupabaseClient();
-    private int zoneId;
 
+    private int zoneId;
+    private String originalZoneName;
+
+    /* ================= INITIALIZE ================= */
     @FXML
     public void initialize() {
         statusComboBox.getItems().addAll(
@@ -29,49 +32,85 @@ public class EditZoneController {
         );
     }
 
-        // รับข้อมูลจากหน้า ZoneManagement
+    /* ================= RECEIVE DATA ================= */
     public void setZoneData(Zone zone) {
         this.zoneId = zone.getId();
+        this.originalZoneName = zone.getZoneName();
+
         zoneNameField.setText(zone.getZoneName());
         totalLocksField.setText(String.valueOf(zone.getSlotCount()));
         statusComboBox.setValue(zone.getZoneStatus());
     }
 
+    /* ================= SAVE ================= */
     @FXML
     private void handleSave() {
-    try {
-        JSONObject body = new JSONObject();
-        body.put("zone_name", zoneNameField.getText().trim());
-        body.put("slot_count", Integer.parseInt(totalLocksField.getText()));
-        body.put("zone_status", statusComboBox.getValue());
+        try {
+            String zoneName = zoneNameField.getText().trim();
+            int slotCount = Integer.parseInt(totalLocksField.getText());
+            String newZoneStatus = statusComboBox.getValue();
 
-        supabase.updateById("zone", body.toString(), zoneId);
+            /* ===== update zone ===== */
+            JSONObject zoneBody = new JSONObject();
+            zoneBody.put("zone_name", zoneName);
+            zoneBody.put("slot_count", slotCount);
+            zoneBody.put("zone_status", newZoneStatus);
 
-        showInformation("สำเร็จ", "แก้ไขโซนสำเร็จ");
+            supabase.updateById("zone", zoneBody.toString(), zoneId);
 
-        // กลับไปหน้า zone_management
-        Stage stage = (Stage) zoneNameField.getScene().getWindow();
-        SceneManager.switchScene(stage, "/views/zone_management.fxml");
+            /* ===== composition: update stalls ===== */
+            updateStallsByZone(originalZoneName, newZoneStatus);
 
-    } catch (NumberFormatException e) {
-        showError("กรุณากรอกจำนวนล็อกเป็นตัวเลข");
-    } catch (Exception e) {
-        e.printStackTrace();
-        showError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+            showInformation("สำเร็จ", "แก้ไขโซนสำเร็จ");
+
+            // กลับหน้า zone_management
+            Stage stage = (Stage) zoneNameField.getScene().getWindow();
+            SceneManager.switchScene(stage, "/views/zone_management.fxml");
+
+        } catch (NumberFormatException e) {
+            showError("กรุณากรอกจำนวนล็อกเป็นตัวเลข");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        }
     }
+
+    /* ================= COMPOSITION LOGIC ================= */
+    private void updateStallsByZone(String zoneName, String zoneStatus) throws Exception {
+
+        JSONObject stallBody = new JSONObject();
+
+            switch (zoneStatus) {
+        case "ปิดปรับปรุง" -> 
+            stallBody.put("status", "maintenance");
+
+        case "เปิดให้บริการ" -> 
+            stallBody.put("status", "available");
+
+        case "เต็ม" -> 
+            stallBody.put("status", "rented");
+
+        default -> {
+            return;
+        }
     }
 
+        // กัน stall ที่เช่าอยู่ ไม่ให้โดนทับ
+        supabase.updateWhere(
+            "stalls",
+            "zone_name=eq." + zoneName + "&status=neq.rented",
+            stallBody.toString()
+        );
+    }
 
+    /* ================= CANCEL ================= */
     @FXML
     private void handleCancel() {
-        closeWindow();
-    }
-
-    private void closeWindow() {
         Stage stage = (Stage) zoneNameField.getScene().getWindow();
         stage.close();
     }
 
+    /* ================= ALERT ================= */
     private void showInformation(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

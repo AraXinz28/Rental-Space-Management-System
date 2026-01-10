@@ -8,9 +8,6 @@ import com.rental.model.Stall;
 import com.rental.util.SceneManager;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
@@ -24,41 +21,53 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class SpaceManagementController {
 
+    /* ===== filters ===== */
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusCombo;
+    @FXML private DatePicker filterDate;
 
+    /* ===== table ===== */
     @FXML private TableView<Stall> zoneTable;
     @FXML private TableColumn<Stall, String> colZoneName;
     @FXML private TableColumn<Stall, String> colSlot;
     @FXML private TableColumn<Stall, String> colSize;
     @FXML private TableColumn<Stall, String> colStatus;
-    @FXML private TableColumn<Stall, LocalDateTime> colBookingDate;
+    @FXML private TableColumn<Stall, String> colBookingDate;
     @FXML private TableColumn<Stall, Void> colAction;
 
     private final ObservableList<Stall> masterList = FXCollections.observableArrayList();
     private final SupabaseClient supabase = new SupabaseClient();
 
+    /* ===== helper class ===== */
+    private static class BookingRange {
+        LocalDate start;
+        LocalDate end;
+    }
+
     @FXML
     private void initialize() {
 
-        colZoneName.setCellValueFactory(new PropertyValueFactory<>("zoneName"));
-        colSlot.setCellValueFactory(new PropertyValueFactory<>("stallId"));
-        colSize.setCellValueFactory(new PropertyValueFactory<>("size"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        colBookingDate.setCellValueFactory(new PropertyValueFactory<>("bookingDate"));
+        colZoneName.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getZoneName()));
+        colSlot.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getStallId()));
+        colSize.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getSize()));
 
         setupStatusCell();
         setupBookingDateCell();
         setupActionColumn();
 
         loadStallData();
+        handleSearch();
 
+        filterDate.setValue(LocalDate.now());
+        filterDate.valueProperty().addListener((obs, o, n) -> {
+            handleSearch();
+            zoneTable.refresh(); 
+        });
 
         searchField.textProperty().addListener((obs, o, n) -> handleSearch());
         statusCombo.valueProperty().addListener((obs, o, n) -> handleSearch());
@@ -74,7 +83,6 @@ public class SpaceManagementController {
     /* ===== map สถานะ ===== */
     private String mapStatus(String thaiStatus) {
         if (thaiStatus == null) return null;
-
         return switch (thaiStatus) {
             case "ว่าง" -> "available";
             case "ถูกเช่า" -> "rented";
@@ -84,103 +92,74 @@ public class SpaceManagementController {
         };
     }
 
-    /* ===== โหลดข้อมูล ===== */
+    /* ===== load data (รองรับหลายวัน) ===== */
     private void loadStallData() {
 
-    masterList.clear();
+        masterList.clear();
 
-    try {
-        /* ===== 1. โหลด booking ทั้งหมดครั้งเดียว ===== */
-        String bookingRes = supabase.selectAll("bookings");
-        JSONArray bookings = new JSONArray(bookingRes);
+        try {
+            /* --- 1) โหลด bookings เป็นช่วง --- */
+            String bookingRes = supabase.selectAll("bookings");
+            JSONArray bookings = new JSONArray(bookingRes);
 
-        // map: stall_id -> booking start date ล่าสุด
-        Map<String, LocalDateTime> bookingDateMap = new HashMap<>();
+            Map<String, BookingRange> bookingMap = new HashMap<>();
 
-        for (int i = 0; i < bookings.length(); i++) {
-    JSONObject b = bookings.getJSONObject(i);
+            for (int i = 0; i < bookings.length(); i++) {
+                JSONObject b = bookings.getJSONObject(i);
 
-    if (b.isNull("start_date")) continue;
+                if (b.isNull("start_date") || b.isNull("end_date")) continue;
 
-    
-    String bookingStatus = b.optString("status");
+                String bookingStatus = b.optString("status");
+                if (!"paid".equals(bookingStatus) && !"pending".equals(bookingStatus)) continue;
 
-   
-    if (!"paid".equals(bookingStatus) && !"pending".equals(bookingStatus)) {
-    continue;
-    }
+                String stallId = b.getString("stall_id");
 
-    String stallId = b.getString("stall_id");
-    String startDateStr = b.getString("start_date");
+                LocalDate start = LocalDate.parse(b.getString("start_date"));
+                LocalDate end   = LocalDate.parse(b.getString("end_date"));
 
-    LocalDateTime startDate =
-    LocalDate.parse(startDateStr)
-        .atStartOfDay(ZoneOffset.UTC)    
-        .withZoneSameInstant(ZoneId.of("Asia/Bangkok")) 
-        .toLocalDateTime();
+                BookingRange r = new BookingRange();
+                r.start = start;
+                r.end = end;
 
-    // เก็บวันที่ล่าสุด
-    if (!bookingDateMap.containsKey(stallId)
-        || bookingDateMap.get(stallId).isBefore(startDate)) {
+                bookingMap.put(stallId, r);
+            }
 
-        bookingDateMap.put(stallId, startDate);
-    }
-}
+            /* --- 2) โหลด stalls --- */
+            String stallRes = supabase.selectAll("stalls");
+            JSONArray stalls = new JSONArray(stallRes);
 
+            for (int i = 0; i < stalls.length(); i++) {
 
-        /* ===== 2. โหลด stalls ===== */
-        String stallRes = supabase.selectAll("stalls");
-        JSONArray stalls = new JSONArray(stallRes);
+                JSONObject obj = stalls.getJSONObject(i);
 
-        for (int i = 0; i < stalls.length(); i++) {
+                String status = obj.getString("status");
+                if ("closed".equals(status)) status = "maintenance";
 
-            JSONObject obj = stalls.getJSONObject(i);
+                String stallId = obj.getString("stall_id");
 
-            String status = obj.getString("status");
-            if ("closed".equals(status)) status = "maintenance";
+                BookingRange r = bookingMap.get(stallId);
+                LocalDate start = r != null ? r.start : null;
+                LocalDate end   = r != null ? r.end   : null;
 
-            String stallId = obj.getString("stall_id");
+                masterList.add(new Stall(
+                    obj.getString("zone_name"),
+                    stallId,
+                    obj.getString("size"),
+                    status,
+                    obj.getDouble("daily_rate"),
+                    start,
+                    end
+                ));
+            }
 
-            LocalDateTime bookingDate =
-                bookingDateMap.getOrDefault(stallId, null);
+            zoneTable.setItems(masterList);
 
-            masterList.add(new Stall(
-                obj.getString("zone_name"),
-                stallId,
-                obj.getString("size"),
-                status,
-                obj.getDouble("daily_rate"),
-                bookingDate
-            ));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        /* ===== 3. sort ===== */
-        masterList.sort((a, b) -> {
-
-            int z = a.getZoneName().compareToIgnoreCase(b.getZoneName());
-            if (z != 0) return z;
-
-            int s = a.getStallId().compareToIgnoreCase(b.getStallId());
-            if (s != 0) return s;
-
-            if (a.getBookingDate() == null && b.getBookingDate() == null) return 0;
-            if (a.getBookingDate() == null) return 1;
-            if (b.getBookingDate() == null) return -1;
-
-            return b.getBookingDate().compareTo(a.getBookingDate());
-        });
-
-        zoneTable.setItems(masterList);
-
-    } catch (Exception e) {
-        e.printStackTrace();
     }
-}
 
-
-
-
-    /* ===== cell สถานะ ===== */
+    /* ===== status cell (อิงวันที่ที่เลือก) ===== */
     private void setupStatusCell() {
         colStatus.setCellFactory(col -> new TableCell<>() {
 
@@ -192,21 +171,24 @@ public class SpaceManagementController {
             }
 
             @Override
-            protected void updateItem(String status, boolean empty) {
-                super.updateItem(status, empty);
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-                if (empty || status == null) {
+                if (empty || getTableRow().getItem() == null) {
                     setGraphic(null);
                     return;
                 }
 
-                switch (status) {
-                case "available" -> style("ว่าง", "#4F6A4A");
-                case "processing" -> style("กำลังดำเนินการ", "#B7AE75");
-                case "rented" -> style("ถูกเช่า", "#6F4949");
-                case "maintenance", "closed" -> style("ปิดปรับปรุง", "#9E9E9E");
-                default -> style(status, "#999999"); 
-}
+                Stall s = getTableRow().getItem();
+                LocalDate selected = filterDate.getValue();
+
+                boolean available = isAvailableOnDate(s, selected);
+
+                if (available) {
+                    style("ว่าง", "#4F6A4A");
+                } else {
+                    style("ถูกเช่า", "#6F4949");
+                }
 
                 setGraphic(label);
                 setAlignment(Pos.CENTER);
@@ -224,31 +206,43 @@ public class SpaceManagementController {
         });
     }
 
-    /* ===== cell วันที่ ===== */
+    /* ===== booking date cell (แสดงช่วงวัน) ===== */
     private void setupBookingDateCell() {
 
-    DateTimeFormatter fmt =
-    DateTimeFormatter.ofPattern(
-        "d MMMM yyyy ",
-        Locale.of("th", "TH")
-    );
+            DateTimeFormatter fmt =
+                DateTimeFormatter.ofPattern("d MMM yy", Locale.of("th", "TH"));
 
-    colBookingDate.setCellFactory(col -> new TableCell<>() {
+            colBookingDate.setCellFactory(col -> new TableCell<>() {
         @Override
-        protected void updateItem(LocalDateTime date, boolean empty) {
-            super.updateItem(date, empty);
+        protected void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
 
-            if (empty || date == null) {
-                setText("-");
-            } else {
-                setText(fmt.format(date));
-            }
+        if (empty || getTableRow().getItem() == null) {
+            setText("-");
+            return;
         }
+
+        Stall s = getTableRow().getItem();
+        LocalDate start = s.getBookingStart();
+        LocalDate end   = s.getBookingEnd();
+
+        if (start == null || end == null) {
+            setText("-");
+        } else if (start.equals(end)) {
+            setText(fmt.format(start));
+        } else if (start.getMonth() == end.getMonth()) {
+            // เดือนเดียวกัน
+            setText(start.getDayOfMonth() + "–" + fmt.format(end));
+        } else {
+            // ข้ามเดือน
+            setText(fmt.format(start) + " – " + fmt.format(end));
+        }
+    }
     });
-}
 
+    }
 
-    /* ===== ปุ่ม action ===== */
+    /* ===== action column ===== */
     private void setupActionColumn() {
 
         colAction.setCellFactory(col -> new TableCell<>() {
@@ -281,31 +275,96 @@ public class SpaceManagementController {
                     return;
                 }
 
-                Stall stall = getTableView().getItems().get(getIndex());
+                Stall s = getTableView().getItems().get(getIndex());
+                boolean available = isAvailableOnDate(s, filterDate.getValue());
 
-                boolean disable =
-                    stall.getStatus().equals("rented") ||
-                    stall.getStatus().equals("processing");
-
-                deleteBtn.setDisable(disable);
-                deleteBtn.setOpacity(disable ? 0.4 : 1);
+                deleteBtn.setDisable(!available);
+                deleteBtn.setOpacity(available ? 1 : 0.4);
 
                 setGraphic(box);
             }
         });
     }
 
+    /* ===== availability (หัวใจ) ===== */
+    private boolean isAvailableOnDate(Stall stall, LocalDate selectedDate) {
+
+        if (selectedDate == null) return true;
+
+        LocalDate start = stall.getBookingStart();
+        LocalDate end   = stall.getBookingEnd();
+
+        if (start == null || end == null) return true;
+
+        return selectedDate.isBefore(start) || selectedDate.isAfter(end);
+    }
+
+    /* ===== search / filter ===== */
+    @FXML
+    private void handleSearch() {
+
+        String keyword = searchField.getText() == null
+            ? "" : searchField.getText().toLowerCase();
+
+        String selectedStatus = mapStatus(statusCombo.getValue());
+        LocalDate selectedDate = filterDate.getValue();
+
+        ObservableList<Stall> filtered = FXCollections.observableArrayList();
+
+        for (Stall s : masterList) {
+
+            boolean matchKeyword =
+                keyword.isEmpty()
+                || s.getStallId().toLowerCase().contains(keyword)
+                || s.getZoneName().toLowerCase().contains(keyword);
+
+            boolean availableOnDate = isAvailableOnDate(s, selectedDate);
+
+            boolean matchStatus;
+            if (selectedStatus == null) {
+                matchStatus = true;
+            } else if (selectedStatus.equals("available")) {
+                matchStatus = availableOnDate;
+            } else if (selectedStatus.equals("rented")) {
+                matchStatus = !availableOnDate;
+            } else {
+                matchStatus = s.getStatus().equals(selectedStatus);
+            }
+
+            if (matchKeyword && matchStatus) {
+                filtered.add(s);
+            }
+        }
+
+        /* --- sort: ว่างก่อน --- */
+        filtered.sort((a, b) -> {
+
+    // เรียงตาม Zone (A → Z)
+    int z = a.getZoneName().compareToIgnoreCase(b.getZoneName());
+    if (z != 0) return z;
+
+    // ว่างก่อน / ถูกเช่าทีหลัง
+    boolean aAvail = isAvailableOnDate(a, selectedDate);
+    boolean bAvail = isAvailableOnDate(b, selectedDate);
+    if (aAvail != bAvail) return aAvail ? -1 : 1;
+
+    // เรียงรหัสพื้นที่แบบ numeric (A01, A02, A10)
+    return compareStallId(a.getStallId(), b.getStallId());
+    });
+
+
+
+        zoneTable.setItems(filtered);
+    }
+
     /* ===== delete ===== */
     private void confirmDelete(Stall stall) {
-
-        if (stall.getStatus().equals("rented")
-         || stall.getStatus().equals("processing")) {
+        if (!isAvailableOnDate(stall, filterDate.getValue())) {
             new Alert(Alert.AlertType.WARNING,
-                "ไม่สามารถลบพื้นที่ที่ถูกเช่าหรือกำลังดำเนินการได้")
+                "ไม่สามารถลบพื้นที่ที่ถูกจองในวันที่เลือกได้")
                 .showAndWait();
             return;
         }
-
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setContentText("ต้องการลบพื้นที่นี้หรือไม่?");
         alert.showAndWait().ifPresent(r -> {
@@ -324,28 +383,19 @@ public class SpaceManagementController {
 
     /* ===== navigation ===== */
     private void goToEdit(Stall stall) {
-    try {
-        FXMLLoader loader =
-            new FXMLLoader(getClass().getResource("/views/edit_space.fxml"));
-
-        Parent root = loader.load();
-
-       
-        EditSpaceController controller = loader.getController();
-        controller.setStallData(stall);
-
-        Stage stage = (Stage) zoneTable.getScene().getWindow();
-        stage.setScene(new Scene(root));
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        new Alert(
-            Alert.AlertType.ERROR,
-            "ไม่สามารถเปิดหน้าแก้ไขได้"
-        ).showAndWait();
+        try {
+            FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("/views/edit_space.fxml"));
+            Parent root = loader.load();
+            EditSpaceController controller = loader.getController();
+            controller.setStallData(stall);
+            Stage stage = (Stage) zoneTable.getScene().getWindow();
+            stage.setScene(new Scene(root));
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "ไม่สามารถเปิดหน้าแก้ไขได้").showAndWait();
+        }
     }
-    }
-
 
     @FXML
     private void goToZoneManagement() throws Exception {
@@ -362,34 +412,19 @@ public class SpaceManagementController {
             "/views/add_space.fxml"
         );
     }
+    private int compareStallId(String a, String b) {
 
-    /* ===== search ===== */
-    @FXML
-    private void handleSearch() {
+    // A01 → A + 01
+    String aPrefix = a.replaceAll("\\d", "");
+    String bPrefix = b.replaceAll("\\d", "");
 
-        String keyword = searchField.getText() == null
-            ? "" : searchField.getText().toLowerCase();
+    int p = aPrefix.compareToIgnoreCase(bPrefix);
+    if (p != 0) return p;
 
-        String selectedStatus = mapStatus(statusCombo.getValue());
+    int aNum = Integer.parseInt(a.replaceAll("\\D", ""));
+    int bNum = Integer.parseInt(b.replaceAll("\\D", ""));
 
-        ObservableList<Stall> filtered = FXCollections.observableArrayList();
-
-        for (Stall s : masterList) {
-            boolean matchKeyword =
-                keyword.isEmpty()
-                || s.getStallId().toLowerCase().contains(keyword)
-                || s.getZoneName().toLowerCase().contains(keyword);
-
-            boolean matchStatus =
-                selectedStatus == null
-                || s.getStatus().equals(selectedStatus);
-
-            if (matchKeyword && matchStatus) {
-                filtered.add(s);
-            }
-        }
-
-        zoneTable.setItems(filtered);
-    }
+    return Integer.compare(aNum, bNum);
+}
 
 }

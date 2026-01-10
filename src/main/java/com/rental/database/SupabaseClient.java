@@ -137,6 +137,32 @@ public class SupabaseClient {
         return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
+    // ✅ UPDATE ด้วย condition อิสระ (ใช้กับ composition)
+    public String updateWhere(String table, String condition, String jsonBody) throws Exception {
+
+        String uri = url + "/rest/v1/" + table + "?" + condition;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .header("apikey", key)
+                .header("Authorization", "Bearer " + key)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+         HttpResponse<String> response =
+            client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // debug
+            System.out.println("UPDATE WHERE URI = " + uri);
+            System.out.println("STATUS = " + response.statusCode());
+            System.out.println("BODY = " + response.body());
+
+        return response.body();
+}
+
+
     // ✅ สำหรับหน้า “ประวัติ” ฝั่งแอดมิน (ของเดิม)
     public String selectBookings(String fullNameLike, String uiStatus, LocalDate date) throws Exception {
 
