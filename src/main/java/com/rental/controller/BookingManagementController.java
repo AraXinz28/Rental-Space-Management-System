@@ -82,7 +82,7 @@ public class BookingManagementController implements Initializable {
 
      colStatus.setCellFactory(col -> new TableCell<>() {
     private final ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList(
-            "pending", "approved", "rejected", "cancelled"  // ← เพิ่มบรรทัดนี้
+            "pending", "approved", "rejected"  // ← เพิ่มบรรทัดนี้
     ));
     {
      combo.setOnAction(e -> {
@@ -142,7 +142,11 @@ public class BookingManagementController implements Initializable {
             @Override
             protected ObservableList<PaymentRecord> call() throws Exception {
                 // ดึงข้อมูลฟิลด์ใหม่ให้ครบตาม FXML
-                String url = SUPABASE_URL + "/rest/v1/payments?select=id,payment_method,payment_date,status,start_date,end_date,booking:booking_id(full_name,stall_id)";
+String url = SUPABASE_URL
+        + "/rest/v1/payments"
+        + "?select=id,payment_method,payment_date,status,start_date,end_date,"
+        + "booking:booking_id(full_name,stall_id)"
+        + "&status=neq.cancelled";
                 
                 Request request = new Request.Builder()
                         .url(url)
