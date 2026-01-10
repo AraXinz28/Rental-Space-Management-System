@@ -1,6 +1,5 @@
 .env
-*.env
-target/ 
+*.env 
 *.lst
 maven-status/
 # Maven build output
